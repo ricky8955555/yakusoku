@@ -2,7 +2,7 @@ import importlib
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from aiogram import Dispatcher  # type: ignore
+from aiogram import Dispatcher
 
 from .. import context
 
@@ -30,7 +30,7 @@ def _get_modules() -> set[str]:
         )
     ]
     modules_set = set(modules)
-    assert len(modules_set) < len(modules), "duplicated modules were detected"
+    assert len(modules_set) == len(modules), "duplicated modules were detected"
     return modules_set
 
 
