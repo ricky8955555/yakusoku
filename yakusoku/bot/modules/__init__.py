@@ -20,8 +20,8 @@ def _set_context(data: _ModuleContext) -> None:
     context.set("_module", data)
 
 
-def _get_modules() -> list[str]:
-    return [
+def _get_modules() -> set[str]:
+    modules = [
         item.stem
         for item in Path(MODULES_PATH).iterdir()
         if (item.is_dir() and (item / "__init__.py").exists())
@@ -29,6 +29,9 @@ def _get_modules() -> list[str]:
             item.is_file() and item.suffix == ".py" and item.stem != "__init__"
         )
     ]
+    modules_set = set(modules)
+    assert len(modules_set) < len(modules), "duplicated modules were detected"
+    return modules_set
 
 
 def _import_modules() -> None:
