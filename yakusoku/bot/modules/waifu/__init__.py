@@ -35,9 +35,7 @@ async def get_user_avatar(user: User) -> ChatPhoto:
 )
 async def waifu(message: Message):
     try:
-        updated, waifu = await _factory.fetch_waifu(
-            message.chat, message.from_id
-        )
+        updated, waifu = await _factory.fetch_waifu(message.chat, message.from_id)
     except IndexError:
         return await message.reply("目前群员信息不足捏, 等我熟悉一下群里环境? w")
     except Exception as ex:
@@ -66,9 +64,7 @@ async def waifu_forbid(message: Message):
 
     if not (
         members := [
-            chat
-            async for chat in await chat.get_mentioned_chats(message)
-            if chat.id in members
+            chat async for chat in await chat.get_mentioned_chats(message) if chat.id in members
         ]
     ):
         return await message.reply("找不到提及的用户")
@@ -76,9 +72,7 @@ async def waifu_forbid(message: Message):
     for member in members:
         _factory.forbid_waifu(message.chat.id, member.id)
 
-    mentions: Iterable[str] = (
-        member.get_mention(as_html=True) for member in members
-    )
+    mentions: Iterable[str] = (member.get_mention(as_html=True) for member in members)
     await message.reply(
         f'已将用户 {" ".join(mentions)} 加入人妻列表',
         parse_mode="HTML",
@@ -95,9 +89,7 @@ async def waifu_allow(message: Message):
 
     if not (
         members := [
-            chat
-            async for chat in await chat.get_mentioned_chats(message)
-            if chat.id in member_ids
+            chat async for chat in await chat.get_mentioned_chats(message) if chat.id in member_ids
         ]
     ):
         return await message.reply("找不到提及的用户")
@@ -105,9 +97,7 @@ async def waifu_allow(message: Message):
     for member in members:
         _factory.allow_waifu(message.chat.id, member.id)
 
-    mentions: Iterable[str] = (
-        member.get_mention(as_html=True) for member in members
-    )
+    mentions: Iterable[str] = (member.get_mention(as_html=True) for member in members)
     await message.reply(
         f'已将用户 {" ".join(mentions)} 移出人妻列表',
         parse_mode="HTML",
@@ -121,9 +111,7 @@ async def waifu_allow(message: Message):
 )
 async def waifu_forbidden_list(message: Message):
     members = [
-        await function.try_invoke_or_fallback_async(
-            message.chat.get_member, member
-        )
+        await function.try_invoke_or_fallback_async(message.chat.get_member, member)
         for member in _factory.get_forbidden_waifu(message.chat.id)
     ]
 
@@ -131,9 +119,7 @@ async def waifu_forbidden_list(message: Message):
         await message.reply(
             "这个群的人妻有:\n"
             + "\n".join(
-                str(member)
-                if isinstance(member, int)
-                else member.user.full_name
+                str(member) if isinstance(member, int) else member.user.full_name
                 for member in members
             )
         )

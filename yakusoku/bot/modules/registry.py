@@ -1,12 +1,6 @@
 from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
-from aiogram.types import (
-    Chat,
-    ChatMember,
-    ChatMemberUpdated,
-    ChatType,
-    Message,
-    User,
-)
+from aiogram.types import (Chat, ChatMember, ChatMemberUpdated, ChatType,
+                           Message, User)
 
 from ..shared import users
 from ..utils import function
@@ -66,15 +60,12 @@ async def message_received(message: Message):
 )
 async def get_members(message: Message):
     members = [
-        await function.try_invoke_or_fallback_async(
-            message.chat.get_member, member
-        )
+        await function.try_invoke_or_fallback_async(message.chat.get_member, member)
         for member in users.get_members(message.chat.id)
     ]
     await message.reply(
         "当前已记录以下用户信息:\n"
         + "\n".join(
-            str(member) if isinstance(member, int) else member.user.full_name
-            for member in members
+            str(member) if isinstance(member, int) else member.user.full_name for member in members
         )
     )

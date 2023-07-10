@@ -5,9 +5,7 @@ _RT = TypeVar("_RT")
 _T = TypeVar("_T")
 
 
-def try_invoke_or_fallback(
-    func: Callable[[_PT], _RT], param: _PT
-) -> _RT | _PT:
+def try_invoke_or_fallback(func: Callable[[_PT], _RT], param: _PT) -> _RT | _PT:
     try:
         return func(param)
     except Exception:
@@ -23,9 +21,7 @@ async def try_invoke_or_fallback_async(
         return param
 
 
-def try_invoke_or_default(
-    func: Callable[[], _RT], default: _T = None
-) -> _RT | _T:
+def try_invoke_or_default(func: Callable[[], _RT], default: _T = None) -> _RT | _T:
     try:
         return func()
     except Exception:

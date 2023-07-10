@@ -35,9 +35,7 @@ class WaifuFactory:
 
     def _get_waifu_db(self, chat: int) -> dict[int, tuple[int, int]]:
         if not (db := self._waifus.get(chat)):
-            db = self._waifus[chat] = database.get(
-                DATABASE_NAME, f"waifu_{chat}"
-            )
+            db = self._waifus[chat] = database.get(DATABASE_NAME, f"waifu_{chat}")
         return db
 
     def _get_waifu_data(self, chat: int, member: int) -> _WaifuData | None:
@@ -46,11 +44,7 @@ class WaifuFactory:
 
     def _allowed_waifu(self, chat: int) -> Iterable[int]:
         forbidden = self.get_forbidden_waifu(chat)
-        return (
-            member
-            for member in users.get_members(chat)
-            if member not in forbidden
-        )
+        return (member for member in users.get_members(chat) if member not in forbidden)
 
     async def _random_waifu(self, chat: Chat) -> tuple[_WaifuData, ChatMember]:
         member = random.choice(list(self._allowed_waifu(chat.id)))
@@ -72,9 +66,7 @@ class WaifuFactory:
     def get_forbidden_waifu(self, chat: int) -> set[int]:
         return self._forbidden.get(chat) or set()
 
-    async def fetch_waifu(
-        self, chat: Chat, member: int
-    ) -> tuple[bool, ChatMember]:
+    async def fetch_waifu(self, chat: Chat, member: int) -> tuple[bool, ChatMember]:
         data = self._get_waifu_data(chat.id, member)
         now = datetime.now()
 
