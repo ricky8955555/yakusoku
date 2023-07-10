@@ -9,4 +9,8 @@ os.makedirs(DATA_PATH, exist_ok=True)
 
 
 def get(name: str, table: str) -> Any:
-    return SqliteDict(os.path.join(DATA_PATH, name), table, autocommit=True)
+    return SqliteDict(
+        os.path.join(DATA_PATH, name + ".sqlite"),
+        table,
+        autocommit=True
+    )
