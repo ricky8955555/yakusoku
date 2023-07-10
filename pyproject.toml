@@ -13,6 +13,7 @@ pyyaml = "^6.0"
 
 [tool.poetry.group.bot.dependencies]
 aiogram = "^2.25.1"
+sqlitedict = "^2.1.0"
 
 
 [tool.poetry.group.dev.dependencies]

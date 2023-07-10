@@ -397,5 +397,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Config for Yakusoku
+# Yakusoku
 config/
+data/
