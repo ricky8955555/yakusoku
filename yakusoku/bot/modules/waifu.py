@@ -24,13 +24,9 @@ class MemberWaifuInfo:
 
 
 async def random_member(group: Chat, sender: User) -> ChatMember:
-    members_ = await members.get_members(group)
-    return random.choice(
-        [
-            member
-            for member in members_
-            if member.user.id != sender.id
-        ]
+    members_ = members.get_members(group.id)
+    return await group.get_member(
+        random.choice([member for member in members_ if member != sender.id])
     )
 
 
