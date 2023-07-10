@@ -17,8 +17,8 @@ sqlitedict = "^2.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
-flake8 = "^6.0.0"
 pyright = "^1.1.316"
+pyproject-flake8 = "^6.0.0.post1"
 
 [build-system]
 requires = ["poetry-core"]
