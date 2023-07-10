@@ -96,6 +96,8 @@ async def get_user_avatar(user: User) -> ChatPhoto:
 async def waifu(message: Message):
     try:
         updated, waifu = await fetch_waifu(message.chat, message.from_user)
+    except IndexError:
+        return await message.reply("目前群员信息不足捏, 等我熟悉一下群里环境? w")
     except Exception as ex:
         return await message.reply(f"找不到对象力(悲) www, 错误信息:\n{str(ex)}")
 
