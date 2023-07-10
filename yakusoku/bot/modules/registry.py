@@ -1,8 +1,15 @@
 from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
-from aiogram.types import (Chat, ChatMember, ChatMemberUpdated, ChatType,
-                           Message, User)
+from aiogram.types import (
+    Chat,
+    ChatMember,
+    ChatMemberUpdated,
+    ChatType,
+    Message,
+    User,
+)
 
-from ..shared import members
+from ..shared import users
+from ..utils import function
 from . import dispatcher
 
 dp = dispatcher()
@@ -24,14 +31,15 @@ def is_recordable(user: User):
 
 async def joined(group: Chat, member: ChatMember):
     if is_recordable(member.user):
-        members.add_member(group.id, member.user.id)
+        users.add_member(group.id, member.user.id)
+        users.update_user(member.user.username, member.user.id)
 
 
 async def left(group: Chat, member: ChatMember):
     if member.user.id == member.bot.id:
-        members.clear_members(group.id)
+        users.delete_members(group.id)
     else:
-        members.remove_member(group.id, member.user.id)
+        users.remove_member(group.id, member.user.id)
 
 
 @dp.chat_member_handler()
@@ -43,12 +51,12 @@ async def member_update(update: ChatMemberUpdated):
         await left(group, user)
 
 
-@dp.message_handler(
-    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-)
+@dp.message_handler()
 async def message_received(message: Message):
     if not message.sender_chat and is_recordable(message.from_user):
-        members.add_member(message.chat.id, message.from_id)
+        if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
+            users.add_member(message.chat.id, message.from_id)
+        users.update_user(message.from_user.username, message.from_id)
 
 
 @dp.message_handler(
@@ -57,21 +65,16 @@ async def message_received(message: Message):
     commands=["members"],
 )
 async def get_members(message: Message):
-    async def try_get_member(user_id: int):
-        try:
-            return await message.chat.get_member(user_id)
-        except Exception:
-            return user_id
-
-    members_ = [
-        await try_get_member(member)
-        for member in members.get_members(message.chat.id)
+    members = [
+        await function.try_invoke_or_fallback_async(
+            message.chat.get_member, member
+        )
+        for member in users.get_members(message.chat.id)
     ]
     await message.reply(
         "当前已记录以下用户信息:\n"
         + "\n".join(
             str(member) if isinstance(member, int) else member.user.full_name
-            for member in members_
-        ),
-        parse_mode="HTML",
+            for member in members
+        )
     )
