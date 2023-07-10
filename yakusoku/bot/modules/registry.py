@@ -1,4 +1,4 @@
-from aiogram.dispatcher.filters import ChatTypeFilter
+from aiogram.dispatcher.filters import ChatTypeFilter, AdminFilter
 from aiogram.types import (Chat, ChatMember, ChatMemberUpdated, ChatType,
                            Message, User)
 
@@ -53,6 +53,7 @@ async def message_received(message: Message):
 
 @dp.message_handler(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    AdminFilter(True),
     commands=["members"],
 )
 async def get_members(message: Message):
