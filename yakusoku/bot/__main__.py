@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from aiogram import Bot, Dispatcher
 import aiogram
+from aiogram import Bot, Dispatcher
 
-from . import modules
 from ..common.config import Config
+from . import modules
 
 
 @dataclass
@@ -14,9 +14,10 @@ class BotConfig(Config):
 
 
 config = BotConfig.load("bot/bot")
+
 bot = Bot(config.token)
 dp = Dispatcher(bot)
+dp.message_handlers.once = False
+
 modules.run(dp)
-aiogram.executor.start_polling(
-    dp, skip_updates=config.skip_updates
-)
+aiogram.executor.start_polling(dp, skip_updates=config.skip_updates)
