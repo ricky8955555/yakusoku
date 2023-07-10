@@ -17,6 +17,7 @@ config = BotConfig.load("bot/bot")
 
 bot = Bot(config.token)
 dp = Dispatcher(bot)
+dp.chat_member_handlers.once = False
 dp.message_handlers.once = False
 
 modules.run(dp)

@@ -13,7 +13,10 @@ async def joined(group: Chat, member: ChatMember):
 
 
 async def left(group: Chat, member: ChatMember):
-    members.remove_member_id(group.id, member.user.id)
+    if member.user.id == member.bot.id:
+        members.clear_members(group.id)
+    else:
+        members.remove_member_id(group.id, member.user.id)
 
 
 @dp.chat_member_handler()

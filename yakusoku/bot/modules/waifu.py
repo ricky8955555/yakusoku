@@ -5,7 +5,8 @@ from datetime import datetime
 from tempfile import TemporaryFile
 
 from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import Chat, ChatMember, ChatPhoto, ChatType, Message, User
+from aiogram.types import (Chat, ChatMember, ChatMemberUpdated, ChatPhoto,
+                           ChatType, Message, User)
 from sqlitedict import SqliteDict
 
 from .. import database
@@ -112,3 +113,11 @@ async def waifu(message: Message):
             return await message.reply_photo(fp, comment, parse_mode="HTML")
 
     await message.reply(comment, parse_mode="HTML")
+
+
+@dp.chat_member_handler()
+async def member_update(update: ChatMemberUpdated):
+    if (
+        member := update.new_chat_member
+    ).status == "kicked" and member.user.id == member.bot.id:
+        get_db(update.chat).clear()

@@ -18,6 +18,10 @@ def get_member_ids(chat_id: int) -> set[int]:
     return _db.get(chat_id) or set()
 
 
+def clear_members(chat_id: int) -> None:
+    _db[chat_id] = set()
+
+
 # following code is strange
 # due to there is some troubles while handling set in SqliteDict
 
