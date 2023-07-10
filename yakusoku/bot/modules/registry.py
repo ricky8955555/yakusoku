@@ -1,4 +1,4 @@
-from aiogram.dispatcher.filters import ChatTypeFilter, AdminFilter
+from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
 from aiogram.types import (Chat, ChatMember, ChatMemberUpdated, ChatType,
                            Message, User)
 
