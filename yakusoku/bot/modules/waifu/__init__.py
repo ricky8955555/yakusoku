@@ -106,7 +106,6 @@ async def waifu_allow(message: Message):
 
 @dp.message_handler(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    AdminFilter(True),
     commands=["waifufl"],
 )
 async def waifu_forbidden_list(message: Message):
