@@ -2,10 +2,10 @@ import importlib
 import os
 from dataclasses import dataclass
 from pathlib import Path
+
 from aiogram import Dispatcher
 
 from .. import context
-
 
 MODULES_PATH = os.path.dirname(__file__)
 MODULES_BASE_PACKAGE = __loader__.name
