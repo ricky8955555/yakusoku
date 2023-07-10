@@ -4,7 +4,7 @@ from aiogram.types import (Chat, ChatMember, ChatMemberUpdated, ChatType,
 
 from ..shared import users
 from ..utils import function
-from . import dispatcher
+from . import command_handler, dispatcher
 
 dp = dispatcher()
 
@@ -53,10 +53,11 @@ async def message_received(message: Message):
         users.update_user(message.from_user.username, message.from_id)
 
 
-@dp.message_handler(
+@command_handler(
+    ["members"],
+    "获取记录成员列表 (仅群聊管理员)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     AdminFilter(True),
-    commands=["members"],
 )
 async def get_members(message: Message):
     members = [
@@ -64,7 +65,7 @@ async def get_members(message: Message):
         for member in users.get_members(message.chat.id)
     ]
     await message.reply(
-        "当前已记录以下用户信息:\n"
+        "当前已记录以下成员信息:\n"
         + "\n".join(
             str(member) if isinstance(member, int) else member.user.full_name for member in members
         )

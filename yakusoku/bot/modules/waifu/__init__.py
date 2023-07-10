@@ -9,7 +9,7 @@ from aiogram.types import ChatMemberUpdated, ChatPhoto, ChatType, Message, User
 
 from ...shared import users
 from ...utils import chat, function
-from .. import dispatcher
+from .. import command_handler, dispatcher
 from .factory import WaifuFactory
 
 dp = dispatcher()
@@ -29,9 +29,10 @@ async def get_user_avatar(user: User) -> ChatPhoto:
     return (await user.bot.get_chat(user.id)).photo
 
 
-@dp.message_handler(
+@command_handler(
+    ["waifu"],
+    "获取每日老婆 (仅群聊)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    commands=["waifu"],
 )
 async def waifu(message: Message):
     try:
@@ -54,10 +55,11 @@ async def waifu(message: Message):
     await message.reply(comment, parse_mode="HTML")
 
 
-@dp.message_handler(
+@command_handler(
+    ["waifuf"],
+    "将用户加入人妻列表 (仅群聊管理员)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     AdminFilter(True),
-    commands=["waifuf"],
 )
 async def waifu_forbid(message: Message):
     members = users.get_members(message.chat.id)
@@ -79,10 +81,11 @@ async def waifu_forbid(message: Message):
     )
 
 
-@dp.message_handler(
+@command_handler(
+    ["waifua"],
+    "将用户移出人妻列表 (仅群聊管理员)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     AdminFilter(True),
-    commands=["waifua"],
 )
 async def waifu_allow(message: Message):
     member_ids = users.get_members(message.chat.id)
@@ -104,9 +107,10 @@ async def waifu_allow(message: Message):
     )
 
 
-@dp.message_handler(
+@command_handler(
+    ["waifufl"],
+    "获取人妻列表 (仅群聊)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    commands=["waifufl"],
 )
 async def waifu_forbidden_list(message: Message):
     members = [

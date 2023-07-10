@@ -1,6 +1,6 @@
-from typing import Any, TypeVar
+import contextlib
+from typing import Any
 
-_T = TypeVar("_T")
 _context = dict[str, Any]()
 
 
@@ -10,10 +10,13 @@ def set(name: str, data: Any) -> None:
 
 
 def try_get(name: str) -> Any | None:
-    data = _context.get(name)
-    assert data, "context was requested before context initialized"
-    return data
+    return _context.get(name)
 
 
 def get(name: str) -> Any:
     return _context[name]
+
+
+def unset(name: str) -> None:
+    with contextlib.suppress(KeyError):
+        del _context[name]

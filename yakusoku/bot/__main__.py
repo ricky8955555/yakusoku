@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 
 import aiogram
@@ -20,5 +21,9 @@ dp = Dispatcher(bot)
 dp.chat_member_handlers.once = False
 dp.message_handlers.once = False
 
-modules.run(dp)
-aiogram.executor.start_polling(dp, skip_updates=config.skip_updates)
+loop = asyncio.new_event_loop()
+
+modules.load(dp)
+loop.run_until_complete(modules.register_commands())
+
+aiogram.executor.start_polling(dp, skip_updates=config.skip_updates, loop=loop)
