@@ -7,9 +7,20 @@ from . import dispatcher
 
 dp = dispatcher()
 
+filtered = [
+    777000,
+    136817688,
+    609517172,
+    1031952739,
+    1087968824,
+    5304501737,
+    dp.bot.id,
+]
+
 
 async def joined(group: Chat, member: ChatMember):
-    members.add_member_id(group.id, member.user.id)
+    if member.user.id not in filtered:
+        members.add_member_id(group.id, member.user.id)
 
 
 async def left(group: Chat, member: ChatMember):
@@ -32,7 +43,11 @@ async def member_update(update: ChatMemberUpdated):
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def message_received(message: Message):
-    if message.from_id:
+    if (
+        not message.sender_chat
+        and message.from_id
+        and message.from_id not in filtered
+    ):
         members.add_member_id(message.chat.id, message.from_id)
 
 

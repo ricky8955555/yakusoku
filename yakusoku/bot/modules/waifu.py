@@ -16,16 +16,6 @@ from . import dispatcher
 dp = dispatcher()
 DATABASE_NAME = "waifu"
 
-filtered = [
-    777000,
-    136817688,
-    609517172,
-    1031952739,
-    1087968824,
-    5304501737,
-    dp.bot.id,
-]
-
 
 @dataclass
 class MemberWaifuInfo:
@@ -39,7 +29,7 @@ async def random_member(group: Chat, sender: User) -> ChatMember:
         [
             member
             for member in members_
-            if member.user.id not in filtered and member.user.id != sender.id
+            if member.user.id != sender.id
         ]
     )
 
