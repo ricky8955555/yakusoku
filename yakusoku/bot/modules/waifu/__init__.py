@@ -14,7 +14,8 @@ from ...shared import users
 from ...utils import chat, function
 from .. import command_handler, dispatcher
 from .config import Config
-from .factory import WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, WaifuFactory, WaifuProperty
+from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, MemberNotEfficientError,
+                      NoChoosableWaifuError, WaifuFactory, WaifuProperty)
 
 dp = dispatcher()
 DATABASE_NAME = "waifu"
@@ -47,10 +48,13 @@ async def get_user_avatar(user: User, buffer: IOBase | str) -> IOBase:
 async def waifu(message: Message):
     try:
         updated, waifu = await _factory.fetch_waifu(message.chat, message.from_id)
-    except IndexError:
+    except MemberNotEfficientError:
         return await message.reply("目前群员信息不足捏, 等我熟悉一下群里环境? w")
+    except NoChoosableWaifuError:
+        return await message.reply("你群全成限定了怎么抽? (恼)")
     except Exception as ex:
-        return await message.reply(f"找不到对象力(悲) www, 错误信息:\n{str(ex)}")
+        await message.reply(f"找不到对象力(悲) www, 错误信息:\n{str(ex)}")
+        raise
 
     comment = (
         "每天一老婆哦~ 你今天已经抽过老婆了喵w.\n" if not updated else ""

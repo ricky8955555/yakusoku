@@ -50,6 +50,14 @@ class WaifuProperty:
         return WAIFU_MIN_RARITY <= value <= WAIFU_MAX_RARITY
 
 
+class MemberNotEfficientError(Exception):
+    pass
+
+
+class NoChoosableWaifuError(Exception):
+    pass
+
+
 class WaifuFactory:
     _waifus: dict[int, dict[int, tuple[int, int]]]
     _properties: dict[int, dict[int, tuple[int]]]
@@ -75,14 +83,23 @@ class WaifuFactory:
     def _get_waifu_property_map(self, chat: int) -> dict[int, WaifuProperty]:
         return {member: self.get_waifu_property(chat, member) for member in users.get_members(chat)}
 
-    async def _random_waifu(self, chat: Chat) -> tuple[_WaifuData, ChatMember]:
-        mapping = self._get_waifu_property_map(chat.id)
-        members = random.choices(
-            list(mapping.keys()), [property.get_weight() for property in mapping.values()], k=1
-        )
-        member = await chat.get_member(members[0])
-        data = _WaifuData(member.user.id, int(datetime.now().timestamp()))
-        return (data, member)
+    async def _random_waifu(self, chat: Chat, member: int) -> tuple[_WaifuData, ChatMember]:
+        mapping = {
+            waifu: property
+            for waifu, property in self._get_waifu_property_map(chat.id).items()
+            if member != waifu
+        }
+        try:
+            members = random.choices(
+                list(mapping.keys()), [property.get_weight() for property in mapping.values()], k=1
+            )
+        except IndexError:
+            raise MemberNotEfficientError
+        except ValueError:
+            raise NoChoosableWaifuError
+        waifu = await chat.get_member(members[0])
+        data = _WaifuData(waifu.user.id, int(datetime.now().timestamp()))
+        return (data, waifu)
 
     def get_waifu_property(self, chat: int, member: int) -> WaifuProperty:
         data = self._get_waifu_property_db(chat).get(member)
@@ -102,7 +119,7 @@ class WaifuFactory:
             or self.get_waifu_property(chat.id, data.member).rarity == WAIFU_MAX_RARITY
         ):
             db = self._get_waifu_db(chat.id)
-            data, waifu = await self._random_waifu(chat)
+            data, waifu = await self._random_waifu(chat, member)
             db[member] = data.to_database()
             return True, waifu
         else:
