@@ -19,7 +19,7 @@ class SlashFilter(Filter):
 def get_reply(first: str, second: str, sender_mention: str, target_mention: str):
     if second:
         return f"{sender_mention} {first} {target_mention} {second} !"
-    if first[-1] == "了" and not first[-2] == "了":
+    if first.endswith("了"):
         return f'{sender_mention} {first} {target_mention} !'
     return f'{sender_mention} {first}了 {target_mention} !'
 
