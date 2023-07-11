@@ -37,5 +37,5 @@ async def slash(message: Message):
         else f"{sender_mention} {first}了 {target_mention}!"
     )
     await message.bot.send_message(
-        message.chat.id, reply, parse_mode="HTML", disable_notification=True
+        message.chat.id, reply, parse_mode="HTML", disable_web_page_preview=True
     )
