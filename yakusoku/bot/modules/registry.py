@@ -59,7 +59,7 @@ async def message_received(message: Message):
     ["members"],
     "获取记录成员列表 (仅群聊管理员)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    AdminFilter(True),
+    AdminFilter(),
 )
 async def get_members(message: Message):
     members = [
