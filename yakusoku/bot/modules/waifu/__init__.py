@@ -1,11 +1,12 @@
 import contextlib
 from dataclasses import dataclass
 from datetime import datetime
+from io import IOBase
 from tempfile import TemporaryFile
 from typing import Iterable
 
 from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
-from aiogram.types import ChatMemberUpdated, ChatPhoto, ChatType, Message, User
+from aiogram.types import ChatMemberUpdated, ChatType, Message, User
 
 from ...shared import users
 from ...utils import chat, function
@@ -27,8 +28,13 @@ class MemberWaifuInfo:
     waifu: int
 
 
-async def get_user_avatar(user: User) -> ChatPhoto:
-    return (await user.bot.get_chat(user.id)).photo
+async def get_user_avatar(user: User, buffer: IOBase | str) -> IOBase:
+    chat = await user.bot.get_chat(user.id)
+    avatar = chat.photo
+    if _config.original_size:
+        return await avatar.download_big(buffer)
+    else:
+        return await avatar.download_small(buffer)
 
 
 @command_handler(
@@ -49,12 +55,8 @@ async def waifu(message: Message):
     ) + f"你今天的老婆是 {waifu.user.get_mention(as_html=True)}"
 
     with contextlib.suppress(Exception):
-        avatar_file = await get_user_avatar(waifu.user)
         with TemporaryFile() as fp:
-            if _config.original_size:
-                await avatar_file.download_big(fp)
-            else:
-                await avatar_file.download_small(fp)
+            await get_user_avatar(waifu.user, fp)
             return await message.reply_photo(fp, comment, parse_mode="HTML")
 
     await message.reply(comment, parse_mode="HTML")
