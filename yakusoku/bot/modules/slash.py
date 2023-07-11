@@ -3,7 +3,7 @@ import re
 from aiogram.dispatcher.filters import Filter
 from aiogram.types import Message
 
-from ..utils import chat
+from ..utils import chat, string
 from . import dispatcher
 
 dp = dispatcher()
@@ -32,9 +32,9 @@ async def slash(message: Message):
         else chat.get_mention_html(target)
     )
     reply = (
-        f"{sender_mention} {first} {target_mention} {second}!"
+        f"{sender_mention} {first} {target_mention} {second} !"
         if second
-        else f"{sender_mention} {first}了 {target_mention}!"
+        else f'{sender_mention} {string.formatted_join(first, "了")} {target_mention} !'
     )
     await message.bot.send_message(
         message.chat.id, reply, parse_mode="HTML", disable_web_page_preview=True
