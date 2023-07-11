@@ -140,7 +140,7 @@ async def waifu_rarity_get(message: Message):
 async def waifu_limit_callback(query: CallbackQuery):
     chat_id, waifu_id = map(int, query.data.split()[1:])
     property = _factory.get_waifu_property(chat_id, waifu_id)
-    property = dataclasses.replace(property, rarity=WaifuProperty)
+    property = dataclasses.replace(property, rarity=WAIFU_MAX_RARITY)
     _factory.set_waifu_property(chat_id, waifu_id, property)
     waifu = await query.bot.get_chat(waifu_id)
 
