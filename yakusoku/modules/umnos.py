@@ -6,8 +6,7 @@ from dataclasses import dataclass
 import aiohttp
 from aiogram.types import Message
 
-from ...common import config
-from .. import context
+from .. import config, context
 from . import command_handler
 
 COUNTRIES_DATA_URL = (
@@ -26,7 +25,7 @@ class Config(config.Config):
     overwritten_countries: bool = False
 
 
-_config = Config.load("bot/umnos")
+_config = Config.load("umnos")
 
 
 def get_types() -> list[str]:

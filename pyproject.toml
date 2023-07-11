@@ -9,13 +9,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 pyyaml = "^6.0"
-
-
-[tool.poetry.group.bot.dependencies]
 aiogram = "^2.25.1"
 sqlitedict = "^2.1.0"
 aiohttp = "^3.8.4"
-
 
 [tool.poetry.group.dev.dependencies]
 pyright = "^1.1.316"
@@ -37,4 +33,3 @@ max-line-length = 100
 
 [tool.isort]
 line_length = 100
-

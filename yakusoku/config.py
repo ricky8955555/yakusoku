@@ -3,7 +3,9 @@ from typing import Any
 
 import yaml
 
-BASE_PATH = os.path.abspath("./config/")
+from .constants import CONFIG_PATH
+
+os.makedirs(CONFIG_PATH, exist_ok=True)
 
 
 def load_yaml(path: str) -> Any:
@@ -16,6 +18,5 @@ def load_yaml(path: str) -> Any:
 class Config:
     @classmethod
     def load(cls, name: str):
-        path = os.path.join(BASE_PATH, name + ".yml")
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        path = os.path.join(CONFIG_PATH, name + ".yml")
         return cls(**(data if (data := load_yaml(path)) else {}))

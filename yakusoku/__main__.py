@@ -4,8 +4,8 @@ from dataclasses import dataclass
 import aiogram
 from aiogram import Bot, Dispatcher
 
-from ..common.config import Config
 from . import modules
+from .config import Config
 
 
 @dataclass(frozen=True)
@@ -14,7 +14,7 @@ class BotConfig(Config):
     skip_updates: bool = False
 
 
-config = BotConfig.load("bot/bot")
+config = BotConfig.load("bot")
 
 bot = Bot(config.token)
 dp = Dispatcher(bot)

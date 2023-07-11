@@ -22,7 +22,7 @@ DATABASE_NAME = "waifu"
 
 
 _factory = WaifuFactory()
-_config = Config.load("bot/waifu")
+_config = Config.load("waifu")
 
 
 @dataclass(frozen=True)

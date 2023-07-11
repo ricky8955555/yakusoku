@@ -3,7 +3,7 @@ from typing import Any
 
 from sqlitedict import SqliteDict
 
-DATA_PATH = os.path.abspath("./data/bot/")
+from .constants import DATA_PATH
 
 os.makedirs(DATA_PATH, exist_ok=True)
 
