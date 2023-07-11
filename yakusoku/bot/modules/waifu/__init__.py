@@ -10,6 +10,7 @@ from aiogram.types import ChatMemberUpdated, ChatPhoto, ChatType, Message, User
 from ...shared import users
 from ...utils import chat, function
 from .. import command_handler, dispatcher
+from .config import Config
 from .factory import WaifuFactory
 
 dp = dispatcher()
@@ -17,6 +18,7 @@ DATABASE_NAME = "waifu"
 
 
 _factory = WaifuFactory()
+_config = Config.load("bot/waifu")
 
 
 @dataclass
@@ -49,7 +51,10 @@ async def waifu(message: Message):
     with contextlib.suppress(Exception):
         avatar_file = await get_user_avatar(waifu.user)
         with TemporaryFile() as fp:
-            await avatar_file.download_small(fp)
+            if _config.original_size:
+                await avatar_file.download_big(fp)
+            else:
+                await avatar_file.download_small(fp)
             return await message.reply_photo(fp, comment, parse_mode="HTML")
 
     await message.reply(comment, parse_mode="HTML")
