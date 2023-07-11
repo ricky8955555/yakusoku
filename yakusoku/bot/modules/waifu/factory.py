@@ -96,7 +96,11 @@ class WaifuFactory:
         data = self._get_waifu_data(chat.id, member)
         now = datetime.now()
 
-        if not data or datetime.fromtimestamp(data.last).date() < now.date():
+        if (
+            not data
+            or datetime.fromtimestamp(data.last).date() < now.date()
+            or self.get_waifu_property(chat.id, data.member).rarity == WAIFU_MAX_RARITY
+        ):
             db = self._get_waifu_db(chat.id)
             data, waifu = await self._random_waifu(chat)
             db[member] = data.to_database()
