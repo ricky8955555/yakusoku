@@ -16,7 +16,7 @@ class SlashFilter(Filter):
         return message.text.startswith("/")
 
 
-def get_reply(first: str, second: str, sender_mention: str, target_mention: str):
+def get_reply(first: str, second: str, sender_mention: str, target_mention: str) -> str:
     if second:
         return f"{sender_mention} {first} {target_mention} {second} !"
     if first.endswith("了"):

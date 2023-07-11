@@ -18,18 +18,18 @@ filtered = [
 ]
 
 
-def is_recordable(user: User):
+def is_recordable(user: User) -> bool:
     return user and user.id > 0 and user.id not in filtered
 
 
-async def joined(group: Chat, member: ChatMember):
+async def joined(group: Chat, member: ChatMember) -> None:
     if is_recordable(member.user):
         users.add_member(group.id, member.user.id)
         if member.user.username:
             users.update_user(member.user.username, member.user.id)
 
 
-async def left(group: Chat, member: ChatMember):
+async def left(group: Chat, member: ChatMember) -> None:
     if member.user.id == member.bot.id:
         users.delete_members(group.id)
     else:

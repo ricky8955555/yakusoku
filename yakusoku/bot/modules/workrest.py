@@ -24,7 +24,7 @@ class UserInfo:
         return dataclasses.astuple(self)
 
 
-def format_timedelta(delta: timedelta):
+def format_timedelta(delta: timedelta) -> str:
     seconds = delta.total_seconds()
     return f"{round(seconds / 3600)} 时 {round(seconds / 60 % 60)} 分"
 
