@@ -1,6 +1,5 @@
 from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
-from aiogram.types import (Chat, ChatMember, ChatMemberUpdated, ChatType,
-                           Message, User)
+from aiogram.types import Chat, ChatMember, ChatMemberUpdated, ChatType, Message, User
 
 from ..shared import users
 from ..utils import function

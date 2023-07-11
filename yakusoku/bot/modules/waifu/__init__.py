@@ -6,17 +6,15 @@ from io import IOBase
 from tempfile import TemporaryFile
 
 from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
-from aiogram.types import (CallbackQuery, Chat, ChatMemberUpdated, ChatType,
-                           InlineKeyboardButton, InlineKeyboardMarkup, Message,
-                           User)
+from aiogram.types import (CallbackQuery, Chat, ChatMemberUpdated, ChatType, InlineKeyboardButton,
+                           InlineKeyboardMarkup, Message, User)
 
 from ...filters import CallbackQueryFilter
 from ...shared import users
 from ...utils import chat, function
 from .. import command_handler, dispatcher
 from .config import Config
-from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, WaifuFactory,
-                      WaifuProperty)
+from .factory import WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, WaifuFactory, WaifuProperty
 
 dp = dispatcher()
 DATABASE_NAME = "waifu"
