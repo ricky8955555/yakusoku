@@ -19,7 +19,7 @@ filtered = [
 
 
 def is_recordable(user: User) -> bool:
-    return user and user.id > 0 and user.id not in filtered
+    return user and user.id > 0 and not user.is_bot and user.id not in filtered
 
 
 async def joined(group: Chat, member: ChatMember) -> None:
