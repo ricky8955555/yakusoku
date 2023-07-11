@@ -14,7 +14,7 @@ WAIFU_MIN_RARITY = 1
 WAIFU_MAX_RARITY = 10
 
 
-@dataclass
+@dataclass(frozen=True)
 class _WaifuData:
     member: int
     last: int

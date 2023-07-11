@@ -8,7 +8,7 @@ from ..common.config import Config
 from . import modules
 
 
-@dataclass
+@dataclass(frozen=True)
 class BotConfig(Config):
     token: str
     skip_updates: bool = False

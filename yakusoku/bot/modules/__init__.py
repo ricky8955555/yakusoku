@@ -13,7 +13,7 @@ MODULES_PATH = os.path.dirname(__file__)
 MODULES_BASE_PACKAGE = __loader__.name
 
 
-@dataclass
+@dataclass(frozen=True)
 class _ModuleContext:
     dispatcher: Dispatcher
 

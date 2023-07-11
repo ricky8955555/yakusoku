@@ -25,7 +25,7 @@ _factory = WaifuFactory()
 _config = Config.load("bot/waifu")
 
 
-@dataclass
+@dataclass(frozen=True)
 class MemberWaifuInfo:
     last: datetime
     waifu: int
