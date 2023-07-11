@@ -116,7 +116,7 @@ async def waifu_rarity_set(message: Message):
 
 @command_handler(
     ["waifurg"],
-    f"获取老婆稀有度 (稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}])",
+    f"获取老婆稀有度 (仅群聊) (稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}])",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def waifu_rarity_get(message: Message):
