@@ -26,7 +26,8 @@ def is_recordable(user: User):
 async def joined(group: Chat, member: ChatMember):
     if is_recordable(member.user):
         users.add_member(group.id, member.user.id)
-        users.update_user(member.user.username, member.user.id)
+        if member.user.username:
+            users.update_user(member.user.username, member.user.id)
 
 
 async def left(group: Chat, member: ChatMember):
@@ -50,7 +51,8 @@ async def message_received(message: Message):
     if not message.sender_chat and is_recordable(message.from_user):
         if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
             users.add_member(message.chat.id, message.from_id)
-        users.update_user(message.from_user.username, message.from_id)
+        if message.from_user.username:
+            users.update_user(message.from_user.username, message.from_id)
 
 
 @command_handler(
