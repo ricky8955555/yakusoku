@@ -16,6 +16,14 @@ class SlashFilter(Filter):
         return message.text.startswith("/")
 
 
+def get_reply(first: str, second: str, sender_mention: str, target_mention: str):
+    if second:
+        return f"{sender_mention} {first} {target_mention} {second} !"
+    if first[-1] == "了" and not first[-2] == "了":
+        return f'{sender_mention} {first} {target_mention} !'
+    return f'{sender_mention} {first}了 {target_mention} !'
+
+
 @dp.message_handler(SlashFilter())
 async def slash(message: Message):
     matches = PATTERN.match(message.text)
@@ -31,11 +39,7 @@ async def slash(message: Message):
         if target.id == sender.id
         else chat.get_mention_html(target)
     )
-    reply = (
-        f"{sender_mention} {first} {target_mention} {second}!"
-        if second
-        else f"{sender_mention} {first}了 {target_mention}!"
-    )
+    reply = get_reply(first, second, sender_mention, target_mention)
     await message.bot.send_message(
         message.chat.id, reply, parse_mode="HTML", disable_web_page_preview=True
     )
