@@ -1,12 +1,12 @@
 import dataclasses
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+
 from aiogram.types import Message
-from dataclasses import dataclass
 
 from .. import database
 from . import command_handler
-
 
 db: dict[int, tuple[bool, int]] = database.get("workrest", "workrest")
 
@@ -32,7 +32,7 @@ def format_timedelta(delta: timedelta) -> str:
 @command_handler(["morning"], "早上好捏")
 async def morning(message: Message):
     now = datetime.now()
-    if (info := db.get(message.from_id)):
+    if info := db.get(message.from_id):
         info = UserInfo.from_database(info)
         if info.awake:
             return await message.reply("啊? 都没睡觉, morning 什么? w")
@@ -47,7 +47,7 @@ async def morning(message: Message):
 @command_handler(["goodnight"], "晚安喵")
 async def goodnight(message: Message):
     now = datetime.now()
-    if (info := db.get(message.from_id)):
+    if info := db.get(message.from_id):
         info = UserInfo.from_database(info)
         if not info.awake:
             return await message.reply("啊? 都还没醒过, 还睡? w")
