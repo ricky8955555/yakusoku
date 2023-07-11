@@ -8,7 +8,7 @@ from . import dispatcher
 
 dp = dispatcher()
 
-PATTERN = re.compile(r"\/\$?(\S+)\s?(.*)")
+PATTERN = re.compile(r"\/(?:\$([a-zA-Z0-9]\S*)|\$?(\S+))\s*(.+)?")
 
 
 class SlashFilter(Filter):
@@ -16,12 +16,12 @@ class SlashFilter(Filter):
         return not message.is_command() and message.text.startswith("/")
 
 
-@dp.message_handler(SlashFilter())
+@dp.message_handler()
 async def slash(message: Message):
     matches = PATTERN.match(message.text)
-    if not matches or not (first := matches.group(1)):
+    if not matches or not (first := matches.group(1) or matches.group(2)):
         return
-    second = matches.group(2)
+    second = matches.group(3)
     sender = message.sender_chat or message.from_user
     sender_mention: str = chat.get_mention_html(sender)
     origin = message.reply_to_message or message
