@@ -1,15 +1,18 @@
 from aiogram import Bot
-from aiogram.types import Chat, User
+from aiogram.types import Chat
 
 from ..shared import users
 from . import function
 
 
-def get_chat_link(chat: Chat | User, name: str | None = None) -> str:
-    return (
-        f"[{name or chat.full_name}]({url})"
-        if (url := (chat.user_url if isinstance(chat, Chat) else chat.url))  # type: ignore
-        else name or chat.full_name  # type: ignore
+def get_mention_html(chat: Chat, name: str | None = None) -> str:
+    return (  # type: ignore
+        function.try_invoke_or_default(  # type: ignore
+            lambda: chat.get_mention(name, as_html=True),  # type: ignore
+        )
+        or f'<a href="https://t.me/{chat.username}">{name or chat.full_name}</a>'
+        if chat.username
+        else name or chat.full_name
     )
 
 
