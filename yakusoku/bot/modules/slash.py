@@ -31,15 +31,13 @@ async def slash(message: Message):
         return
     second = matches.group(3)
     sender = message.sender_chat or message.from_user
-    sender_mention: str = chat.get_mention_html(sender)
+    sender_mention: str = chat.get_chat_link(sender)
     origin = message.reply_to_message or message
     target = origin.sender_chat or origin.from_user
     target_mention: str = (  # type: ignore
-        chat.get_mention_html(target, "自己")
-        if target.id == sender.id
-        else chat.get_mention_html(target)
+        chat.get_chat_link(target, "自己") if target.id == sender.id else chat.get_chat_link(target)
     )
     reply = get_reply(first, second, sender_mention, target_mention)
     await message.bot.send_message(
-        message.chat.id, reply, parse_mode="HTML", disable_web_page_preview=True
+        message.chat.id, reply, parse_mode="Markdown", disable_web_page_preview=True
     )

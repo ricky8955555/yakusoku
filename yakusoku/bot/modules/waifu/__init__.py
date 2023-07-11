@@ -58,7 +58,7 @@ async def waifu(message: Message):
 
     comment = (
         "每天一老婆哦~ 你今天已经抽过老婆了喵w.\n" if not updated else ""
-    ) + f"你今天的老婆是 {waifu.user.get_mention(as_html=True)}"
+    ) + f"你今天的老婆是 {chat.get_chat_link(waifu.user)}"
 
     buttons = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -74,9 +74,13 @@ async def waifu(message: Message):
     with contextlib.suppress(Exception):
         with TemporaryFile() as fp:
             await get_user_avatar(waifu.user, fp)
-            return await message.reply_photo(fp, comment, parse_mode="HTML", reply_markup=buttons)
+            return await message.reply_photo(
+                fp, comment, parse_mode="Markdown", reply_markup=buttons
+            )
 
-    await message.reply(comment, parse_mode="HTML", reply_markup=buttons)
+    await message.reply(
+        comment, parse_mode="Markdown", reply_markup=buttons, disable_web_page_preview=True
+    )
 
 
 async def get_mentioned_member(message: Message, username: str) -> Chat:
@@ -105,6 +109,7 @@ async def waifu_rarity_set(message: Message):
         return await message.reply(
             f"戳啦, 正确用法为 `/waifurs <@用户> <稀有度> (稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}])`",
             parse_mode="Markdown",
+            disable_web_page_preview=True,
         )
     try:
         waifu = await get_mentioned_member(message, args[1])
@@ -114,7 +119,7 @@ async def waifu_rarity_set(message: Message):
     property = dataclasses.replace(property, rarity=rarity)
     _factory.set_waifu_property(message.chat.id, waifu.id, property)
     await message.reply(
-        f"成功将 {waifu.get_mention(as_html=True)} 的老婆稀有度修改为 {rarity}!", parse_mode="HTML"
+        f"成功将 {chat.get_chat_link(waifu)} 的老婆稀有度修改为 {rarity}!", parse_mode="Markdown"
     )
 
 
@@ -132,7 +137,7 @@ async def waifu_rarity_get(message: Message):
         return await message.reply("呜, 找不到你所提及的用户w")
     property = _factory.get_waifu_property(message.chat.id, waifu.id)
     await message.reply(
-        f"{waifu.get_mention(as_html=True)} 的老婆稀有度为: {property.rarity}", parse_mode="HTML"
+        f"{chat.get_chat_link(waifu)} 的老婆稀有度为: {property.rarity}", parse_mode="Markdown"
     )
     return True
 
@@ -149,8 +154,9 @@ async def waifu_limit_callback(query: CallbackQuery):
     waifu = await query.bot.get_chat(waifu_id)
 
     await query.message.reply(
-        f"已将用户 {waifu.get_mention(as_html=True)} 变为限定老婆",
-        parse_mode="HTML",
+        f"已将用户 {chat.get_chat_link(waifu)} 变为限定老婆",
+        parse_mode="Markdown",
+        disable_web_page_preview=True,
     )
 
 
