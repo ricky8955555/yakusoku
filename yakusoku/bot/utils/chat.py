@@ -5,6 +5,17 @@ from ..shared import users
 from . import function
 
 
+def get_mention_html(chat: Chat, name: str | None = None) -> str:
+    return (  # type: ignore
+        function.try_invoke_or_default(  # type: ignore
+            lambda: chat.get_mention(name, as_html=True),  # type: ignore
+        )
+        or f'<a href="https://t.me/{chat.username}">{name or chat.full_name}</a>'
+        if chat.username
+        else name or chat.full_name
+    )
+
+
 async def get_chat_from_username(bot: Bot, username: str) -> Chat:
     assert (
         chat := (
