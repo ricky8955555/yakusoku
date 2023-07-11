@@ -15,7 +15,8 @@ from ...shared import users
 from ...utils import chat, function
 from .. import command_handler, dispatcher
 from .config import Config
-from .factory import WaifuFactory, WaifuProperty
+from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, WaifuFactory,
+                      WaifuProperty)
 
 dp = dispatcher()
 DATABASE_NAME = "waifu"
@@ -100,7 +101,8 @@ async def waifu_rarity_set(message: Message):
         or not WaifuProperty.is_valid_rarity(rarity)
     ):
         return await message.reply(
-            "戳啦, 正确用法为 `/waifurs <@用户> <稀有度> (稀有度范围 N, [1, 10])`", parse_mode="Markdown"
+            f"戳啦, 正确用法为 `/waifurs <@用户> <稀有度> (稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}])`",
+            parse_mode="Markdown",
         )
     try:
         waifu = await get_mentioned_member(message, args[1])
@@ -116,7 +118,7 @@ async def waifu_rarity_set(message: Message):
 
 @command_handler(
     ["waifurg"],
-    "获取老婆稀有度 (稀有度范围 N, [1, 10])",
+    f"获取老婆稀有度 (稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}])",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def waifu_rarity_get(message: Message):
@@ -140,7 +142,7 @@ async def waifu_rarity_get(message: Message):
 async def waifu_limit_callback(query: CallbackQuery):
     chat_id, waifu_id = map(int, query.data.split()[1:])
     property = _factory.get_waifu_property(chat_id, waifu_id)
-    property = dataclasses.replace(property, rarity=WaifuProperty.max_rarity())
+    property = dataclasses.replace(property, rarity=WaifuProperty)
     _factory.set_waifu_property(chat_id, waifu_id, property)
     waifu = await query.bot.get_chat(waifu_id)
 

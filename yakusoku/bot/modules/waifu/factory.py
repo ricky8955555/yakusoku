@@ -10,6 +10,8 @@ from ... import database
 from ...shared import users
 
 DATABASE_NAME = "waifu"
+WAIFU_MIN_RARITY = 1
+WAIFU_MAX_RARITY = 10
 
 
 @dataclass
@@ -27,7 +29,7 @@ class _WaifuData:
 
 @dataclass(frozen=True)
 class WaifuProperty:
-    rarity: int = 1
+    rarity: int = WAIFU_MIN_RARITY
 
     def __post_init__(self):
         if not WaifuProperty.is_valid_rarity(self.rarity):
@@ -45,15 +47,7 @@ class WaifuProperty:
 
     @staticmethod
     def is_valid_rarity(value: int) -> bool:
-        return WaifuProperty.min_rarity() <= value <= WaifuProperty.max_rarity()
-
-    @staticmethod
-    def max_rarity() -> int:
-        return 10
-
-    @staticmethod
-    def min_rarity() -> int:
-        return 1
+        return WAIFU_MIN_RARITY <= value <= WAIFU_MAX_RARITY
 
 
 class WaifuFactory:
