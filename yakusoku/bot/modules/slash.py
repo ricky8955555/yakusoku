@@ -16,7 +16,7 @@ class SlashFilter(Filter):
         return not message.is_command() and message.text.startswith("/")
 
 
-@dp.message_handler()
+@dp.message_handler(SlashFilter())
 async def slash(message: Message):
     matches = PATTERN.match(message.text)
     if not matches or not (first := matches.group(1)):
