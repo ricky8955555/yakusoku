@@ -8,7 +8,7 @@ from . import dispatcher
 
 dp = dispatcher()
 
-PATTERN = re.compile(r"\/(?:\$([a-zA-Z0-9]\S*)|\$?(\S+))\s*(.+)?")
+PATTERN = re.compile(r"\/(?:\$([a-zA-Z0-9]\S*)|\$?([^a-zA-Z0-9\s]+))\s*(.+)?")
 
 
 class SlashFilter(Filter):
