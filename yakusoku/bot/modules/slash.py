@@ -13,10 +13,10 @@ PATTERN = re.compile(r"\/(?:\$([a-zA-Z0-9]\S*)|\$?(\S+))\s*(.+)?")
 
 class SlashFilter(Filter):
     async def check(self, message: Message) -> bool:  # type: ignore
-        return not message.is_command() and message.text.startswith("/")
+        return message.text.startswith("/")
 
 
-@dp.message_handler()
+@dp.message_handler(SlashFilter())
 async def slash(message: Message):
     matches = PATTERN.match(message.text)
     if not matches or not (first := matches.group(1) or matches.group(2)):
