@@ -21,8 +21,17 @@ async def slash(message: Message):
     if not matches or not (first := matches.group(1) or matches.group(2)):
         return
     second = matches.group(3)
-    sender: str = (message.sender_chat or message.from_user).get_mention(as_html=True)
+    sender = message.sender_chat or message.from_user
+    sender_mention: str = sender.get_mention(as_html=True)
     origin = message.reply_to_message or message
-    target: str = (origin.sender_chat or origin.from_user).get_mention(name="自己", as_html=True)
-    reply = f"{sender} {first} {target} {second}!" if second else f"{sender} {first}了 {target}!"
+    target = origin.sender_chat or origin.from_user
+    target_mention: str = target.get_mention(
+        name="自己" if target.id == sender.id else None,
+        as_html=True,
+    )
+    reply = (
+        f"{sender_mention} {first} {target_mention} {second}!"
+        if second
+        else f"{sender_mention} {first}了 {target_mention}!"
+    )
     await message.bot.send_message(message.chat.id, reply, parse_mode="HTML")
