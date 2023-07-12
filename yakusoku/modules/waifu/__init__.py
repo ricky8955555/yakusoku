@@ -320,18 +320,20 @@ async def propose_callback(query: CallbackQuery):
 
 
 @dp.callback_query_handler(CallbackQueryFilter("waifu_revoke_proposal_callback"))
-async def revoke_propose_callback(query: CallbackQuery):
+async def revoke_proposal_callback(query: CallbackQuery):
     originator_id = int(query.data.split()[1])
     target_id = _registry.get_proposal(query.message.chat.id, originator_id)
     if query.from_user.id not in (originator_id, target_id):
         return
-    _registry.revoke_proposal(query.message.chat.id, query.from_user.id)
+    _registry.revoke_proposal(query.message.chat.id, originator_id)
     if query.from_user.id == originator_id:
         await query.message.reply("取消求婚请求成功捏, 求婚要三思而后行喏~", reply=False)
     else:
         originator = await query.bot.get_chat(originator_id)
         await query.message.reply(
-            f"{originator.get_mention(as_html=True)} 被 {query.from_user.get_mention(as_html=True)} 拒绝了捏, 求婚要三思而后行喏~"
+            f"{originator.get_mention(as_html=True)} 被 {query.from_user.get_mention(as_html=True)} 拒绝了捏, 求婚要三思而后行喏~",
+            parse_mode="HTML",
+            reply=False
         )
     await query.message.delete()
 
