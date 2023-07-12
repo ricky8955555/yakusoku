@@ -223,7 +223,7 @@ async def request_divorce(message: Message):
 @dp.callback_query_handler(CallbackQueryFilter("waifu_divorce_callback"))
 async def divorce_callback(query: CallbackQuery):
     target = int(query.data.split()[1])
-    if query.from_user != target:
+    if query.from_user.id != target:
         return
     await handle_divorce_request(query.message, query.from_user, True)
 
