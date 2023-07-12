@@ -26,7 +26,7 @@ class UserInfo:
 
 def format_timedelta(delta: timedelta) -> str:
     seconds = delta.total_seconds()
-    return f"{round(seconds / 3600)} 时 {round(seconds / 60 % 60)} 分"
+    return f"{int(seconds / 3600)} 时 {int(seconds / 60 % 60)} 分"
 
 
 @command_handler(["morning"], "早上好捏")
