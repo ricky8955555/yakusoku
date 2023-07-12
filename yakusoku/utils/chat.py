@@ -1,8 +1,8 @@
 from aiogram import Bot
 from aiogram.types import Chat
 
-from ..shared import users
-from . import function
+from yakusoku.shared import users
+from yakusoku.utils import function
 
 
 def get_mention_html(chat: Chat, name: str | None = None) -> str:

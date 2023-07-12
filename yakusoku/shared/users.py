@@ -1,6 +1,6 @@
 import contextlib
 
-from .. import database
+from yakusoku import database
 
 DATABASE_NAME = "users"
 

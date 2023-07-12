@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ... import config
+from yakusoku import config
 
 
 @dataclass(frozen=True)

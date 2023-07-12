@@ -1,9 +1,9 @@
 from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
 from aiogram.types import Chat, ChatMember, ChatMemberUpdated, ChatType, Message, User
 
-from ..shared import users
-from ..utils import function
-from . import command_handler, dispatcher
+from yakusoku.shared import users
+from yakusoku.utils import function
+from yakusoku.modules import command_handler, dispatcher
 
 dp = dispatcher()
 

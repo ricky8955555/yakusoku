@@ -3,8 +3,8 @@ import re
 from aiogram.dispatcher.filters import Filter
 from aiogram.types import Message
 
-from ..utils import chat
-from . import dispatcher
+from yakusoku.utils import chat
+from yakusoku.modules import dispatcher
 
 dp = dispatcher()
 

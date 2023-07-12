@@ -6,8 +6,8 @@ from dataclasses import dataclass
 import aiohttp
 from aiogram.types import Message
 
-from .. import config, context
-from . import command_handler
+from yakusoku import config, context
+from yakusoku.modules import command_handler
 
 COUNTRIES_DATA_URL = (
     "https://raw.githubusercontent.com/zhaoweih/countries_json/master/countries.json"

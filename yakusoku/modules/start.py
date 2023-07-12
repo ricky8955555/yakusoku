@@ -1,7 +1,7 @@
 from aiogram.types import Message
 
-from .. import constants
-from . import command_handler
+from yakusoku import constants
+from yakusoku.modules import command_handler
 
 
 @command_handler(["start"], "yakusoku!")

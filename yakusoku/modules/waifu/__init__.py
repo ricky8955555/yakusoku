@@ -9,10 +9,10 @@ from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
 from aiogram.types import (CallbackQuery, Chat, ChatMemberUpdated, ChatType, InlineKeyboardButton,
                            InlineKeyboardMarkup, Message, User)
 
-from ...filters import CallbackQueryFilter
-from ...shared import users
-from ...utils import chat, function
-from .. import command_handler, dispatcher
+from yakusoku.filters import CallbackQueryFilter
+from yakusoku.shared import users
+from yakusoku.utils import chat, function
+from yakusoku.modules import command_handler, dispatcher
 from .config import Config
 from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, MemberNotEfficientError,
                       NoChoosableWaifuError, WaifuFactory, WaifuProperty)

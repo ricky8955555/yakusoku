@@ -4,8 +4,8 @@ from dataclasses import dataclass
 import aiogram
 from aiogram import Bot, Dispatcher
 
-from . import modules
-from .config import Config
+from yakusoku import modules
+from yakusoku.config import Config
 
 
 @dataclass(frozen=True)

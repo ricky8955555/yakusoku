@@ -6,8 +6,8 @@ from typing import Any
 
 from aiogram.types import Chat, ChatMember
 
-from ... import database
-from ...shared import users
+from yakusoku import database
+from yakusoku.shared import users
 
 DATABASE_NAME = "waifu"
 WAIFU_MIN_RARITY = 1

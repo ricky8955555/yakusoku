@@ -7,7 +7,7 @@ from typing import Any
 from aiogram import Dispatcher
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
-from .. import context
+from yakusoku import context
 
 MODULES_PATH = os.path.dirname(__file__)
 MODULES_BASE_PACKAGE = __loader__.name

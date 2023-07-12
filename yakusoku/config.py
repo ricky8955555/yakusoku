@@ -3,7 +3,7 @@ from typing import Any
 
 import yaml
 
-from .constants import CONFIG_PATH
+from yakusoku.constants import CONFIG_PATH
 
 os.makedirs(CONFIG_PATH, exist_ok=True)
 

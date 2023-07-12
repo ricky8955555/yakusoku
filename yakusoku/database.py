@@ -3,7 +3,7 @@ from typing import Any
 
 from sqlitedict import SqliteDict
 
-from .constants import DATA_PATH
+from yakusoku.constants import DATA_PATH
 
 os.makedirs(DATA_PATH, exist_ok=True)
 

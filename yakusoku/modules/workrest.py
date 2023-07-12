@@ -5,8 +5,8 @@ from typing import Any
 
 from aiogram.types import Message
 
-from .. import database
-from . import command_handler
+from yakusoku import database
+from yakusoku.modules import command_handler
 
 db: dict[int, tuple[bool, int]] = database.get("workrest", "workrest")
 
