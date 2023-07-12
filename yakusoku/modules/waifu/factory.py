@@ -2,7 +2,8 @@ import dataclasses
 import random
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from enum import Enum, auto
+from typing import Any, Optional
 
 from aiogram.types import Chat, ChatMember
 
@@ -30,6 +31,7 @@ class _WaifuData:
 @dataclass(frozen=True)
 class WaifuProperty:
     rarity: int = WAIFU_MIN_RARITY
+    married: Optional[int] = None
 
     def __post_init__(self):
         if not WaifuProperty.is_valid_rarity(self.rarity):
@@ -48,6 +50,18 @@ class WaifuProperty:
     @staticmethod
     def is_valid_rarity(value: int) -> bool:
         return WAIFU_MIN_RARITY <= value <= WAIFU_MAX_RARITY
+
+
+class WaifuState(Enum):
+    NONE = auto()
+    UPDATED = auto()
+    MARRIED = auto()
+
+
+@dataclass(frozen=True)
+class WaifuInfo:
+    member: ChatMember
+    state: WaifuState
 
 
 class MemberNotEfficientError(Exception):
@@ -83,48 +97,64 @@ class WaifuFactory:
     def _get_waifu_property_map(self, chat: int) -> dict[int, WaifuProperty]:
         return {member: self.get_waifu_property(chat, member) for member in users.get_members(chat)}
 
-    async def _random_waifu(self, chat: Chat, member: int) -> tuple[_WaifuData, ChatMember]:
+    def _is_choosable(self, chat: int, member: int) -> bool:
+        return (
+            property := self.get_waifu_property(chat, member)
+        ).rarity != WAIFU_MAX_RARITY and property.married is None
+
+    async def _random_waifu(self, chat: Chat, member: int) -> int:
         mapping = {
             waifu: property
             for waifu, property in self._get_waifu_property_map(chat.id).items()
-            if member != waifu
+            if member != waifu and self._is_choosable(chat.id, waifu)
         }
         try:
-            members = random.choices(
+            return random.choices(
                 list(mapping.keys()), [property.get_weight() for property in mapping.values()], k=1
-            )
+            )[0]
         except IndexError:
             raise MemberNotEfficientError
         except ValueError:
             raise NoChoosableWaifuError
-        waifu = await chat.get_member(members[0])
-        data = _WaifuData(waifu.user.id, int(datetime.now().timestamp()))
-        return (data, waifu)
 
     def get_waifu_property(self, chat: int, member: int) -> WaifuProperty:
         data = self._get_waifu_property_db(chat).get(member)
         return WaifuProperty.from_database(data) if data else WaifuProperty()
 
-    def set_waifu_property(self, chat: int, member: int, property: WaifuProperty) -> None:
+    def update_waifu_property(self, chat: int, member: int, **changes: Any) -> None:
         db = self._get_waifu_property_db(chat)
+        property = dataclasses.replace(self.get_waifu_property(chat, member), **changes)
         db[member] = property.to_database()
 
-    async def fetch_waifu(self, chat: Chat, member: int) -> tuple[bool, ChatMember]:
-        data = self._get_waifu_data(chat.id, member)
-        now = datetime.now()
+    def _is_update_needed(self, chat: int, data: _WaifuData) -> bool:
+        return datetime.fromtimestamp(
+            data.last
+        ).date() < datetime.now().date() or not self._is_choosable(chat, data.member)
 
-        if (
-            not data
-            or datetime.fromtimestamp(data.last).date() < now.date()
-            or self.get_waifu_property(chat.id, data.member).rarity == WAIFU_MAX_RARITY
+    def _update_waifu(self, chat: int, member: int, waifu: int) -> None:
+        db = self._get_waifu_db(chat)
+        data = _WaifuData(waifu, int(datetime.now().timestamp()))
+        db[member] = data.to_database()
+
+    async def fetch_waifu(self, chat: Chat, member: int) -> WaifuInfo:
+        if married := self.get_waifu_property(chat.id, member).married:
+            waifu = await chat.get_member(married)
+            return WaifuInfo(waifu, WaifuState.MARRIED)
+        if (data := self._get_waifu_data(chat.id, member)) and not self._is_update_needed(
+            chat.id, data
         ):
-            db = self._get_waifu_db(chat.id)
-            data, waifu = await self._random_waifu(chat, member)
-            db[member] = data.to_database()
-            return True, waifu
-        else:
             waifu = await chat.get_member(data.member)
-            return False, waifu
+            return WaifuInfo(waifu, WaifuState.NONE)
+
+        waifu_id = await self._random_waifu(chat, member)
+        self._update_waifu(chat.id, member, waifu_id)
+
+        waifu = await chat.get_member(waifu_id)
+        return WaifuInfo(waifu, WaifuState.UPDATED)
+
+    def remove_waifu(self, chat: int, member: int) -> None:
+        db = self._get_waifu_db(chat)
+        del db[member]
 
     def remove_chat(self, chat: Chat) -> None:
         self._get_waifu_db(chat.id).clear()
