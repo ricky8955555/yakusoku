@@ -7,9 +7,9 @@ from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
 from aiogram.types import (CallbackQuery, Chat, ChatMemberUpdated, ChatType, InlineKeyboardButton,
                            InlineKeyboardMarkup, Message, User)
 
-from yakusoku.shared.filters import CallbackQueryFilter
 from yakusoku.modules import command_handler, dispatcher
-from yakusoku.shared import users, cache
+from yakusoku.shared import cache, users
+from yakusoku.shared.filters import CallbackQueryFilter
 from yakusoku.utils import chat, function
 
 from .config import Config
