@@ -77,7 +77,7 @@ async def waifu(message: Message):
                     ),
                     InlineKeyboardButton(  # type: ignore
                         text="成立婚事! (仅双方)",
-                        callback_data=f"waifu_marry_callback {message.from_id} {waifu.user.id}",
+                        callback_data=f"waifu_propose_callback {message.from_id} {waifu.user.id}",
                     ),
                 ]
             ]
@@ -186,6 +186,8 @@ async def handle_divorce_request(
             parse_mode="HTML",
             reply=not removable,
         )
+        if removable:
+            await message.delete()
     else:
         buttons = InlineKeyboardMarkup(
             inline_keyboard=[
@@ -207,8 +209,6 @@ async def handle_divorce_request(
             reply_markup=buttons,
             reply=not removable,
         )
-    if removable:
-        await message.delete()
 
 
 @command_handler(
@@ -266,6 +266,8 @@ async def handle_proposal(
             parse_mode="HTML",
             reply=not removable,
         )
+        if removable:
+            await message.delete()
     else:
         buttons = InlineKeyboardMarkup(
             inline_keyboard=[
@@ -287,8 +289,6 @@ async def handle_proposal(
             reply_markup=buttons,
             reply=not removable,
         )
-    if removable:
-        await message.delete()
 
 
 @command_handler(
@@ -333,7 +333,7 @@ async def revoke_proposal_callback(query: CallbackQuery):
         await query.message.reply(
             f"{originator.get_mention(as_html=True)} 被 {query.from_user.get_mention(as_html=True)} 拒绝了捏, 求婚要三思而后行喏~",
             parse_mode="HTML",
-            reply=False
+            reply=False,
         )
     await query.message.delete()
 
