@@ -18,10 +18,14 @@ def delete_members(chat: int) -> None:
 
 
 def get_user(username: str) -> int | None:
+    if not username:
+        raise ValueError
     return _user_db.get(username)
 
 
 def update_user(username: str, user: int) -> None:
+    if not username:
+        raise ValueError
     _user_db[username] = user
 
 
