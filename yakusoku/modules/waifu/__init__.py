@@ -2,21 +2,21 @@ import contextlib
 from dataclasses import dataclass
 from datetime import datetime
 from io import IOBase
-from tempfile import TemporaryFile
 
 from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
 from aiogram.types import (CallbackQuery, Chat, ChatMemberUpdated, ChatType, InlineKeyboardButton,
                            InlineKeyboardMarkup, Message, User)
 
-from yakusoku.filters import CallbackQueryFilter
+from yakusoku.shared.filters import CallbackQueryFilter
 from yakusoku.modules import command_handler, dispatcher
-from yakusoku.shared import users
+from yakusoku.shared import users, cache
 from yakusoku.utils import chat, function
 
 from .config import Config
 from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, MemberNotEfficientError,
                       NoChoosableWaifuError, WaifuFactory, WaifuProperty, WaifuState)
-from .registry import InvalidTargetError, MarriageStateError, QueueingError, Registry, TargetUnmatchedError
+from .registry import (InvalidTargetError, MarriageStateError, QueueingError, Registry,
+                       TargetUnmatchedError)
 
 dp = dispatcher()
 DATABASE_NAME = "waifu"
@@ -32,13 +32,12 @@ class MemberWaifuInfo:
     waifu: int
 
 
-async def get_user_avatar(user: User, buffer: IOBase | str) -> IOBase:
+async def get_user_avatar(user: User) -> IOBase:
     chat = await user.bot.get_chat(user.id)
-    avatar = chat.photo
-    if _config.original_size:
-        return await avatar.download_big(buffer)
+    if _config.big_avatar:
+        return await cache.get_big_chat_photo(chat.photo)
     else:
-        return await avatar.download_small(buffer)
+        return await cache.get_small_chat_photo(chat.photo)
 
 
 @command_handler(
@@ -87,9 +86,8 @@ async def waifu(message: Message):
     )
 
     with contextlib.suppress(Exception):
-        with TemporaryFile() as fp:
-            await get_user_avatar(waifu.user, fp)
-            return await message.reply_photo(fp, comment, parse_mode="HTML", reply_markup=buttons)
+        avatar = await get_user_avatar(waifu.user)
+        return await message.reply_photo(avatar, comment, parse_mode="HTML", reply_markup=buttons)
 
     await message.reply(comment, parse_mode="HTML", reply_markup=buttons)
 
