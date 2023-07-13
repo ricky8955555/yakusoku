@@ -16,7 +16,7 @@ from yakusoku.utils import chat, function
 from .config import Config
 from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, MemberNotEfficientError,
                       NoChoosableWaifuError, WaifuFactory, WaifuProperty, WaifuState)
-from .registry import MarriageStateError, QueueingError, Registry, TargetUnmatchedError
+from .registry import InvalidTargetError, MarriageStateError, QueueingError, Registry, TargetUnmatchedError
 
 dp = dispatcher()
 DATABASE_NAME = "waifu"
@@ -242,6 +242,8 @@ async def handle_proposal(
 ):
     try:
         married = _registry.propose(message.chat.id, originator.id, target.id)
+    except InvalidTargetError:
+        return await message.reply("啊? 这是可以选的吗? w")
     except MarriageStateError:
         return await message.reply("你或者对方已经结过婚捏, 咱们这不鼓励不支持也不允许 NTR 行为捏", reply=not removable)
     except QueueingError:

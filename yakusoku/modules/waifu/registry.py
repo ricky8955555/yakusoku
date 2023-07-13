@@ -13,6 +13,10 @@ class TargetUnmatchedError(Exception):
     pass
 
 
+class InvalidTargetError(Exception):
+    pass
+
+
 class Registry:
     _factory: WaifuFactory
     _proposals: dict[tuple[int, int], int]
@@ -41,6 +45,8 @@ class Registry:
         self._factory.update_waifu_property(chat, property.married, married=None)
 
     def propose(self, chat: int, originator: int, target: int) -> bool:
+        if originator == target:
+            raise InvalidTargetError
         originator_property = self._factory.get_waifu_property(chat, originator)
         target_property = self._factory.get_waifu_property(chat, target)
         if originator_property.married or target_property.married:
@@ -71,16 +77,6 @@ class Registry:
 
     def get_proposal(self, chat: int, originator: int) -> int:
         return self._proposals[(chat, originator)]
-
-    def get_proposal_to(self, chat: int, target: int) -> int:
-        try:
-            return next(
-                originator[1]
-                for originator, proposal in self._proposals.items()
-                if originator[0] == chat and proposal == target
-            )
-        except StopIteration:
-            raise ValueError
 
     def revoke_proposal(self, chat: int, originator: int) -> None:
         del self._proposals[(chat, originator)]
