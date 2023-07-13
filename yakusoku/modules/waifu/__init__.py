@@ -241,9 +241,9 @@ async def handle_proposal(
     try:
         married = _registry.propose(message.chat.id, originator.id, target.id)
     except InvalidTargetError:
-        return await message.reply("啊? 这是可以选的吗? w")
+        return await message.reply("啊? 这是可以选的吗? w", reply=not removable)
     except MarriageStateError:
-        return await message.reply("你或者对方已经结过婚捏, 咱们这不鼓励不支持也不允许 NTR 行为捏", reply=not removable)
+        return await message.reply("你或者对方已经结过婚捏, 不能向对方求婚诺w", reply=not removable)
     except QueueingError:
         proposal = _registry.get_proposal(message.chat.id, originator.id)
         proposal_target = await message.bot.get_chat(proposal)
