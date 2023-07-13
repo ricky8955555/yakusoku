@@ -14,6 +14,10 @@ class BotConfig(Config):
     skip_updates: bool = False
 
 
+async def on_startup(_):
+    await modules.register_commands()
+
+
 config = BotConfig.load("bot")
 
 bot = Bot(config.token)
@@ -21,9 +25,8 @@ dp = Dispatcher(bot)
 dp.chat_member_handlers.once = False
 dp.message_handlers.once = False
 
-loop = asyncio.new_event_loop()
-
 modules.load(dp)
-loop.run_until_complete(modules.register_commands())
 
-aiogram.executor.start_polling(dp, skip_updates=config.skip_updates, loop=loop)
+aiogram.executor.start_polling(
+    dp, skip_updates=config.skip_updates, on_startup=on_startup
+)
