@@ -100,7 +100,7 @@ class WaifuFactory:
     def _is_choosable(self, chat: int, member: int) -> bool:
         return (
             property := self.get_waifu_property(chat, member)
-        ).rarity != WAIFU_MAX_RARITY and property.married is None
+        ).rarity < WAIFU_MAX_RARITY and property.married is None
 
     async def _random_waifu(self, chat: Chat, member: int) -> int:
         mapping = {
