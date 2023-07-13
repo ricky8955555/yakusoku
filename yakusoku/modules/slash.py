@@ -1,3 +1,4 @@
+import html
 import re
 
 from aiogram.dispatcher.filters import Filter
@@ -16,12 +17,12 @@ class SlashFilter(Filter):
         return message.text.startswith("/")
 
 
-def get_reply(first: str, second: str, sender_mention: str, target_mention: str) -> str:
+def get_reply(first: str, second: str, sender: str, target: str) -> str:
     if second:
-        return f"{sender_mention} {first} {target_mention} {second} !"
+        return f"{sender} {first} {target} {second} !"
     if first.endswith("了"):
-        return f"{sender_mention} {first} {target_mention} !"
-    return f"{sender_mention} {first}了 {target_mention} !"
+        return f"{sender} {first} {target} !"
+    return f"{sender} {first}了 {target} !"
 
 
 @dp.message_handler(SlashFilter())
@@ -35,7 +36,7 @@ async def slash(message: Message):
     origin = message.reply_to_message or message
     target = origin.sender_chat or origin.from_user
     target_mention: str = chat.get_mention_html(target, "自己" if target.id == sender.id else None)
-    reply = get_reply(first, second, sender_mention, target_mention)
+    reply = get_reply(html.escape(first), html.escape(second), sender_mention, target_mention)
     await message.bot.send_message(
         message.chat.id, reply, parse_mode="HTML", disable_web_page_preview=True
     )
