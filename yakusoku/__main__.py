@@ -26,6 +26,4 @@ dp.message_handlers.once = False
 
 modules.load(dp)
 
-aiogram.executor.start_polling(
-    dp, skip_updates=config.skip_updates, on_startup=on_startup
-)
+aiogram.executor.start_polling(dp, skip_updates=config.skip_updates, on_startup=on_startup)
