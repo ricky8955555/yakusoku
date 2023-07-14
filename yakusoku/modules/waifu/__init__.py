@@ -181,7 +181,8 @@ async def handle_divorce_request(
         )
     if divorced:
         await message.reply(
-            f"呜呜呜, {originator.get_mention(as_html=True)} 和 {target.get_mention(as_html=True)} 已通过手续离婚了w\n今后的日子, 自己要照顾好自己捏w",
+            f"呜呜呜, {originator.get_mention(as_html=True)} 和 {target.get_mention(as_html=True)} "
+            "已通过手续离婚了w\n今后的日子, 自己要照顾好自己捏w",
             parse_mode="HTML",
             reply=not removable,
         )
@@ -197,13 +198,16 @@ async def handle_divorce_request(
                     ),
                     InlineKeyboardButton(  # type: ignore
                         text="口头挖路! / 取消请求 (仅双方)",
-                        callback_data=f"waifu_revoke_divorce_request_callback {originator.id} {target.id}",
+                        callback_data=(
+                            f"waifu_revoke_divorce_request_callback {originator.id} {target.id}"
+                        ),
                     ),
                 ]
             ]
         )
         await message.reply(
-            f"{originator.get_mention(as_html=True)} 向 {target.get_mention(as_html=True)} 发起了离婚申请 www",
+            f"{originator.get_mention(as_html=True)} 向 {target.get_mention(as_html=True)} "
+            "发起了离婚申请 www",
             parse_mode="HTML",
             reply_markup=buttons,
             reply=not removable,
@@ -263,7 +267,8 @@ async def handle_proposal(
         )
     if married:
         await message.reply(
-            f"恭喜 {originator.get_mention(as_html=True)} 和 {target.get_mention(as_html=True)} 已走入婚姻的殿堂捏~\nkdl kdl kdl www",
+            f"恭喜 {originator.get_mention(as_html=True)} 和 {target.get_mention(as_html=True)} "
+            "已走入婚姻的殿堂捏~\nkdl kdl kdl www",
             parse_mode="HTML",
             reply=not removable,
         )
@@ -332,7 +337,8 @@ async def revoke_proposal_callback(query: CallbackQuery):
     else:
         originator = await query.bot.get_chat(originator_id)
         await query.message.reply(
-            f"{originator.get_mention(as_html=True)} 被 {query.from_user.get_mention(as_html=True)} 拒绝了捏, 求婚要三思而后行喏~",
+            f"{originator.get_mention(as_html=True)} 被 {query.from_user.get_mention(as_html=True)} "
+            "拒绝了捏, 求婚要三思而后行喏~",
             parse_mode="HTML",
             reply=False,
         )
