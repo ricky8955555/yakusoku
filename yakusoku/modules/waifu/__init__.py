@@ -390,7 +390,7 @@ async def mention_clear(message: Message):
 
 @dp.chat_member_handler()
 async def member_update(update: ChatMemberUpdated):
-    if (member := update.new_chat_member).status != "kicked":
+    if (member := update.new_chat_member).status not in ["left", "kicked"]:
         return
     if member.user.id == member.bot.id:
         _factory.remove_chat(update.chat.id)

@@ -40,7 +40,7 @@ async def member_update(update: ChatMemberUpdated):
     group, user = update.chat, update.new_chat_member
     if user.status == "member":
         await joined(group, user)
-    elif user.status == "kicked":
+    elif user.status in ["left", "kicked"]:
         await left(group, user)
 
 
