@@ -93,7 +93,7 @@ class WaifuFactory:
     def __init__(self) -> None:
         self._waifus = {}
         self._local_properties = {}
-        self._global_properties = database.get("waifu", "property")
+        self._global_properties = database.get(DATABASE_NAME, "property")
 
     def _get_waifu_db(self, chat: int) -> dict[int, tuple[int, int]]:
         if not (db := self._waifus.get(chat)):

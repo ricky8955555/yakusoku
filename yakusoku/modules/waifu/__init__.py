@@ -20,7 +20,6 @@ from .registry import (InvalidTargetError, MarriageStateError, QueueingError, Re
                        TargetUnmatchedError)
 
 dp = dispatcher()
-DATABASE_NAME = "waifu"
 
 _config = Config.load("waifu")
 _factory = WaifuFactory()
