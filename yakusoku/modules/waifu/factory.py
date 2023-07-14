@@ -176,6 +176,6 @@ class WaifuFactory:
         db = self._get_waifu_db(chat)
         del db[member]
 
-    def remove_chat(self, chat: Chat) -> None:
-        self._get_waifu_db(chat.id).clear()
-        self._get_waifu_local_property_db(chat.id).clear()
+    def remove_chat(self, chat: int) -> None:
+        self._get_waifu_db(chat).clear()
+        self._get_waifu_local_property_db(chat).clear()

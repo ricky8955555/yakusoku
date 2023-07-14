@@ -1,3 +1,4 @@
+import contextlib
 from .factory import WaifuFactory
 
 
@@ -34,8 +35,10 @@ class Registry:
             raise MarriageStateError
         self._factory.update_waifu_local_property(chat, first, married=second)
         self._factory.update_waifu_local_property(chat, second, married=first)
-        self._factory.remove_waifu(chat, first)
-        self._factory.remove_waifu(chat, second)
+        with contextlib.suppress(KeyError):
+            self._factory.remove_waifu(chat, first)
+        with contextlib.suppress(KeyError):
+            self._factory.remove_waifu(chat, second)
 
     def divorce(self, chat: int, originator: int) -> None:
         property = self._factory.get_waifu_local_property(chat, originator)
