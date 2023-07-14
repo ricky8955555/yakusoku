@@ -27,7 +27,7 @@ class Registry:
         self._proposals = {}
         self._divorce_requests = []
 
-    def marry(self, chat: int, first: int, second: int):
+    def marry(self, chat: int, first: int, second: int) -> None:
         first_property = self._factory.get_waifu_property(chat, first)
         second_property = self._factory.get_waifu_property(chat, second)
         if first_property.married or second_property.married:
@@ -37,7 +37,7 @@ class Registry:
         self._factory.remove_waifu(chat, first)
         self._factory.remove_waifu(chat, second)
 
-    def divorce(self, chat: int, originator: int):
+    def divorce(self, chat: int, originator: int) -> None:
         property = self._factory.get_waifu_property(chat, originator)
         if not property.married:
             raise MarriageStateError
