@@ -32,6 +32,7 @@ class _WaifuData:
 class WaifuProperty:
     rarity: int = WAIFU_MIN_RARITY
     married: Optional[int] = None
+    mentionable: bool = True
 
     def __post_init__(self):
         if not WaifuProperty.is_valid_rarity(self.rarity):

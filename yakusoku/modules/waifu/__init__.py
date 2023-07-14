@@ -57,14 +57,15 @@ async def waifu(message: Message):
         raise
 
     waifu = info.member
-    mention = waifu.user.get_mention(as_html=True)
+    property = _factory.get_waifu_property(message.chat.id, waifu.user.id)
+    target = waifu.user.get_mention(as_html=True) if property.mentionable else waifu.user.full_name
     match info.state:
         case WaifuState.NONE:
-            comment = f"每天一老婆哦~ 你今天已经抽过老婆了喵w.\n你今天的老婆是 {mention}"
+            comment = f"每天一老婆哦~ 你今天已经抽过老婆了喵w.\n你今天的老婆是 {target}"
         case WaifuState.UPDATED:
-            comment = f"你今天的老婆是 {mention}"
+            comment = f"你今天的老婆是 {target}"
         case WaifuState.MARRIED:
-            comment = f"你已经结婚啦, 不能抽老婆捏.\n记住你的老婆是 {mention}"
+            comment = f"你已经结婚啦, 不能抽老婆捏.\n记住你的老婆是 {target}"
 
     buttons = (
         InlineKeyboardMarkup(
@@ -336,6 +337,17 @@ async def revoke_proposal_callback(query: CallbackQuery):
             reply=False,
         )
     await query.message.delete()
+
+
+@command_handler(["waifum"], "允许/禁止 waifu 功能的提及")
+async def mention(message: Message):
+    property = _factory.get_waifu_property(message.chat.id, message.from_id)
+    if property.mentionable:
+        _factory.update_waifu_property(message.chat.id, message.from_id, mentionable=False)
+        await message.reply("别人抽老婆的时候不会打扰到你啦~")
+    else:
+        _factory.update_waifu_property(message.chat.id, message.from_id, mentionable=True)
+        await message.reply("别人抽到你做老婆的时候可以通知你哦~")
 
 
 @dp.chat_member_handler()
