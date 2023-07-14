@@ -12,9 +12,10 @@ from yakusoku.shared import cache, users
 from yakusoku.shared.filters import CallbackQueryFilter
 from yakusoku.utils import chat, function
 
+from . import utils
 from .config import Config
 from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, MemberNotEfficientError,
-                      NoChoosableWaifuError, WaifuFactory, WaifuProperty, WaifuState)
+                      NoChoosableWaifuError, WaifuFactory, WaifuLocalProperty, WaifuState)
 from .registry import (InvalidTargetError, MarriageStateError, QueueingError, Registry,
                        TargetUnmatchedError)
 
@@ -57,8 +58,10 @@ async def waifu(message: Message):
         raise
 
     waifu = info.member
-    property = _factory.get_waifu_property(message.chat.id, waifu.user.id)
-    target = waifu.user.get_mention(as_html=True) if property.mentionable else waifu.user.full_name
+    mentionable = utils.local_or_global(
+        _factory, lambda property: property.mentionable, message.chat.id, waifu.user.id
+    )
+    target = waifu.user.get_mention(as_html=True) if mentionable else waifu.user.full_name
     match info.state:
         case WaifuState.NONE:
             comment = f"每天一老婆哦~ 你今天已经抽过老婆了喵w.\n你今天的老婆是 {target}"
@@ -114,7 +117,7 @@ async def waifu_rarity_set(message: Message):
     if (
         len(args := message.text.split()) != 3
         or (rarity := function.try_invoke_or_default(lambda: int(args[2]))) is None
-        or not WaifuProperty.is_valid_rarity(rarity)
+        or not WaifuLocalProperty.is_valid_rarity(rarity)
     ):
         return await message.reply(
             f"戳啦, 正确用法为 `/waifurs <@用户> <稀有度> (稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}])`",
@@ -124,7 +127,7 @@ async def waifu_rarity_set(message: Message):
         waifu = await get_mentioned_member(message, args[1])
     except AssertionError:
         return await message.reply("呜, 找不到你所提及的用户w")
-    _factory.update_waifu_property(message.chat.id, waifu.id, rarity=rarity)
+    _factory.update_waifu_local_property(message.chat.id, waifu.id, rarity=rarity)
     await message.reply(
         f"成功将 {waifu.get_mention(as_html=True)} 的老婆稀有度修改为 {rarity}!", parse_mode="HTML"
     )
@@ -142,7 +145,7 @@ async def waifu_rarity_get(message: Message):
         waifu = await get_mentioned_member(message, args[1])
     except AssertionError:
         return await message.reply("呜, 找不到你所提及的用户w")
-    property = _factory.get_waifu_property(message.chat.id, waifu.id)
+    property = _factory.get_waifu_local_property(message.chat.id, waifu.id)
     await message.reply(
         f"{waifu.get_mention(as_html=True)} 的老婆稀有度为: {property.rarity}", parse_mode="HTML"
     )
@@ -155,7 +158,7 @@ async def waifu_rarity_get(message: Message):
 )
 async def limit_callback(query: CallbackQuery):
     waifu_id = int(query.data.split()[1])
-    _factory.update_waifu_property(query.message.chat.id, waifu_id, rarity=WAIFU_MAX_RARITY)
+    _factory.update_waifu_local_property(query.message.chat.id, waifu_id, rarity=WAIFU_MAX_RARITY)
     waifu = await query.bot.get_chat(waifu_id)
 
     await query.message.reply(
@@ -167,7 +170,7 @@ async def limit_callback(query: CallbackQuery):
 async def handle_divorce_request(
     message: Message, originator: Chat | User, removable: bool = False
 ):
-    property = _factory.get_waifu_property(message.chat.id, originator.id)
+    property = _factory.get_waifu_local_property(message.chat.id, originator.id)
     if not property.married:
         return await message.reply("啊? 身为单身狗, 离婚什么???")
     target = await message.bot.get_chat(property.married)
@@ -345,15 +348,45 @@ async def revoke_proposal_callback(query: CallbackQuery):
     await query.message.delete()
 
 
-@command_handler(["waifum"], "允许/禁止 waifu 功能的提及")
-async def mention(message: Message):
-    property = _factory.get_waifu_property(message.chat.id, message.from_id)
-    if property.mentionable:
-        _factory.update_waifu_property(message.chat.id, message.from_id, mentionable=False)
-        await message.reply("别人抽老婆的时候不会打扰到你啦~")
+@command_handler(["waifumg"], "全局允许/禁止 waifu 功能的提及 (默认禁止)")
+async def mention_global(message: Message):
+    if message.sender_chat:
+        return
+    global_ = _factory.get_waifu_global_property(message.from_id)
+    local = _factory.get_waifu_local_property(message.chat.id, message.from_id)
+    if global_.mentionable:
+        _factory.update_waifu_global_property(message.from_id, mentionable=False)
+        await message.reply(
+            "在所有群别人抽老婆的时候不会打扰到你啦~ " + ("" if local.mentionable is None else "(当前群不受全局设置影响)")
+        )
     else:
-        _factory.update_waifu_property(message.chat.id, message.from_id, mentionable=True)
-        await message.reply("别人抽到你做老婆的时候可以通知你哦~")
+        _factory.update_waifu_global_property(message.from_id, mentionable=True)
+        await message.reply(
+            "在所有群别人抽到你做老婆的时候可以通知你哦~" + ("" if local.mentionable is None else "(当前群不受全局设置影响)")
+        )
+
+
+@command_handler(["waifuml"], "在当前群允许/禁止 waifu 功能的提及 (默认全局设置)")
+async def mention_local(message: Message):
+    if message.sender_chat:
+        return
+    mentionable = utils.local_or_global(
+        _factory, lambda property: property.mentionable, message.chat.id, message.from_id
+    )
+    if mentionable:
+        _factory.update_waifu_local_property(message.chat.id, message.from_id, mentionable=False)
+        await message.reply("在当前群别人抽老婆的时候不会打扰到你啦~")
+    else:
+        _factory.update_waifu_local_property(message.chat.id, message.from_id, mentionable=True)
+        await message.reply("在当前群别人抽到你做老婆的时候可以通知你哦~")
+
+
+@command_handler(["waifumc"], "清除 waifu 功能的提及在当前群的局部设置")
+async def mention_clear(message: Message):
+    if message.sender_chat:
+        return
+    _factory.update_waifu_local_property(message.chat.id, message.from_id, mentionable=None)
+    await message.reply("清除成功了喵w")
 
 
 @dp.chat_member_handler()
