@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import aiohttp
 from aiogram.types import Message
 
-from yakusoku import config, context
+from yakusoku import config
 from yakusoku.modules import command_handler
 
 COUNTRIES_DATA_URL = (
@@ -26,6 +26,7 @@ class Config(config.Config):
 
 
 _config = Config.load("umnos")
+_countries: list[str] = []
 
 
 def get_types() -> list[str]:
@@ -35,10 +36,11 @@ def get_types() -> list[str]:
 
 
 async def get_countries() -> list[str]:
+    global _countries
     if _config.overwritten_countries and _config.custom_countries:
         return _config.custom_countries
-    if countries := context.try_get("umnos.countries"):
-        return countries
+    if _countries:
+        return _countries
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(COUNTRIES_DATA_URL) as response:
@@ -53,7 +55,7 @@ async def get_countries() -> list[str]:
             else FALLBACK_COUNTRIES + _config.custom_countries
         )
     countries += _config.custom_countries
-    context.set("umnos.countries", countries)
+    _countries = countries
     return countries
 
 

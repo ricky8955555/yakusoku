@@ -1,19 +1,17 @@
 import contextlib
 from dataclasses import dataclass
 from datetime import datetime
-from io import IOBase
 
-from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
+from aiogram.dispatcher.filters import ChatTypeFilter
 from aiogram.types import (CallbackQuery, Chat, ChatMemberUpdated, ChatType, InlineKeyboardButton,
                            InlineKeyboardMarkup, Message, User)
 
+from yakusoku.filters import CallbackQueryFilter, ManagerFilter
 from yakusoku.modules import command_handler, dispatcher
-from yakusoku.shared import cache, users
-from yakusoku.shared.filters import CallbackQueryFilter
+from yakusoku.shared import user_factory
 from yakusoku.utils import chat, function
 
-from . import utils
-from .config import Config
+from . import graph, utils
 from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, MemberNotEfficientError,
                       NoChoosableWaifuError, WaifuFactory, WaifuLocalProperty, WaifuState)
 from .registry import (InvalidTargetError, MarriageStateError, QueueingError, Registry,
@@ -21,7 +19,6 @@ from .registry import (InvalidTargetError, MarriageStateError, QueueingError, Re
 
 dp = dispatcher()
 
-_config = Config.load("waifu")
 _factory = WaifuFactory()
 _registry = Registry(_factory)
 
@@ -32,14 +29,6 @@ class MemberWaifuInfo:
     waifu: int
 
 
-async def get_user_avatar(user: User) -> IOBase:
-    chat = await user.bot.get_chat(user.id)
-    if _config.big_avatar:
-        return await cache.get_big_chat_photo(chat.photo)
-    else:
-        return await cache.get_small_chat_photo(chat.photo)
-
-
 @command_handler(
     ["waifu"],
     "获取每日老婆 (仅群聊)",
@@ -47,7 +36,7 @@ async def get_user_avatar(user: User) -> IOBase:
 )
 async def waifu(message: Message):
     try:
-        info = await _factory.fetch_waifu(message.chat, message.from_id)
+        info = _factory.fetch_waifu(message.chat.id, message.from_id)
     except MemberNotEfficientError:
         return await message.reply("目前群员信息不足捏, 等我熟悉一下群里环境? w")
     except NoChoosableWaifuError:
@@ -56,11 +45,11 @@ async def waifu(message: Message):
         await message.reply(f"找不到对象力(悲) www, 错误信息:\n{str(ex)}")
         raise
 
-    waifu = info.member
+    waifu = await chat.get_chat(message.bot, info.member)
     mentionable = utils.local_or_global(
-        _factory, lambda property: property.mentionable, message.chat.id, waifu.user.id
+        _factory, lambda property: property.mentionable, message.chat.id, waifu.id
     )
-    target = waifu.user.get_mention(as_html=True) if mentionable else waifu.user.full_name
+    target = waifu.get_mention(as_html=True) if mentionable else waifu.full_name  # type: ignore
     match info.state:
         case WaifuState.NONE:
             comment = f"每天一老婆哦~ 你今天已经抽过老婆了喵w.\n你今天的老婆是 {target}"
@@ -74,12 +63,12 @@ async def waifu(message: Message):
             inline_keyboard=[
                 [
                     InlineKeyboardButton(  # type: ignore
-                        text="变成限定老婆 (仅群聊管理员)",
-                        callback_data=f"waifu_limit_callback {waifu.user.id}",
+                        text="变成限定老婆 (仅管理员)",
+                        callback_data=f"waifu_limit_callback {waifu.id}",
                     ),
                     InlineKeyboardButton(  # type: ignore
                         text="成立婚事! (仅双方)",
-                        callback_data=f"waifu_propose_callback {message.from_id} {waifu.user.id}",
+                        callback_data=f"waifu_propose_callback {message.from_id} {waifu.id}",
                     ),
                 ]
             ]
@@ -89,30 +78,21 @@ async def waifu(message: Message):
     )
 
     with contextlib.suppress(Exception):
-        avatar = await get_user_avatar(waifu.user)
+        avatar = await user_factory.get_avatar(waifu)
         return await message.reply_photo(avatar, comment, parse_mode="HTML", reply_markup=buttons)
 
     await message.reply(comment, parse_mode="HTML", reply_markup=buttons)
 
 
-async def get_mentioned_member(message: Message, username: str) -> Chat:
-    assert (
-        member := await function.try_invoke_or_default_async(
-            lambda: chat.get_chat_from_username(message.bot, username)
-        )
-    ) and member.id in users.get_members(message.chat.id)
-    return member
-
-
 @command_handler(
     ["waifurs"],
-    "修改老婆稀有度 (仅群聊管理员)",
+    "修改老婆稀有度 (仅管理员)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    AdminFilter(),
+    ManagerFilter(),
 )
 async def waifu_rarity_set(message: Message):
     if not (await message.chat.get_member(message.from_user.id)).is_chat_admin():
-        return await message.reply("只有群聊管理员才能修改老婆稀有度嗷!")
+        return await message.reply("只有管理员才能修改老婆稀有度嗷!")
     if (
         len(args := message.text.split()) != 3
         or (rarity := function.try_invoke_or_default(lambda: int(args[2]))) is None
@@ -123,7 +103,7 @@ async def waifu_rarity_set(message: Message):
             parse_mode="Markdown",
         )
     try:
-        waifu = await get_mentioned_member(message, args[1])
+        waifu = await utils.get_mentioned_member(message.chat, args[1])
     except AssertionError:
         return await message.reply("呜, 找不到你所提及的用户w")
     _factory.update_waifu_local_property(message.chat.id, waifu.id, rarity=rarity)
@@ -141,7 +121,7 @@ async def waifu_rarity_get(message: Message):
     if len(args := message.text.split()) != 2:
         return await message.reply("戳啦, 正确用法为 `/waifurg <@用户>`", parse_mode="Markdown")
     try:
-        waifu = await get_mentioned_member(message, args[1])
+        waifu = await utils.get_mentioned_member(message.chat, args[1])
     except AssertionError:
         return await message.reply("呜, 找不到你所提及的用户w")
     property = _factory.get_waifu_local_property(message.chat.id, waifu.id)
@@ -153,12 +133,12 @@ async def waifu_rarity_get(message: Message):
 
 @dp.callback_query_handler(
     CallbackQueryFilter("waifu_limit_callback"),
-    AdminFilter(),
+    ManagerFilter(),
 )
 async def limit_callback(query: CallbackQuery):
     waifu_id = int(query.data.split()[1])
     _factory.update_waifu_local_property(query.message.chat.id, waifu_id, rarity=WAIFU_MAX_RARITY)
-    waifu = await query.bot.get_chat(waifu_id)
+    waifu = await chat.get_chat(query.bot, waifu_id)
 
     await query.message.reply(
         f"已将用户 {waifu.get_mention(as_html=True)} 变为限定老婆",
@@ -172,7 +152,7 @@ async def handle_divorce_request(
     property = _factory.get_waifu_local_property(message.chat.id, originator.id)
     if not property.married:
         return await message.reply("啊? 身为单身狗, 离婚什么???")
-    target = await message.bot.get_chat(property.married)
+    target = await chat.get_chat(message.bot, property.married)
     try:
         divorced = _registry.request_divorce(message.chat.id, originator.id)
     except QueueingError:
@@ -253,7 +233,7 @@ async def handle_proposal(
         return await message.reply("你或者对方已经结过婚捏, 不能向对方求婚诺w", reply=not removable)
     except QueueingError:
         proposal = _registry.get_proposal(message.chat.id, originator.id)
-        proposal_target = await message.bot.get_chat(proposal)
+        proposal_target = await chat.get_chat(message.bot, proposal)
         return await message.reply(
             f"你已经向 {proposal_target.get_mention(as_html=True)} 提出了求婚捏, 如果感觉不合适可以取消求婚申请捏",
             parse_mode="HTML",
@@ -261,7 +241,7 @@ async def handle_proposal(
         )
     except TargetUnmatchedError:
         proposal = _registry.get_proposal(message.chat.id, target.id)
-        proposal_target = await message.bot.get_chat(proposal)
+        proposal_target = await chat.get_chat(message.bot, proposal)
         return await message.reply(
             f"对方已经向 {proposal_target.get_mention(as_html=True)} 提出了求婚捏, 暂时不能向对方提出求婚申请w",
             parse_mode="HTML",
@@ -308,7 +288,7 @@ async def propose(message: Message):
     if len(args := message.text.split()) != 2:
         return await message.reply("戳啦, 正确用法为 `/propose <@用户>`", parse_mode="Markdown")
     try:
-        target = await get_mentioned_member(message, args[1])
+        target = await utils.get_mentioned_member(message.chat, args[1])
     except AssertionError:
         return await message.reply("呜, 找不到你所提及的用户w")
     await handle_proposal(message, message.from_user, target)
@@ -319,11 +299,11 @@ async def propose_callback(query: CallbackQuery):
     first_id, second_id = map(int, query.data.split()[1:])
     if query.from_user.id == first_id:
         await handle_proposal(
-            query.message, query.from_user, await query.bot.get_chat(second_id), True
+            query.message, query.from_user, await chat.get_chat(query.bot, second_id), True
         )
     elif query.from_user.id == second_id:
         await handle_proposal(
-            query.message, query.from_user, await query.bot.get_chat(first_id), True
+            query.message, query.from_user, await chat.get_chat(query.bot, first_id), True
         )
 
 
@@ -337,7 +317,7 @@ async def revoke_proposal_callback(query: CallbackQuery):
     if query.from_user.id == originator_id:
         await query.message.reply("取消求婚请求成功捏, 求婚要三思而后行喏~", reply=False)
     else:
-        originator = await query.bot.get_chat(originator_id)
+        originator = await chat.get_chat(query.bot, originator_id)
         await query.message.reply(
             f"{originator.get_mention(as_html=True)} 被 {query.from_user.get_mention(as_html=True)} "
             "拒绝了捏, 求婚要三思而后行喏~",
@@ -386,6 +366,12 @@ async def mention_clear(message: Message):
         return
     _factory.update_waifu_local_property(message.chat.id, message.from_id, mentionable=None)
     await message.reply("清除成功了喵w")
+
+
+@command_handler(["waifug"], "老婆关系图!", run_task=True)
+async def waifu_graph(message: Message):
+    image = await graph.render_from_cache(_factory.get_waifus(message.chat.id), "png")
+    await message.reply_photo(image)
 
 
 @dp.chat_member_handler()

@@ -1,4 +1,5 @@
 import contextlib
+
 from .factory import WaifuFactory
 
 

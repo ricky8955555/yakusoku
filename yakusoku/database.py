@@ -5,6 +5,7 @@ from sqlitedict import SqliteDict
 
 from yakusoku.constants import DATA_PATH
 
+DATABASE_PATH = os.path.join(DATA_PATH, "database")
 os.makedirs(DATA_PATH, exist_ok=True)
 
 

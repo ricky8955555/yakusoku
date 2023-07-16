@@ -5,10 +5,8 @@ from datetime import datetime
 from enum import Enum, auto
 from typing import Any, Optional
 
-from aiogram.types import Chat, ChatMember
-
 from yakusoku import database
-from yakusoku.shared import users
+from yakusoku.shared import user_factory
 
 DATABASE_NAME = "waifu"
 WAIFU_MIN_RARITY = 1
@@ -73,7 +71,7 @@ class WaifuState(Enum):
 
 @dataclass(frozen=True)
 class WaifuInfo:
-    member: ChatMember
+    member: int
     state: WaifuState
 
 
@@ -114,11 +112,11 @@ class WaifuFactory:
             property := self.get_waifu_local_property(chat, member)
         ).rarity < WAIFU_MAX_RARITY and property.married is None
 
-    async def _random_waifu(self, chat: Chat, member: int) -> int:
+    def _random_waifu(self, chat: int, member: int) -> int:
         mapping = {
-            waifu: self.get_waifu_local_property(chat.id, waifu).get_weight()
-            for waifu in users.get_members(chat.id)
-            if member != waifu and self._is_choosable(chat.id, waifu)
+            waifu: self.get_waifu_local_property(chat, waifu).get_weight()
+            for waifu in user_factory.get_members(chat)
+            if member != waifu and self._is_choosable(chat, waifu)
         }
         try:
             return random.choices(
@@ -156,21 +154,29 @@ class WaifuFactory:
         data = _WaifuData(waifu, int(datetime.now().timestamp()))
         db[member] = data.to_database()
 
-    async def fetch_waifu(self, chat: Chat, member: int) -> WaifuInfo:
-        if married := self.get_waifu_local_property(chat.id, member).married:
-            waifu = await chat.get_member(married)
-            return WaifuInfo(waifu, WaifuState.MARRIED)
-        if (data := self._get_waifu_data(chat.id, member)) and not self._is_update_needed(
-            chat.id, data
-        ):
-            waifu = await chat.get_member(data.member)
-            return WaifuInfo(waifu, WaifuState.NONE)
+    def fetch_waifu(self, chat: int, member: int) -> WaifuInfo:
+        if married := self.get_waifu_local_property(chat, member).married:
+            return WaifuInfo(married, WaifuState.MARRIED)
+        if (data := self._get_waifu_data(chat, member)) and not self._is_update_needed(chat, data):
+            return WaifuInfo(data.member, WaifuState.NONE)
 
-        waifu_id = await self._random_waifu(chat, member)
-        self._update_waifu(chat.id, member, waifu_id)
-
-        waifu = await chat.get_member(waifu_id)
+        waifu = self._random_waifu(chat, member)
+        self._update_waifu(chat, member, waifu)
         return WaifuInfo(waifu, WaifuState.UPDATED)
+
+    def get_waifus(self, chat: int) -> dict[int, int]:
+        result: dict[int, int] = {}
+        members = user_factory.get_members(chat)
+        for member in members:
+            property = self.get_waifu_local_property(chat, member)
+            if not (waifu := property.married):
+                if not (data := self._get_waifu_data(chat, member)) or self._is_update_needed(
+                    chat, data
+                ):
+                    continue
+                waifu = data.member
+            result[member] = waifu
+        return result
 
     def remove_waifu(self, chat: int, member: int) -> None:
         db = self._get_waifu_db(chat)

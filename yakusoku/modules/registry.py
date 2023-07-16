@@ -1,11 +1,12 @@
-from aiogram.dispatcher.filters import AdminFilter, ChatTypeFilter
+from aiogram.dispatcher.filters import ChatTypeFilter
 from aiogram.types import Chat, ChatMember, ChatMemberUpdated, ChatType, Message, User
 
+from yakusoku.filters import ManagerFilter
 from yakusoku.modules import command_handler, dispatcher
-from yakusoku.shared import users
-from yakusoku.utils import function
+from yakusoku.shared import user_factory
 
 dp = dispatcher()
+
 
 filtered = [
     777000,
@@ -23,19 +24,18 @@ def is_recordable(user: User) -> bool:
 
 async def joined(group: Chat, member: ChatMember) -> None:
     if is_recordable(member.user):
-        users.add_member(group.id, member.user.id)
-        if member.user.username:
-            users.update_user(member.user.username, member.user.id)
+        user_factory.add_member(group.id, member.user.id)
+        user_factory.update_user(member.user)
 
 
 async def left(group: Chat, member: ChatMember) -> None:
     if member.user.id == member.bot.id:
-        users.delete_members(group.id)
+        user_factory.clear_members(group.id)
     else:
-        users.remove_member(group.id, member.user.id)
+        user_factory.remove_member(group.id, member.user.id)
 
 
-@dp.chat_member_handler()
+@dp.chat_member_handler(run_task=True)
 async def member_update(update: ChatMemberUpdated):
     group, user = update.chat, update.new_chat_member
     if user.status == "member":
@@ -44,29 +44,27 @@ async def member_update(update: ChatMemberUpdated):
         await left(group, user)
 
 
-@dp.message_handler()
+@dp.message_handler(run_task=True)
 async def message_received(message: Message):
     if not message.sender_chat and is_recordable(message.from_user):
         if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
-            users.add_member(message.chat.id, message.from_id)
-        if message.from_user.username:
-            users.update_user(message.from_user.username, message.from_id)
+            user_factory.add_member(message.chat.id, message.from_id)
+        user_factory.update_user(message.from_user)
 
 
 @command_handler(
     ["members"],
-    "获取记录成员列表 (仅群聊管理员)",
+    "获取记录成员列表 (仅管理员)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    AdminFilter(),
+    ManagerFilter(),
 )
 async def get_members(message: Message):
-    members = [
-        await function.try_invoke_or_fallback_async(message.chat.get_member, member)
-        for member in users.get_members(message.chat.id)
-    ]
-    await message.reply(
+    bot_message = await message.reply("客官请稍等捏……正在翻本子www")
+    await bot_message.edit_text(
         "当前已记录以下成员信息:\n"
         + "\n".join(
-            str(member) if isinstance(member, int) else member.user.full_name for member in members
+            (info := user_factory.get_userinfo(member)).name
+            or (next(iter(info.usernames)) if info.usernames else str(member))
+            for member in user_factory.get_members(message.chat.id)
         )
     )

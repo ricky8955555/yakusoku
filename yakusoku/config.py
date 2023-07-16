@@ -18,5 +18,11 @@ def load_yaml(path: str) -> Any:
 class Config:
     @classmethod
     def load(cls, name: str):
-        path = os.path.join(CONFIG_PATH, name + ".yml")
-        return cls(**(data if (data := load_yaml(path)) else {}))
+        path = (
+            path
+            if os.path.exists(path := os.path.join(CONFIG_PATH, name + ".yaml"))
+            else os.path.join(CONFIG_PATH, name + ".yml")
+        )
+        if path:
+            return cls(**(data if (data := load_yaml(path)) else {}))
+        return cls()
