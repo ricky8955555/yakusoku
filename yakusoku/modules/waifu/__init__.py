@@ -368,7 +368,7 @@ async def mention_clear(message: Message):
     await message.reply("清除成功了喵w")
 
 
-@command_handler(["waifug"], "老婆关系图!", run_task=True)
+@command_handler(["waifug", "waifu_graph"], "老婆关系图!", run_task=True)
 async def waifu_graph(message: Message):
     image = await graph.render_from_cache(_factory.get_waifus(message.chat.id), "png")
     await message.reply_photo(image)
