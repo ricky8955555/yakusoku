@@ -102,20 +102,9 @@ class UserFactory:
     def _avatar_path(user: int) -> str:
         return os.path.join(AVATAR_PATH, str(user))
 
-    async def _update_avatar(self, user: Chat, last_id: str | None = None) -> IOBase | None:
-        if not user.photo:
-            return None
-        new_id = self._get_chat_photo_id(user.photo)
-        path = UserFactory._avatar_path(user.id)
-        if last_id != new_id or not os.path.exists(path):
-            fp = open(path, "wb+")
-            if self._config.cache_big_avatar:
-                return await user.photo.download_big(fp)
-            return await user.photo.download_small(fp)
-        return open(path, "rb")
-
     async def get_avatar(self, user: User | Chat) -> IOBase | None:
         info = self.get_userinfo(user.id)
+        path = UserFactory._avatar_path(user.id)
         id = info.avatar[0] if info.avatar else None
         if (
             info.avatar
@@ -123,12 +112,18 @@ class UserFactory:
                 datetime.fromtimestamp(info.avatar[1]) - datetime.now()
                 >= timedelta(seconds=self._config.avatar_cache_lifespan)
             )
-            and os.path.exists(path := UserFactory._avatar_path(user.id))
+            and os.path.exists(path)
         ):
             return open(path, "rb") if id else None
         if isinstance(user, User):
             user = await user.bot.get_chat(user.id)
-        return await self._update_avatar(user, id)
+        new_id = self._get_chat_photo_id(user.photo)
+        if id != new_id or not os.path.exists(path):
+            fp = open(path, "wb+")
+            if self._config.cache_big_avatar:
+                return await user.photo.download_big(fp)
+            return await user.photo.download_small(fp)
+        return open(path, "rb")
 
     def get_avatar_cache(self, user: int) -> IOBase | None:
         return open(path, "rb") if os.path.exists(path := UserFactory._avatar_path(user)) else None
