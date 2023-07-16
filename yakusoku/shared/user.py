@@ -103,15 +103,16 @@ class UserFactory:
         return os.path.join(AVATAR_PATH, str(user))
 
     async def _update_avatar(self, user: Chat, last_id: str | None = None) -> IOBase | None:
-        path = UserFactory._avatar_path(user.id)
         if not user.photo:
             return None
         new_id = self._get_chat_photo_id(user.photo)
+        path = UserFactory._avatar_path(user.id)
         if last_id != new_id or not os.path.exists(path):
             fp = open(path, "wb+")
             if self._config.cache_big_avatar:
                 return await user.photo.download_big(fp)
             return await user.photo.download_small(fp)
+        return open(path, "rb")
 
     async def get_avatar(self, user: User | Chat) -> IOBase | None:
         info = self.get_userinfo(user.id)
