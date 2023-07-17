@@ -50,7 +50,7 @@ async def waifu(message: Message):
     mentionable = utils.local_or_global(
         _factory, lambda property: property.mentionable, message.chat.id, waifu.id
     )
-    target = waifu.get_mention(as_html=True) if mentionable else waifu.full_name  # type: ignore
+    target: str = chat.get_mention_html(waifu) if mentionable else waifu.full_name  # type: ignore
     match info.state:
         case WaifuState.NONE:
             comment = f"每天一老婆哦~ 你今天已经抽过老婆了喵w.\n你今天的老婆是 {target}"
@@ -109,7 +109,7 @@ async def waifu_rarity_set(message: Message):
         return await message.reply("呜, 找不到你所提及的用户w")
     _factory.update_waifu_local_property(message.chat.id, waifu.id, rarity=rarity)
     await message.reply(
-        f"成功将 {waifu.get_mention(as_html=True)} 的老婆稀有度修改为 {rarity}!", parse_mode="HTML"
+        f"成功将 {chat.get_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!", parse_mode="HTML"
     )
 
 
@@ -127,7 +127,7 @@ async def waifu_rarity_get(message: Message):
         return await message.reply("呜, 找不到你所提及的用户w")
     property = _factory.get_waifu_local_property(message.chat.id, waifu.id)
     await message.reply(
-        f"{waifu.get_mention(as_html=True)} 的老婆稀有度为: {property.rarity}", parse_mode="HTML"
+        f"{chat.get_mention_html(waifu)} 的老婆稀有度为: {property.rarity}", parse_mode="HTML"
     )
     return True
 
@@ -142,7 +142,7 @@ async def limit_callback(query: CallbackQuery):
     waifu = await chat.get_chat(query.bot, waifu_id)
 
     await query.message.reply(
-        f"已将用户 {waifu.get_mention(as_html=True)} 变为限定老婆",
+        f"已将用户 {chat.get_mention_html(waifu)} 变为限定老婆",
         parse_mode="HTML",
     )
 
@@ -158,13 +158,13 @@ async def handle_divorce_request(
         divorced = _registry.request_divorce(message.chat.id, originator.id)
     except QueueingError:
         return await message.reply(
-            f"你已经向 {target.get_mention(as_html=True)} 提出了求婚 www, 如果感觉不合适可以取消离婚申请捏 (x",
+            f"你已经向 {chat.get_mention_html(target)} 提出了求婚 www, 如果感觉不合适可以取消离婚申请捏 (x",
             parse_mode="HTML",
             reply=not removable,
         )
     if divorced:
         await message.reply(
-            f"呜呜呜, {originator.get_mention(as_html=True)} 和 {target.get_mention(as_html=True)} "
+            f"呜呜呜, {chat.get_mention_html(originator)} 和 {chat.get_mention_html(target)} "
             "已通过手续离婚了w\n今后的日子, 自己要照顾好自己捏w",
             parse_mode="HTML",
             reply=not removable,
@@ -189,7 +189,7 @@ async def handle_divorce_request(
             ]
         )
         await message.reply(
-            f"{originator.get_mention(as_html=True)} 向 {target.get_mention(as_html=True)} "
+            f"{chat.get_mention_html(originator)} 向 {chat.get_mention_html(target)} "
             "发起了离婚申请 www",
             parse_mode="HTML",
             reply_markup=buttons,
@@ -234,23 +234,23 @@ async def handle_proposal(
         return await message.reply("你或者对方已经结过婚捏, 不能向对方求婚诺w", reply=not removable)
     except QueueingError:
         proposal = _registry.get_proposal(message.chat.id, originator.id)
-        proposal_target = await chat.get_chat(message.bot, proposal)
+        target = await chat.get_chat(message.bot, proposal)
         return await message.reply(
-            f"你已经向 {proposal_target.get_mention(as_html=True)} 提出了求婚捏, 如果感觉不合适可以取消求婚申请捏",
+            f"你已经向 {chat.get_mention_html(target)} 提出了求婚捏, 如果感觉不合适可以取消求婚申请捏",
             parse_mode="HTML",
             reply=not removable,
         )
     except TargetUnmatchedError:
         proposal = _registry.get_proposal(message.chat.id, target.id)
-        proposal_target = await chat.get_chat(message.bot, proposal)
+        target = await chat.get_chat(message.bot, proposal)
         return await message.reply(
-            f"对方已经向 {proposal_target.get_mention(as_html=True)} 提出了求婚捏, 暂时不能向对方提出求婚申请w",
+            f"对方已经向 {chat.get_mention_html(target)} 提出了求婚捏, 暂时不能向对方提出求婚申请w",
             parse_mode="HTML",
             reply=not removable,
         )
     if married:
         await message.reply(
-            f"恭喜 {originator.get_mention(as_html=True)} 和 {target.get_mention(as_html=True)} "
+            f"恭喜 {chat.get_mention_html(originator)} 和 {chat.get_mention_html(target)} "
             "已走入婚姻的殿堂捏~\nkdl kdl kdl www",
             parse_mode="HTML",
             reply=not removable,
@@ -273,7 +273,7 @@ async def handle_proposal(
             ]
         )
         await message.reply(
-            f"{originator.get_mention(as_html=True)} 向 {target.get_mention(as_html=True)} 发起了求婚邀请",
+            f"{chat.get_mention_html(originator)} 向 {chat.get_mention_html(target)} 发起了求婚邀请",
             parse_mode="HTML",
             reply_markup=buttons,
             reply=not removable,
@@ -320,7 +320,7 @@ async def revoke_proposal_callback(query: CallbackQuery):
     else:
         originator = await chat.get_chat(query.bot, originator_id)
         await query.message.reply(
-            f"{originator.get_mention(as_html=True)} 被 {query.from_user.get_mention(as_html=True)} "
+            f"{chat.get_mention_html(originator)} 被 {chat.get_mention_html(query.from_user)} "
             "拒绝了捏, 求婚要三思而后行喏~",
             parse_mode="HTML",
             reply=False,

@@ -1,14 +1,16 @@
 from aiogram import Bot
-from aiogram.types import Chat, ChatMember
+from aiogram.types import Chat, ChatMember, User
 
 from yakusoku.shared import user_factory
 from yakusoku.utils import function
 
 
-def get_mention_html(chat: Chat, name: str | None = None) -> str:
+def get_mention_html(chat: Chat | User, name: str | None = None) -> str:
     return (  # type: ignore
         function.try_invoke_or_default(  # type: ignore
-            lambda: chat.get_mention(name, as_html=True),  # type: ignore
+            lambda: chat.get_mention(
+                name if name else chat.full_name, as_html=True  # type: ignore
+            ),
         )
         or f'<a href="https://t.me/{chat.username}">{name or chat.full_name}</a>'
         if chat.username
