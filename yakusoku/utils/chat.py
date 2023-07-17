@@ -23,7 +23,7 @@ async def get_chat(bot: Bot, chat_id: int | str) -> Chat:
             await bot.get_chat(id) if (id := user_factory.get_user(chat_id.lstrip("@"))) else None
         )
     assert chat, f"failed to get chat from username {chat_id}"
-    user_factory.update_chat(chat := await bot.get_chat(chat_id))
+    user_factory.update_chat(chat)
     return chat
 
 
