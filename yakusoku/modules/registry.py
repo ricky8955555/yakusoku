@@ -1,6 +1,8 @@
 from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import Chat, ChatMember, ChatMemberUpdated, ChatType, Message, User
+from aiogram.types import (Chat, ChatActions, ChatMember, ChatMemberUpdated, ChatType, ContentType,
+                           Message, User)
 
+from yakusoku import common_config
 from yakusoku.filters import ManagerFilter
 from yakusoku.modules import command_handler, dispatcher
 from yakusoku.shared import user_factory
@@ -44,7 +46,7 @@ async def member_update(update: ChatMemberUpdated):
         await left(group, user)
 
 
-@dp.message_handler(run_task=True)
+@dp.message_handler(run_task=True, content_types=ContentType.all())
 async def message_received(message: Message):
     if not message.sender_chat and is_recordable(message.from_user):
         if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
@@ -59,8 +61,9 @@ async def message_received(message: Message):
     ManagerFilter(),
 )
 async def get_members(message: Message):
-    bot_message = await message.reply("客官请稍等捏……正在翻本子www")
-    await bot_message.edit_text(
+    await message.answer_chat_action(ChatActions.TYPING)
+    reply = await message.reply_sticker(common_config.waiting_sticker)
+    await message.reply(
         "当前已记录以下成员信息:\n"
         + "\n".join(
             (info := user_factory.get_userinfo(member)).name
@@ -68,3 +71,4 @@ async def get_members(message: Message):
             for member in user_factory.get_members(message.chat.id)
         )
     )
+    await reply.delete()

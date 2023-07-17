@@ -4,9 +4,10 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import (CallbackQuery, Chat, ChatMemberUpdated, ChatType, InlineKeyboardButton,
-                           InlineKeyboardMarkup, Message, User)
+from aiogram.types import (CallbackQuery, Chat, ChatActions, ChatMemberUpdated, ChatType,
+                           InlineKeyboardButton, InlineKeyboardMarkup, Message, User)
 
+from yakusoku import common_config
 from yakusoku.filters import CallbackQueryFilter, ManagerFilter
 from yakusoku.modules import command_handler, dispatcher
 from yakusoku.shared import user_factory
@@ -383,7 +384,8 @@ async def mention_clear(message: Message):
     run_task=True,
 )
 async def waifu_graph(message: Message):
-    reply = await message.reply("请先喝杯茶, 正在绞尽脑汁渲染老婆关系图捏……")
+    await message.answer_chat_action(ChatActions.TYPING)
+    reply = await message.reply_sticker(common_config.waiting_sticker)
     try:
         image = await graph.render(message.bot, _factory.get_waifus(message.chat.id), "png")
         await message.reply_photo(image)
