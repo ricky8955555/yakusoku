@@ -189,8 +189,7 @@ async def handle_divorce_request(
             ]
         )
         await message.reply(
-            f"{chat.get_mention_html(originator)} 向 {chat.get_mention_html(target)} "
-            "发起了离婚申请 www",
+            f"{chat.get_mention_html(originator)} 向 {chat.get_mention_html(target)} " "发起了离婚申请 www",
             parse_mode="HTML",
             reply_markup=buttons,
             reply=not removable,
