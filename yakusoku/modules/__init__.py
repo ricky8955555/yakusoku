@@ -39,22 +39,22 @@ def load(dp: Dispatcher) -> None:
 
 def command_handler(  # type: ignore
     commands: list[str],
-    description: str,
+    summary: str,
     *args: Any,
     **kwargs: Any,
 ):
     for command in commands:
-        update_command(command, description)
+        update_command(command, summary)
     return dispatcher().message_handler(*args, **kwargs, commands=commands)  # type: ignore
 
 
-def update_command(command: str, description: str) -> None:
-    _commands[command] = description
+def update_command(command: str, summary: str) -> None:
+    _commands[command] = summary
 
 
 async def register_commands() -> None:
     await dispatcher().bot.set_my_commands(
-        [BotCommand(command, description) for command, description in _commands.items()],
+        [BotCommand(command, summary) for command, summary in _commands.items()],
         BotCommandScopeDefault(),
     )
 
