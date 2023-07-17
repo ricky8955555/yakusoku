@@ -62,7 +62,7 @@ async def message_received(message: Message):
 )
 async def get_members(message: Message):
     await message.answer_chat_action(ChatActions.TYPING)
-    reply = await message.reply_sticker(common_config.waiting_sticker)
+    reply = await message.reply_sticker(common_config.writing_sticker)
     await message.reply(
         "当前已记录以下成员信息:\n"
         + "\n".join(

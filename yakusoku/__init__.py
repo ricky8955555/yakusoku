@@ -12,7 +12,7 @@ class BotConfig(Config):
 
 @dataclass
 class CommonConfig(Config):
-    waiting_sticker: str = (
+    writing_sticker: str = (
         "CAACAgIAAxkBAAOpZLUxt3yp_ZiN40D4bJfh1GJbJ7MAAiMTAALo1uIScdlv0VTcu6UvBA"
     )  # Capoo writing sticker
 
