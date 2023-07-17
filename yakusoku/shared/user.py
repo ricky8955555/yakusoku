@@ -74,7 +74,8 @@ class UserFactory:
         info = self.get_userinfo(user.id)
         self._user_db[user.username] = user.id
         info = dataclasses.replace(info, name=user.full_name)
-        info.usernames.add(user.username)
+        if user.username:
+            info.usernames.add(user.username)
         self._user_info_db[user.id] = info.to_database()
 
     def _get_chat_photo_id(self, photo: ChatPhoto) -> str:
@@ -95,7 +96,7 @@ class UserFactory:
                 self._get_chat_photo_id(chat.photo) if chat.photo else None,
                 datetime.now().timestamp(),
             ),
-            usernames=set(chat.active_usernames),
+            usernames=(set(chat.active_usernames) if chat.active_usernames else set()),
         )
         self._user_info_db[chat.id] = info.to_database()
 
