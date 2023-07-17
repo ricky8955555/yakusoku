@@ -1,4 +1,5 @@
 import contextlib
+import traceback
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -370,8 +371,14 @@ async def mention_clear(message: Message):
 
 @command_handler(["waifug", "waifu_graph"], "老婆关系图!", run_task=True)
 async def waifu_graph(message: Message):
-    image = await graph.render_from_cache(_factory.get_waifus(message.chat.id), "png")
-    await message.reply_photo(image)
+    reply = await message.reply("请先喝杯茶, 正在绞尽脑汁渲染老婆关系图捏……")
+    try:
+        image = await graph.render(message.bot, _factory.get_waifus(message.chat.id), "png")
+        await message.reply_photo(image)
+    except Exception as ex:
+        await message.reply(f"喵呜……渲染失败捏. {ex}")
+        traceback.print_exc()
+    await reply.delete()
 
 
 @dp.chat_member_handler()

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from io import IOBase
 from typing import Any
 
+from aiogram import Bot
 from aiogram.types import Chat, ChatPhoto, User
 
 from yakusoku import database
@@ -102,28 +103,44 @@ class UserFactory:
     def _avatar_path(user: int) -> str:
         return os.path.join(AVATAR_PATH, str(user))
 
-    async def get_avatar(self, user: User | Chat) -> IOBase | None:
-        info = self.get_userinfo(user.id)
-        path = UserFactory._avatar_path(user.id)
-        id = info.avatar[0] if info.avatar else None
+    async def get_avatar(
+        self, user: User | Chat | tuple[int, Bot], lazy: bool = False
+    ) -> IOBase | None:
+        id, bot = user if isinstance(user, tuple) else (user.id, user.bot)
+        info = self.get_userinfo(id)
+        path = UserFactory._avatar_path(id)
+        avatar = info.avatar[0] if info.avatar else None
         if (
             info.avatar
             and (
-                datetime.fromtimestamp(info.avatar[1]) - datetime.now()
-                >= timedelta(seconds=self._config.avatar_cache_lifespan)
+                lazy
+                or (
+                    datetime.fromtimestamp(info.avatar[1]) - datetime.now()
+                    >= timedelta(seconds=self._config.avatar_cache_lifespan)
+                )
             )
             and os.path.exists(path)
         ):
             return open(path, "rb") if id else None
-        if isinstance(user, User):
-            user = await user.bot.get_chat(user.id)
+        if not isinstance(user, Chat):
+            user = await bot.get_chat(id)
+        self.update_chat(user)
         new_id = self._get_chat_photo_id(user.photo)
-        if id != new_id or not os.path.exists(path):
+        if avatar != new_id or not os.path.exists(path):
             fp = open(path, "wb+")
             if self._config.cache_big_avatar:
                 return await user.photo.download_big(fp)
             return await user.photo.download_small(fp)
         return open(path, "rb")
+
+    async def get_avatar_file(
+        self, user: User | Chat | tuple[int, Bot], lazy: bool = False
+    ) -> str | None:
+        fp = await self.get_avatar(user, lazy)
+        if not fp:
+            return None
+        fp.close()
+        return UserFactory._avatar_path(user[0] if isinstance(user, tuple) else user.id)
 
     def get_avatar_cache(self, user: int) -> IOBase | None:
         return open(path, "rb") if os.path.exists(path := UserFactory._avatar_path(user)) else None

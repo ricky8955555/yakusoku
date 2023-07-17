@@ -1,18 +1,19 @@
 import contextlib
 
+from aiogram import Bot
 from graphviz import Digraph
 
 from yakusoku.shared import user_factory
 
 
-async def render_from_cache(mapping: dict[int, int], format: str | None = None) -> bytes:
+async def render(bot: Bot, mapping: dict[int, int], format: str | None = None) -> bytes:
     graph = Digraph()
     for member in set(mapping.keys()).union(mapping.values()):
         avatar = None
         info = user_factory.get_userinfo(member)
         label = info.name or (f"@{next(iter(info.usernames))}" if info.usernames else str(member))
         with contextlib.suppress(Exception):
-            avatar = user_factory.get_avatar_cache_file(member)
+            avatar = await user_factory.get_avatar_file((member, bot), True)
         if avatar:
             with graph.subgraph(name=f"cluster_{member}") as subgraph:  # type: ignore
                 subgraph.attr(label=label, labelloc="b")
