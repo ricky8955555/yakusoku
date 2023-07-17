@@ -37,6 +37,7 @@ class MemberWaifuInfo:
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def waifu(message: Message):
+    await message.answer_chat_action(ChatActions.TYPING)
     try:
         info = _factory.fetch_waifu(message.chat.id, message.from_id)
     except MemberNotEfficientError:
