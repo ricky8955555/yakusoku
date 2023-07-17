@@ -103,9 +103,9 @@ class UserFactory:
     def _avatar_path(user: int) -> str:
         return os.path.join(AVATAR_PATH, str(user))
 
-    async def get_avatar(
+    async def get_avatar_file(
         self, user: User | Chat | tuple[int, Bot], lazy: bool = False
-    ) -> IOBase | None:
+    ) -> str | None:
         id, bot = user if isinstance(user, tuple) else (user.id, user.bot)
         info = self.get_userinfo(id)
         path = UserFactory._avatar_path(id)
@@ -121,26 +121,25 @@ class UserFactory:
             )
             and os.path.exists(path)
         ):
-            return open(path, "rb") if id else None
+            return path
         if not isinstance(user, Chat):
             user = await bot.get_chat(id)
         self.update_chat(user)
+        if not user.photo:
+            return None
         new_id = self._get_chat_photo_id(user.photo)
         if avatar != new_id or not os.path.exists(path):
-            fp = open(path, "wb+")
+            fp = open(path, "wb")
             if self._config.cache_big_avatar:
-                return await user.photo.download_big(fp)
-            return await user.photo.download_small(fp)
-        return open(path, "rb")
+                await user.photo.download_big(fp)
+            else:
+                await user.photo.download_small(fp)
+        return path
 
-    async def get_avatar_file(
+    async def get_avatar(
         self, user: User | Chat | tuple[int, Bot], lazy: bool = False
-    ) -> str | None:
-        fp = await self.get_avatar(user, lazy)
-        if not fp:
-            return None
-        fp.close()
-        return UserFactory._avatar_path(user[0] if isinstance(user, tuple) else user.id)
+    ) -> IOBase | None:
+        return open(avatar, "rb") if (avatar := await self.get_avatar_file(user, lazy)) else None
 
     def get_avatar_cache(self, user: int) -> IOBase | None:
         return open(path, "rb") if os.path.exists(path := UserFactory._avatar_path(user)) else None
