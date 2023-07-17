@@ -111,18 +111,17 @@ class UserFactory:
         info = self.get_userinfo(id)
         path = UserFactory._avatar_path(id)
         avatar = info.avatar[0] if info.avatar else None
-        if (
-            info.avatar
-            and (
-                lazy
-                or (
-                    datetime.fromtimestamp(info.avatar[1]) - datetime.now()
-                    >= timedelta(seconds=self._config.avatar_cache_lifespan)
-                )
+        if info.avatar and (
+            lazy
+            or (
+                datetime.fromtimestamp(info.avatar[1]) - datetime.now()
+                >= timedelta(seconds=self._config.avatar_cache_lifespan)
             )
-            and os.path.exists(path)
         ):
-            return path
+            if not avatar:
+                return None
+            if os.path.exists(path):
+                return path
         if not isinstance(user, Chat):
             user = await bot.get_chat(id)
         self.update_chat(user)
