@@ -346,7 +346,11 @@ async def mention_global(message: Message):
         )
 
 
-@command_handler(["waifuml"], "在当前群允许/禁止 waifu 功能的提及 (默认全局设置)")
+@command_handler(
+    ["waifuml"],
+    "在当前群允许/禁止 waifu 功能的提及 (默认全局设置) (仅群聊)",
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+)
 async def mention_local(message: Message):
     if message.sender_chat:
         return
@@ -361,7 +365,11 @@ async def mention_local(message: Message):
         await message.reply("在当前群别人抽到你做老婆的时候可以通知你哦~")
 
 
-@command_handler(["waifumc"], "清除 waifu 功能的提及在当前群的局部设置")
+@command_handler(
+    ["waifumc"],
+    "清除 waifu 功能的提及在当前群的局部设置 (仅群聊)",
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+)
 async def mention_clear(message: Message):
     if message.sender_chat:
         return
@@ -369,7 +377,12 @@ async def mention_clear(message: Message):
     await message.reply("清除成功了喵w")
 
 
-@command_handler(["waifug", "waifu_graph"], "老婆关系图!", run_task=True)
+@command_handler(
+    ["waifug", "waifu_graph"],
+    "老婆关系图!",
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    run_task=True,
+)
 async def waifu_graph(message: Message):
     reply = await message.reply("请先喝杯茶, 正在绞尽脑汁渲染老婆关系图捏……")
     try:
