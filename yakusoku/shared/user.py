@@ -129,11 +129,10 @@ class UserFactory:
             return None
         new_id = self._get_chat_photo_id(user.photo)
         if avatar != new_id or not os.path.exists(path):
-            fp = open(path, "wb")
             if self._config.cache_big_avatar:
-                await user.photo.download_big(fp)
+                await user.photo.download_big(path)
             else:
-                await user.photo.download_small(fp)
+                await user.photo.download_small(path)
         return path
 
     async def get_avatar(
