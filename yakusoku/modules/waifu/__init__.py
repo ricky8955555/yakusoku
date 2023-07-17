@@ -379,7 +379,7 @@ async def mention_clear(message: Message):
 
 @command_handler(
     ["waifug", "waifu_graph"],
-    "老婆关系图!",
+    "老婆关系图! (仅群聊)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     run_task=True,
 )
