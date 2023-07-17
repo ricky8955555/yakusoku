@@ -385,8 +385,8 @@ async def mention_clear(message: Message):
     run_task=True,
 )
 async def waifu_graph(message: Message):
-    await message.answer_chat_action(ChatActions.TYPING)
     reply = await message.reply_sticker(common_config.writing_sticker)
+    await message.answer_chat_action(ChatActions.TYPING)
     try:
         image = await graph.render(message.bot, _factory.get_waifus(message.chat.id), "png")
         await message.reply_photo(image)

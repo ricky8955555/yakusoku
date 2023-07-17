@@ -1,8 +1,6 @@
 from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import (Chat, ChatActions, ChatMember, ChatMemberUpdated, ChatType, ContentType,
-                           Message, User)
+from aiogram.types import Chat, ChatMember, ChatMemberUpdated, ChatType, ContentType, Message, User
 
-from yakusoku import common_config
 from yakusoku.filters import ManagerFilter
 from yakusoku.modules import command_handler, dispatcher
 from yakusoku.shared import user_factory
@@ -61,8 +59,6 @@ async def message_received(message: Message):
     ManagerFilter(),
 )
 async def get_members(message: Message):
-    await message.answer_chat_action(ChatActions.TYPING)
-    reply = await message.reply_sticker(common_config.writing_sticker)
     await message.reply(
         "当前已记录以下成员信息:\n"
         + "\n".join(
@@ -71,4 +67,3 @@ async def get_members(message: Message):
             for member in user_factory.get_members(message.chat.id)
         )
     )
-    await reply.delete()

@@ -12,9 +12,8 @@ class BotConfig(Config):
 
 @dataclass
 class CommonConfig(Config):
-    writing_sticker: str = (
-        "CAACAgIAAxkBAAOpZLUxt3yp_ZiN40D4bJfh1GJbJ7MAAiMTAALo1uIScdlv0VTcu6UvBA"
-    )  # Capoo writing sticker
+    # Capoo writing sticker
+    writing_sticker: str = "CAACAgIAAxkBAAOpZLUxt3yp_ZiN40D4bJfh1GJbJ7MAAiMTAALo1uIScdlv0VTcu6UvBA"
 
 
 bot_config = BotConfig.load("bot")
