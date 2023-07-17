@@ -1,4 +1,5 @@
 import contextlib
+import textwrap
 
 from aiogram import Bot
 from graphviz import Digraph
@@ -11,7 +12,11 @@ async def render(bot: Bot, mapping: dict[int, int], format: str | None = None) -
     for member in set(mapping.keys()).union(mapping.values()):
         avatar = None
         info = user_factory.get_userinfo(member)
-        label = info.name or (f"@{next(iter(info.usernames))}" if info.usernames else str(member))
+        label = textwrap.shorten(
+            info.name or (f"@{next(iter(info.usernames))}" if info.usernames else str(member)),
+            width=15,
+            placeholder="...",
+        )
         with contextlib.suppress(Exception):
             avatar = await user_factory.get_avatar_file((member, bot), True)
         if avatar:
