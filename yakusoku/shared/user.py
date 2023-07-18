@@ -68,14 +68,20 @@ class UserFactory:
         data = self._user_info_db.get(id)
         return UserInfo.from_database(data) if data else UserInfo()
 
+    def _update_info_from_user(self, info: UserInfo, user: User) -> UserInfo:
+        info = dataclasses.replace(
+            info,
+            name=user.full_name,
+        )
+        if user.username:
+            info.usernames.add(user.username)
+        return info
+
     def update_user(self, user: User) -> None:
         if not user.username:
             raise ValueError
         info = self.get_userinfo(user.id)
-        self._user_db[user.username] = user.id
-        info = dataclasses.replace(info, name=user.full_name)
-        if user.username:
-            info.usernames.add(user.username)
+        info = self._update_info_from_user(info, user)
         self._user_info_db[user.id] = info.to_database()
 
     def _get_chat_photo_id(self, photo: ChatPhoto) -> str:
@@ -85,24 +91,38 @@ class UserFactory:
             else photo.small_file_unique_id
         )
 
+    def _update_info_from_chat(self, info: UserInfo, chat: Chat) -> UserInfo:
+        return dataclasses.replace(
+            info,
+            name=chat.full_name,
+            usernames=(set(chat.active_usernames) if chat.active_usernames else set()),
+        )
+
     def update_chat(self, chat: Chat) -> None:
         if chat.type != "private":
             return
         info = self.get_userinfo(chat.id)
-        info = dataclasses.replace(
-            info,
-            name=chat.full_name,
-            avatar=(
-                self._get_chat_photo_id(chat.photo) if chat.photo else None,
-                datetime.now().timestamp(),
-            ),
-            usernames=(set(chat.active_usernames) if chat.active_usernames else set()),
-        )
+        avatar = self._get_chat_photo_id(chat.photo)
+        info = self._update_info_from_chat(info, chat)
+        if not info.avatar or avatar != info.avatar[0]:
+            info = dataclasses.replace(
+                info,
+                avatar=(
+                    self._get_chat_photo_id(chat.photo) if chat.photo else None,
+                    -1,  # force update
+                ),
+            )
         self._user_info_db[chat.id] = info.to_database()
 
     @staticmethod
     def _avatar_path(user: int) -> str:
         return os.path.join(AVATAR_PATH, str(user))
+
+    async def _download_avatar(self, photo: ChatPhoto, path: str):
+        if self._config.cache_big_avatar:
+            await photo.download_big(path)
+        else:
+            await photo.download_small(path)
 
     async def get_avatar_file(
         self, user: User | Chat | tuple[int, Bot], lazy: bool = False
@@ -110,29 +130,30 @@ class UserFactory:
         id, bot = user if isinstance(user, tuple) else (user.id, user.bot)
         info = self.get_userinfo(id)
         path = UserFactory._avatar_path(id)
-        avatar = info.avatar[0] if info.avatar else None
+        last_id = info.avatar[0] if info.avatar else None
         if info.avatar and (
             lazy
             or (
-                datetime.fromtimestamp(info.avatar[1]) - datetime.now()
+                info.avatar[1] != -1
+                and datetime.fromtimestamp(info.avatar[1]) - datetime.now()
                 >= timedelta(seconds=self._config.avatar_cache_lifespan)
             )
         ):
-            if not avatar:
+            if not last_id:
                 return None
             if os.path.exists(path):
                 return path
         if not isinstance(user, Chat):
             user = await bot.get_chat(id)
-        self.update_chat(user)
+        info = self._update_info_from_chat(info, user)
         if not user.photo:
-            return None
-        new_id = self._get_chat_photo_id(user.photo)
-        if avatar != new_id or not os.path.exists(path):
-            if self._config.cache_big_avatar:
-                await user.photo.download_big(path)
-            else:
-                await user.photo.download_small(path)
+            avatar = None
+        else:
+            avatar = new_id = self._get_chat_photo_id(user.photo)
+            if last_id != new_id or not os.path.exists(path):
+                await self._download_avatar(user.photo, path)
+        info = dataclasses.replace(info, avatar=(avatar, datetime.now().timestamp()))
+        self._user_info_db[user.id] = info.to_database()
         return path
 
     async def get_avatar(
