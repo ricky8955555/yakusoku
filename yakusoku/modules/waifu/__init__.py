@@ -94,8 +94,6 @@ async def waifu(message: Message):
     ManagerFilter(),
 )
 async def waifu_rarity_set(message: Message):
-    if not (await message.chat.get_member(message.from_user.id)).is_chat_admin():
-        return await message.reply("只有管理员才能修改老婆稀有度嗷!")
     if (
         len(args := message.text.split()) != 3
         or (rarity := function.try_invoke_or_default(lambda: int(args[2]))) is None
