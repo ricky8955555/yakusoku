@@ -78,8 +78,6 @@ class UserFactory:
         return info
 
     def update_user(self, user: User) -> None:
-        if not user.username:
-            raise ValueError
         info = self.get_userinfo(user.id)
         info = self._update_info_from_user(info, user)
         self._user_info_db[user.id] = info.to_database()
