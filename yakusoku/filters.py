@@ -1,6 +1,8 @@
 from aiogram.dispatcher.filters import AdminFilter, Filter
 from aiogram.types import CallbackQuery, ChatMemberUpdated, InlineQuery, Message
 
+from yakusoku import bot_config
+
 
 class CallbackQueryFilter(Filter):
     header: str
@@ -15,4 +17,4 @@ class CallbackQueryFilter(Filter):
 class ManagerFilter(AdminFilter):
     async def check(self, obj: Message | CallbackQuery | InlineQuery | ChatMemberUpdated) -> bool:
         from_id = obj.from_id if isinstance(obj, Message) else obj.from_user.id
-        return from_id or await super().check(obj)  # type: ignore
+        return from_id == bot_config.owner or await super().check(obj)
