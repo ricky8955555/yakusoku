@@ -147,12 +147,13 @@ class UserFactory:
             user = await bot.get_chat(id)
         info = self._update_info_from_chat(info, user)
         if not user.photo:
-            avatar = None
-        else:
-            avatar = new_id = self._get_chat_photo_id(user.photo)
-            if last_id != new_id or not os.path.exists(path):
-                await self._download_avatar(user.photo, path)
-        info = dataclasses.replace(info, avatar=(avatar, datetime.now().timestamp()))
+            info = dataclasses.replace(info, avatar=(None, datetime.now().timestamp()))
+            self._user_info_db[user.id] = info.to_database()
+            return None
+        new_id = self._get_chat_photo_id(user.photo)
+        if last_id != new_id or not os.path.exists(path):
+            await self._download_avatar(user.photo, path)
+        info = dataclasses.replace(info, avatar=(new_id, datetime.now().timestamp()))
         self._user_info_db[user.id] = info.to_database()
         return path
 
