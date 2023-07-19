@@ -1,5 +1,6 @@
 from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import Chat, ChatMember, ChatMemberUpdated, ChatType, ContentType, Message, User
+from aiogram.types import (Chat, ChatMember, ChatMemberStatus, ChatMemberUpdated, ChatType,
+                           ContentType, Message, User)
 
 from yakusoku.filters import ManagerFilter
 from yakusoku.modules import command_handler, dispatcher
@@ -38,9 +39,9 @@ async def left(group: Chat, member: ChatMember) -> None:
 @dp.chat_member_handler(run_task=True)
 async def member_update(update: ChatMemberUpdated):
     group, user = update.chat, update.new_chat_member
-    if user.status == "member":
+    if user.status == ChatMemberStatus.MEMBER:
         await joined(group, user)
-    elif user.status in ["left", "kicked"]:
+    elif user.status in [ChatMemberStatus.LEFT, ChatMemberStatus.BANNED, ChatMemberStatus.KICKED]:
         await left(group, user)
 
 

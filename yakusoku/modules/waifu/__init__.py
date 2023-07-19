@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import (CallbackQuery, Chat, ChatActions, ChatMemberUpdated, ChatType,
-                           InlineKeyboardButton, InlineKeyboardMarkup, Message, User)
+from aiogram.types import (CallbackQuery, Chat, ChatActions, ChatMemberStatus, ChatMemberUpdated,
+                           ChatType, InlineKeyboardButton, InlineKeyboardMarkup, Message, User)
 
 from yakusoku import common_config
 from yakusoku.filters import CallbackQueryFilter, ManagerFilter
@@ -397,7 +397,11 @@ async def waifu_graph(message: Message):
 
 @dp.chat_member_handler()
 async def member_update(update: ChatMemberUpdated):
-    if (member := update.new_chat_member).status not in ["left", "kicked"]:
+    if (member := update.new_chat_member).status not in [
+        ChatMemberStatus.LEFT,
+        ChatMemberStatus.BANNED,
+        ChatMemberStatus.KICKED,
+    ]:
         return
     if member.user.id == member.bot.id:
         _factory.remove_chat(update.chat.id)
