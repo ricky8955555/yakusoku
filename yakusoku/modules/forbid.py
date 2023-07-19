@@ -38,7 +38,9 @@ async def forbid(message: Message):
     if (length := len(splited := message.text.split())) > 2 or (
         length == 2 and not (time := function.try_invoke_or_default(lambda: int(splited[1])))
     ):
-        await message.reply("戳啦, 正确用法为 `/forbid [时长 (单位: 分钟) (留空则为永久封禁)]`")
+        return await message.reply(
+            "戳啦, 正确用法为 `/forbid [时长 (单位: 分钟) (留空则为永久封禁)]`", parse_mode="Markdown"
+        )
     if not time:
         db[message.chat.id] = None
         return await message.reply("设置成功nya~ 进入本群的用户将会被 永久封禁 捏!")
