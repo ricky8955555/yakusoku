@@ -254,7 +254,7 @@ async def handle_proposal(
             parse_mode="HTML",
             reply=not removable,
         )
-        await message.reply_sticker(common_config.writing_sticker)
+        await message.reply_sticker(common_config.writing_sticker, reply=False)
         if removable:
             await message.delete()
     else:
