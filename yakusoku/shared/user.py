@@ -81,6 +81,7 @@ class UserFactory:
         info = self.get_userinfo(user.id)
         info = self._update_info_from_user(info, user)
         self._user_info_db[user.id] = info.to_database()
+        self._user_db[user.username] = user.id
 
     def _get_chat_photo_id(self, photo: ChatPhoto) -> str:
         return (
@@ -100,15 +101,12 @@ class UserFactory:
         if chat.type != "private":
             return
         info = self.get_userinfo(chat.id)
-        avatar = self._get_chat_photo_id(chat.photo)
+        avatar = self._get_chat_photo_id(chat.photo) if chat.photo else None
         info = self._update_info_from_chat(info, chat)
         if not info.avatar or avatar != info.avatar[0]:
             info = dataclasses.replace(
                 info,
-                avatar=(
-                    self._get_chat_photo_id(chat.photo) if chat.photo else None,
-                    -1,  # force update
-                ),
+                avatar=(avatar, -1),  # force update
             )
         self._user_info_db[chat.id] = info.to_database()
 
