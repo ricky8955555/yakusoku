@@ -15,7 +15,8 @@ from yakusoku.utils import chat, function
 
 from . import graph, utils
 from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, MemberNotEfficientError,
-                      NoChoosableWaifuError, WaifuFactory, WaifuLocalProperty, WaifuState)
+                      NoChoosableWaifuError, WaifuFactory, WaifuInfo, WaifuLocalProperty,
+                      WaifuState)
 from .registry import (InvalidTargetError, MarriageStateError, QueueingError, Registry,
                        TargetUnmatchedError)
 
@@ -37,9 +38,17 @@ class MemberWaifuInfo:
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def waifu(message: Message):
+    async def _get_waifu(message: Message, force: bool = False) -> tuple[WaifuInfo, Chat]:
+        try:
+            info = _factory.fetch_waifu(message.chat.id, message.from_id, force)
+            return (info, await chat.get_chat(message.bot, info.member))
+        except chat.ChatNotFoundError:
+            return await _get_waifu(message, True)
+
     await message.answer_chat_action(ChatActions.TYPING)
+
     try:
-        info = _factory.fetch_waifu(message.chat.id, message.from_id)
+        info, waifu = await _get_waifu(message)
     except MemberNotEfficientError:
         return await message.reply("目前群员信息不足捏, 等我熟悉一下群里环境? w")
     except NoChoosableWaifuError:
@@ -48,11 +57,11 @@ async def waifu(message: Message):
         await message.reply(f"找不到对象力(悲) www, 错误信息:\n{str(ex)}")
         raise
 
-    waifu = await chat.get_chat(message.bot, info.member)
     mentionable = utils.local_or_global(
         _factory, lambda property: property.mentionable, message.chat.id, waifu.id
     )
     target: str = chat.get_mention_html(waifu) if mentionable else waifu.full_name  # type: ignore
+
     match info.state:
         case WaifuState.NONE:
             comment = f"每天一老婆哦~ 你今天已经抽过老婆了喵w.\n你今天的老婆是 {target}"

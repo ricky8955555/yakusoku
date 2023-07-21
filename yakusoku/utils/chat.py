@@ -5,6 +5,10 @@ from yakusoku.shared import user_factory
 from yakusoku.utils import function
 
 
+class ChatNotFoundError(Exception):
+    pass
+
+
 def get_mention_html(chat: Chat | User, name: str | None = None) -> str:
     return (  # type: ignore
         function.try_invoke_or_default(  # type: ignore
@@ -24,7 +28,10 @@ async def get_chat(bot: Bot, chat_id: int | str) -> Chat:
         chat = (
             await bot.get_chat(id) if (id := user_factory.get_user(chat_id.lstrip("@"))) else None
         )
-    assert chat, f"failed to get chat from username {chat_id}"
+    if not chat:
+        if isinstance(chat_id, int):
+            user_factory.remove_user(chat_id)
+        raise ChatNotFoundError
     user_factory.update_chat(chat)
     return chat
 
@@ -45,11 +52,12 @@ async def get_member(chat: Chat, user_id: int) -> ChatMember:
 
 
 async def get_member_from_username(group: Chat, username: str) -> ChatMember:
-    assert (
+    if not (
         member := (
             await group.get_member(id)
             if (id := user_factory.get_user(username.lstrip("@")))
             else None
         )
-    ), f"failed to get member from group {group.id} by username {username}"
+    ):
+        raise ChatNotFoundError
     return member

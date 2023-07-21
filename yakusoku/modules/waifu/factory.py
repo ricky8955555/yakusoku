@@ -154,10 +154,14 @@ class WaifuFactory:
         data = _WaifuData(waifu, int(datetime.now().timestamp()))
         db[member] = data.to_database()
 
-    def fetch_waifu(self, chat: int, member: int) -> WaifuInfo:
+    def fetch_waifu(self, chat: int, member: int, force: bool = False) -> WaifuInfo:
         if married := self.get_waifu_local_property(chat, member).married:
             return WaifuInfo(married, WaifuState.MARRIED)
-        if (data := self._get_waifu_data(chat, member)) and not self._is_update_needed(chat, data):
+        if (
+            (data := self._get_waifu_data(chat, member))
+            and not self._is_update_needed(chat, data)
+            and not force
+        ):
             return WaifuInfo(data.member, WaifuState.NONE)
 
         waifu = self._random_waifu(chat, member)

@@ -109,6 +109,8 @@ class UserFactory:
                 avatar=(avatar, -1),  # force update
             )
         self._user_info_db[chat.id] = info.to_database()
+        for username in chat.active_usernames:
+            self._user_db[username] = chat.id
 
     @staticmethod
     def _avatar_path(user: int) -> str:
@@ -177,3 +179,13 @@ class UserFactory:
             members = self._member_db[chat]
             members.remove(member)
             self._member_db[chat] = members
+
+    def remove_user(self, user: int) -> None:
+        with contextlib.suppress(KeyError):
+            del self._user_info_db[user]
+        for username in (username for username, id in self._user_db.items() if id == user):
+            del self._user_db[username]
+        for group, members in self._member_db.items():
+            with contextlib.suppress(KeyError):
+                members.remove(user)
+            self._member_db[group] = members
