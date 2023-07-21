@@ -81,7 +81,8 @@ class UserFactory:
         info = self.get_userinfo(user.id)
         info = self._update_info_from_user(info, user)
         self._user_info_db[user.id] = info.to_database()
-        self._user_db[user.username] = user.id
+        if user.username:
+            self._user_db[user.username] = user.id
 
     def _get_chat_photo_id(self, photo: ChatPhoto) -> str:
         return (
