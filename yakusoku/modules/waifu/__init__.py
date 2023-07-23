@@ -38,11 +38,13 @@ class MemberWaifuInfo:
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def waifu(message: Message):
-    async def _get_waifu(message: Message, force: bool = False) -> tuple[WaifuInfo, Chat]:
+    async def _get_waifu(message: Message, force: bool = False) -> tuple[WaifuInfo, User]:
+        info = _factory.fetch_waifu(message.chat.id, message.from_id, force)
         try:
-            info = _factory.fetch_waifu(message.chat.id, message.from_id, force)
-            return (info, await chat.get_chat(message.bot, info.member))
+            return (info, (await chat.get_member(message.chat, info.member)).user)
         except chat.ChatNotFoundError:
+            if _factory.get_waifu_local_property(message.chat.id, info.member).married:
+                _registry.divorce(message.chat.id, message.from_id)
             return await _get_waifu(message, True)
 
     await message.answer_chat_action(ChatActions.TYPING)

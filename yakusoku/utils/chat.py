@@ -37,7 +37,10 @@ async def get_chat(bot: Bot, chat_id: int | str) -> Chat:
 
 
 async def get_chat_member(bot: Bot, chat_id: int | str, user_id: int) -> ChatMember:
-    member = await bot.get_chat_member(chat_id, user_id)
+    try:
+        member = await bot.get_chat_member(chat_id, user_id)
+    except Exception as ex:
+        raise ChatNotFoundError from ex
     user_factory.update_user(member.user)
     if isinstance(chat_id, int):
         user_factory.add_member(chat_id, user_id)
@@ -45,7 +48,10 @@ async def get_chat_member(bot: Bot, chat_id: int | str, user_id: int) -> ChatMem
 
 
 async def get_member(chat: Chat, user_id: int) -> ChatMember:
-    member = await chat.get_member(user_id)
+    try:
+        member = await chat.get_member(user_id)
+    except Exception as ex:
+        raise ChatNotFoundError from ex
     user_factory.update_user(member.user)
     user_factory.add_member(chat.id, user_id)
     return member
