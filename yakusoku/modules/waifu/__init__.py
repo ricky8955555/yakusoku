@@ -297,12 +297,15 @@ async def handle_proposal(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def propose(message: Message):
-    if len(args := message.text.split()) != 2:
-        return await message.reply("戳啦, 正确用法为 `/propose <@用户>`", parse_mode="Markdown")
-    try:
-        target = await utils.get_mentioned_member(message.chat, args[1])
-    except AssertionError:
-        return await message.reply("呜, 找不到你所提及的用户w")
+    if (length := len(args := message.text.split())) == 2:
+        try:
+            target = await utils.get_mentioned_member(message.chat, args[1])
+        except AssertionError:
+            return await message.reply("呜, 找不到你所提及的用户w")
+    elif length == 1 and message.reply_to_message:
+        target = message.reply_to_message.from_user
+    else:
+        return await message.reply("戳啦, 正确用法为 `/propose <@用户 (或回复某个用户的消息)>`", parse_mode="Markdown")
     await handle_proposal(message, message.from_user, target)
 
 
