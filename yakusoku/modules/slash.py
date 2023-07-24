@@ -20,7 +20,7 @@ class SlashFilter(Filter):
 def get_reply(first: str, second: str, sender: str, target: str) -> str:
     if second:
         return f"{sender} {first} {target} {second} !"
-    if first.endswith("了"):
+    if "了" in first:
         return f"{sender} {first} {target} !"
     return f"{sender} {first}了 {target} !"
 
