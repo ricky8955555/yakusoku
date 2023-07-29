@@ -124,7 +124,7 @@ class UserFactory:
             await photo.download_small(path)
 
     async def get_avatar_file(
-        self, user: User | Chat | tuple[int, Bot], lazy: bool = False
+        self, user: User | Chat | tuple[int, Bot], lazy: bool = False, force: bool = False
     ) -> str | None:
         id, bot = user if isinstance(user, tuple) else (user.id, user.bot)
         info = self.get_userinfo(id)
@@ -132,7 +132,8 @@ class UserFactory:
         last_id = info.avatar[0] if info.avatar else None
         if info.avatar and (
             lazy
-            or (
+            or not force
+            and (
                 info.avatar[1] != -1
                 and datetime.fromtimestamp(info.avatar[1]) - datetime.now()
                 >= timedelta(seconds=self._config.avatar_cache_lifespan)
@@ -157,9 +158,13 @@ class UserFactory:
         return path
 
     async def get_avatar(
-        self, user: User | Chat | tuple[int, Bot], lazy: bool = False
+        self, user: User | Chat | tuple[int, Bot], lazy: bool = False, force: bool = False
     ) -> IOBase | None:
-        return open(avatar, "rb") if (avatar := await self.get_avatar_file(user, lazy)) else None
+        return (
+            open(avatar, "rb")
+            if (avatar := await self.get_avatar_file(user, lazy, force))
+            else None
+        )
 
     def get_avatar_cache(self, user: int) -> IOBase | None:
         return open(path, "rb") if os.path.exists(path := UserFactory._avatar_path(user)) else None
