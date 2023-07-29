@@ -72,5 +72,5 @@ async def get_members(message: Message):
 
 @command_handler(["update_avatar"], "更新自己的头像缓存")
 async def update_avatar(message: Message):
-    avatar = user_factory.get_avatar(message.from_user, force=True)
+    avatar = await user_factory.get_avatar(message.from_user, force=True)
     await message.reply_photo(avatar, "好力, 你的头像已经强制重新缓存了喵w")
