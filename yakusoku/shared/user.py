@@ -135,7 +135,7 @@ class UserFactory:
             or (
                 not force
                 and (
-                    info.avatar[1] != -1
+                    not (force := info.avatar[1] == -1)
                     and datetime.fromtimestamp(info.avatar[1]) - datetime.now()
                     >= timedelta(seconds=self._config.avatar_cache_lifespan)
                 )
@@ -153,7 +153,7 @@ class UserFactory:
             self._user_info_db[user.id] = info.to_database()
             return None
         new_id = self._get_chat_photo_id(user.photo)
-        if last_id != new_id or not os.path.exists(path):
+        if force or last_id != new_id or not os.path.exists(path):
             await self._download_avatar(user.photo, path)
         info = dataclasses.replace(info, avatar=(new_id, datetime.now().timestamp()))
         self._user_info_db[user.id] = info.to_database()
