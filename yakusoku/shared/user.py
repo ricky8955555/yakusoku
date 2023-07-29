@@ -132,11 +132,13 @@ class UserFactory:
         last_id = info.avatar[0] if info.avatar else None
         if info.avatar and (
             lazy
-            or not force
-            and (
-                info.avatar[1] != -1
-                and datetime.fromtimestamp(info.avatar[1]) - datetime.now()
-                >= timedelta(seconds=self._config.avatar_cache_lifespan)
+            or (
+                not force
+                and (
+                    info.avatar[1] != -1
+                    and datetime.fromtimestamp(info.avatar[1]) - datetime.now()
+                    >= timedelta(seconds=self._config.avatar_cache_lifespan)
+                )
             )
         ):
             if not last_id:
