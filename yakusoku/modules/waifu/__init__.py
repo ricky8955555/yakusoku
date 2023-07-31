@@ -77,7 +77,7 @@ async def waifu(message: Message):
             inline_keyboard=[
                 [
                     InlineKeyboardButton(  # type: ignore
-                        text="变成限定老婆 (仅管理员)",
+                        text="移出卡池 (仅管理员)",
                         callback_data=f"waifu_limit_callback {waifu.id}",
                     ),
                     InlineKeyboardButton(  # type: ignore
@@ -153,7 +153,7 @@ async def limit_callback(query: CallbackQuery):
     waifu = await chat.get_chat(query.bot, waifu_id)
 
     await query.message.reply(
-        f"已将用户 {chat.get_mention_html(waifu)} 变为限定老婆",
+        f"已将用户 {chat.get_mention_html(waifu)} 变为移出卡池",
         parse_mode="HTML",
     )
 
