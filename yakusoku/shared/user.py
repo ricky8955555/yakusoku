@@ -110,7 +110,7 @@ class UserFactory:
                 avatar=(avatar, -1),  # force update
             )
         self._user_info_db[chat.id] = info.to_database()
-        for username in chat.active_usernames:
+        for username in chat.active_usernames or list[str]():
             self._user_db[username] = chat.id
 
     @staticmethod
