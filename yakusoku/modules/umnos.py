@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import aiohttp
 from aiogram.types import Message
 
-from yakusoku import config
+from yakusoku.config import Config
 from yakusoku.modules import command_handler
 
 COUNTRIES_DATA_URL = (
@@ -18,14 +18,14 @@ FALLBACK_COUNTRIES = ["中国", "美国", "日本", "韩国", "印度", "韩国"
 
 
 @dataclass(frozen=True)
-class Config(config.Config):
+class _Config(Config):
     custom_types: list[str] = dataclasses.field(default_factory=list)
     overwritten_types: bool = False
     custom_countries: list[str] = dataclasses.field(default_factory=list)
     overwritten_countries: bool = False
 
 
-_config = Config.load("umnos")
+_config = _Config.load("umnos")
 _countries: list[str] = []
 
 
