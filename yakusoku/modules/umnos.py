@@ -1,7 +1,6 @@
 import dataclasses
 import random
 import traceback
-from dataclasses import dataclass
 
 import aiohttp
 from aiogram.types import Message
@@ -17,30 +16,29 @@ DEFAULT_TYPES = ["男孩子", "女孩子", "正太", "萝莉", "喵喵", "汪!"]
 FALLBACK_COUNTRIES = ["中国", "美国", "日本", "韩国", "印度", "韩国", "泰国", "英国", "马来西亚", "澳大利亚"]
 
 
-@dataclass(frozen=True)
-class _Config(Config):
+class UmnosConfig(Config):
     custom_types: list[str] = dataclasses.field(default_factory=list)
     overwritten_types: bool = False
     custom_countries: list[str] = dataclasses.field(default_factory=list)
     overwritten_countries: bool = False
 
 
-_config = _Config.load("umnos")
-_countries: list[str] = []
+config = UmnosConfig.load("umnos")
+countries: list[str] = []
 
 
 def get_types() -> list[str]:
     return (
-        _config.custom_types if _config.overwritten_types else DEFAULT_TYPES + _config.custom_types
+        config.custom_types if config.overwritten_types else DEFAULT_TYPES + config.custom_types
     )
 
 
 async def get_countries() -> list[str]:
-    global _countries
-    if _config.overwritten_countries and _config.custom_countries:
-        return _config.custom_countries
-    if _countries:
-        return _countries
+    global countries
+    if config.overwritten_countries and config.custom_countries:
+        return config.custom_countries
+    if countries:
+        return countries
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(COUNTRIES_DATA_URL) as response:
@@ -50,12 +48,11 @@ async def get_countries() -> list[str]:
     except Exception:
         traceback.print_exc()
         return (
-            _config.custom_countries
-            if _config.overwritten_countries
-            else FALLBACK_COUNTRIES + _config.custom_countries
+            config.custom_countries
+            if config.overwritten_countries
+            else FALLBACK_COUNTRIES + config.custom_countries
         )
-    countries += _config.custom_countries
-    _countries = countries
+    countries += config.custom_countries
     return countries
 
 

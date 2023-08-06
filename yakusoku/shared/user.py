@@ -20,7 +20,6 @@ AVATAR_PATH = os.path.join(DATA_PATH, "cache", "avatar")
 os.makedirs(AVATAR_PATH, exist_ok=True)
 
 
-@dataclass(frozen=True)
 class _Config(Config):
     cache_big_avatar: bool = False
     avatar_cache_lifespan: int = 600
