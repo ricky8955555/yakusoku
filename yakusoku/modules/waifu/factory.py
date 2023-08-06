@@ -1,12 +1,14 @@
 import dataclasses
 import random
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum, auto
 from typing import Any, Optional
 
 from yakusoku import database
 from yakusoku.shared import user_factory
+
+from .config import config
 
 DATABASE_NAME = "waifu"
 WAIFU_MIN_RARITY = 1
@@ -145,9 +147,11 @@ class WaifuFactory:
         self._global_properties[user] = property.to_database()
 
     def _is_update_needed(self, chat: int, data: _WaifuData) -> bool:
-        return datetime.fromtimestamp(
-            data.last
-        ).date() < datetime.now().date() or not self._is_choosable(chat, data.member)
+        return (
+            datetime.now()
+            >= datetime.combine(last := datetime.fromtimestamp(data.last), config.reset_time)
+            and last <= datetime.combine(date.today(), config.reset_time)
+        ) or not self._is_choosable(chat, data.member)
 
     def _update_waifu(self, chat: int, member: int, waifu: int) -> None:
         db = self._get_waifu_db(chat)
