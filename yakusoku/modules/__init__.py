@@ -43,8 +43,7 @@ def command_handler(  # type: ignore
     *args: Any,
     **kwargs: Any,
 ):
-    for command in commands:
-        update_command(command, summary)
+    update_command(commands[0], summary)
     return dispatcher().message_handler(*args, **kwargs, commands=commands)  # type: ignore
 
 
