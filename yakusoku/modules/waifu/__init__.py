@@ -145,9 +145,13 @@ async def waifu_rarity_get(message: Message):
 
 @dp.callback_query_handler(
     CallbackQueryFilter("waifu_limit_callback"),
-    ManagerFilter(),
 )
 async def limit_callback(query: CallbackQuery):
+    if not await ManagerFilter().check(query):
+        await query.answer("你没有权限动卡池捏w")
+        return
+
+    await query.answer()
     waifu_id = int(query.data.split()[1])
     _factory.update_waifu_local_property(query.message.chat.id, waifu_id, rarity=WAIFU_MAX_RARITY)
     waifu = await chat.get_chat(query.bot, waifu_id)
@@ -220,14 +224,18 @@ async def request_divorce(message: Message):
 async def divorce_callback(query: CallbackQuery):
     target = int(query.data.split()[1])
     if query.from_user.id != target:
+        await query.answer("别人的家事不要瞎掺和w")
         return
+    await query.answer()
     await handle_divorce_request(query.message, query.from_user, True)
 
 
 @dp.callback_query_handler(CallbackQueryFilter("waifu_revoke_divorce_request_callback"))
 async def revoke_divorce_request_callback(query: CallbackQuery):
     if query.from_user.id not in map(int, query.data.split()[1:]):
+        await query.answer("别人的家事不要瞎掺和w")
         return
+    await query.answer()
     _registry.revoke_divorce_request(query.message.chat.id, query.from_user.id)
     await query.message.reply("取消离婚申请成功捏, 以后要和谐相处哦~", reply=False)
     await query.message.delete()
@@ -322,6 +330,9 @@ async def propose_callback(query: CallbackQuery):
         await handle_proposal(
             query.message, query.from_user, await chat.get_chat(query.bot, first_id), True
         )
+    else:
+        await query.answer("别人的事情不要随便介入哦w")
+    await query.answer()
 
 
 @dp.callback_query_handler(CallbackQueryFilter("waifu_revoke_proposal_callback"))
@@ -329,7 +340,9 @@ async def revoke_proposal_callback(query: CallbackQuery):
     originator_id = int(query.data.split()[1])
     target_id = _registry.get_proposal(query.message.chat.id, originator_id)
     if query.from_user.id not in (originator_id, target_id):
+        await query.answer("别人的事情不要随便介入哦w")
         return
+    await query.answer()
     _registry.revoke_proposal(query.message.chat.id, originator_id)
     if query.from_user.id == originator_id:
         await query.message.reply("取消求婚请求成功捏, 求婚要三思而后行喏~", reply=False)
