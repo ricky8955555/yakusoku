@@ -6,7 +6,6 @@ from datetime import datetime
 from aiogram.dispatcher.filters import ChatTypeFilter
 from aiogram.types import (CallbackQuery, Chat, ChatActions, ChatMemberStatus, ChatMemberUpdated,
                            ChatType, InlineKeyboardButton, InlineKeyboardMarkup, Message, User)
-from aiogram.utils.exceptions import ChatNotFound
 
 from yakusoku import common_config
 from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
@@ -43,7 +42,7 @@ async def waifu(message: Message):
         info = _factory.fetch_waifu(message.chat.id, message.from_id, force)
         try:
             return (info, (await chat.get_member(message.chat, info.member)).user)
-        except ChatNotFound:
+        except chat.ChatNotFoundError:
             if _factory.get_waifu_local_property(message.chat.id, info.member).married:
                 _registry.divorce(message.chat.id, message.from_id)
             return await _get_waifu(message, True)
