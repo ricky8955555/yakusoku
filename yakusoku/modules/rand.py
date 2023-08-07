@@ -15,7 +15,7 @@ from yakusoku.utils import chat
 )
 async def randmember(message: Message):
     members = [
-        member for member in user_factory.get_members(message.chat.id) if member != message.from_id
+        member for member in user_factory.get_user_members(message.chat.id) if member != message.from_id
     ]
     member = random.choice(members)
     user = await chat.get_chat(message.bot, member)

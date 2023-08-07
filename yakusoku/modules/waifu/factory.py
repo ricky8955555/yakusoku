@@ -117,7 +117,7 @@ class WaifuFactory:
     def _random_waifu(self, chat: int, member: int) -> int:
         mapping = {
             waifu: self.get_waifu_local_property(chat, waifu).get_weight()
-            for waifu in user_factory.get_members(chat)
+            for waifu in user_factory.get_user_members(chat)
             if member != waifu and self._is_choosable(chat, waifu)
         }
         try:
@@ -174,7 +174,7 @@ class WaifuFactory:
 
     def get_waifus(self, chat: int) -> dict[int, int]:
         result: dict[int, int] = {}
-        members = user_factory.get_members(chat)
+        members = user_factory.get_user_members(chat)
         for member in members:
             property = self.get_waifu_local_property(chat, member)
             if not (waifu := property.married):

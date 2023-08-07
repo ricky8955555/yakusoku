@@ -11,7 +11,7 @@ from aiogram.types import Chat, ChatPhoto, User
 
 from yakusoku import database
 from yakusoku.config import Config
-from yakusoku.constants import DATA_PATH
+from yakusoku.constants import DATA_PATH, FILTERED_IDS
 
 DATABASE_NAME = "user"
 AVATAR_PATH = os.path.join(DATA_PATH, "cache", "avatar")
@@ -30,6 +30,7 @@ class UserInfo:
     avatar: tuple[str | None, int] | None = None  # id, time
     name: str | None = None
     usernames: set[str] = dataclasses.field(default_factory=set)
+    is_user: bool = True
 
     @staticmethod
     def from_database(data: tuple[Any, ...]) -> "UserInfo":
@@ -45,6 +46,13 @@ class UserFactory:
     _user_info_db: dict[int, tuple[Any, ...]]
     _config: _Config
 
+    @staticmethod
+    def _is_recordable(chat: User | Chat) -> bool:
+        return (
+            chat and chat.id > 0 and chat.id not in FILTERED_IDS
+            and (isinstance(chat, User) or chat.type == "private")
+        )
+
     def __init__(self) -> None:
         self._member_db = database.get(DATABASE_NAME, "members")
         self._user_db = database.get(DATABASE_NAME, "users")
@@ -53,6 +61,13 @@ class UserFactory:
 
     def get_members(self, chat: int) -> set[int]:
         return self._member_db.get(chat) or set()
+
+    def get_user_members(self, chat: int) -> set[int]:
+        return {
+            member
+            for member in self._member_db.get(chat) or set()
+            if self.get_userinfo(chat).is_user
+        }
 
     def clear_members(self, chat: int) -> None:
         with contextlib.suppress(KeyError):
@@ -71,12 +86,15 @@ class UserFactory:
         info = dataclasses.replace(
             info,
             name=user.full_name,
+            is_user=not user.is_bot,
         )
         if user.username:
             info.usernames.add(user.username)
         return info
 
     def update_user(self, user: User) -> None:
+        if not UserFactory._is_recordable(user):
+            return
         info = self.get_userinfo(user.id)
         info = self._update_info_from_user(info, user)
         self._user_info_db[user.id] = info.to_database()
@@ -98,7 +116,7 @@ class UserFactory:
         )
 
     def update_chat(self, chat: Chat) -> None:
-        if chat.type != "private":
+        if not UserFactory._is_recordable(chat):
             return
         info = self.get_userinfo(chat.id)
         avatar = self._get_chat_photo_id(chat.photo) if chat.photo else None

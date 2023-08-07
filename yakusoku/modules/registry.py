@@ -1,6 +1,6 @@
 from aiogram.dispatcher.filters import ChatTypeFilter
 from aiogram.types import (Chat, ChatMember, ChatMemberStatus, ChatMemberUpdated, ChatType,
-                           ContentType, Message, User)
+                           ContentType, Message)
 
 from yakusoku.filters import ManagerFilter
 from yakusoku.modules import command_handler, dispatcher
@@ -9,24 +9,9 @@ from yakusoku.shared import user_factory
 dp = dispatcher()
 
 
-filtered = [
-    777000,
-    136817688,
-    609517172,
-    1031952739,
-    1087968824,
-    5304501737,
-]
-
-
-def is_recordable(user: User) -> bool:
-    return user and user.id > 0 and not user.is_bot and user.id not in filtered
-
-
 async def joined(group: Chat, member: ChatMember) -> None:
-    if is_recordable(member.user):
-        user_factory.add_member(group.id, member.user.id)
-        user_factory.update_user(member.user)
+    user_factory.add_member(group.id, member.user.id)
+    user_factory.update_user(member.user)
 
 
 async def left(group: Chat, member: ChatMember) -> None:
@@ -47,7 +32,7 @@ async def member_update(update: ChatMemberUpdated):
 
 @dp.message_handler(run_task=True, content_types=ContentType.all())
 async def message_received(message: Message):
-    if not message.sender_chat and is_recordable(message.from_user):
+    if not message.sender_chat:
         if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
             user_factory.add_member(message.chat.id, message.from_id)
         user_factory.update_user(message.from_user)
