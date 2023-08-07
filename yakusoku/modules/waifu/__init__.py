@@ -8,7 +8,7 @@ from aiogram.types import (CallbackQuery, Chat, ChatActions, ChatMemberStatus, C
                            ChatType, InlineKeyboardButton, InlineKeyboardMarkup, Message, User)
 
 from yakusoku import common_config
-from yakusoku.filters import CallbackQueryFilter, ManagerFilter
+from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
 from yakusoku.modules import command_handler, dispatcher
 from yakusoku.shared import user_factory
 from yakusoku.utils import chat, function
@@ -46,6 +46,9 @@ async def waifu(message: Message):
             if _factory.get_waifu_local_property(message.chat.id, info.member).married:
                 _registry.divorce(message.chat.id, message.from_id)
             return await _get_waifu(message, True)
+
+    if message.sender_chat:
+        return await message.reply("暂不支持匿名身份抽老婆捏w")
 
     await message.answer_chat_action(ChatActions.TYPING)
 
@@ -87,7 +90,7 @@ async def waifu(message: Message):
                 ]
             ]
         )
-        if info.state != WaifuState.MARRIED
+        if info.state != WaifuState.MARRIED and not message.sender_chat
         else InlineKeyboardMarkup()
     )
 
@@ -215,6 +218,7 @@ async def handle_divorce_request(
     ["divorce"],
     "提出离婚申请 (仅群聊)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    NonAnonymousFilter(),
 )
 async def request_divorce(message: Message):
     await handle_divorce_request(message, message.from_user or message.sender_chat)
@@ -305,6 +309,9 @@ async def handle_proposal(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def propose(message: Message):
+    if message.sender_chat:
+        return await message.reply("暂不支持匿名身份结婚捏w")
+
     if (length := len(args := message.text.split())) == 2:
         try:
             target = await utils.get_mentioned_member(message.chat, args[1])
@@ -313,10 +320,12 @@ async def propose(message: Message):
     elif length == 1 and message.reply_to_message:
         if message.reply_to_message.sender_chat:
             return await message.reply("呜, 不能跟匿名用户主动结婚捏w")
+        if message.reply_to_message.from_user.is_bot:
+            return await message.reply("呜, 不能跟机器人结婚捏w")
         target = message.reply_to_message.from_user
     else:
         return await message.reply("戳啦, 正确用法为 `/propose <@用户 (或回复某个用户的消息)>`", parse_mode="Markdown")
-    await handle_proposal(message, message.from_user, target)
+    await handle_proposal(message, message.sender_chat or message.from_user, target)
 
 
 @dp.callback_query_handler(CallbackQueryFilter("waifu_propose_callback"))
@@ -379,6 +388,7 @@ async def mention_global(message: Message):
     ["waifuml"],
     "在当前群允许/禁止 waifu 功能的提及 (默认全局设置) (仅群聊)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    NonAnonymousFilter(),
 )
 async def mention_local(message: Message):
     if message.sender_chat:
@@ -398,6 +408,7 @@ async def mention_local(message: Message):
     ["waifumc"],
     "清除 waifu 功能的提及在当前群的局部设置 (仅群聊)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    NonAnonymousFilter(),
 )
 async def mention_clear(message: Message):
     if message.sender_chat:

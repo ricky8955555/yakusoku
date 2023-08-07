@@ -18,3 +18,8 @@ class ManagerFilter(AdminFilter):
     async def check(self, obj: Message | CallbackQuery | InlineQuery | ChatMemberUpdated) -> bool:
         from_id = obj.from_id if isinstance(obj, Message) else obj.from_user.id
         return from_id == bot_config.owner or await super().check(obj)
+
+
+class NonAnonymousFilter(Filter):
+    async def check(self, obj: Message) -> bool:  # type: ignore
+        return not obj.sender_chat
