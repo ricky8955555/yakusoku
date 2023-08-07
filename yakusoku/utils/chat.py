@@ -1,12 +1,9 @@
 from aiogram import Bot
 from aiogram.types import Chat, ChatMember, User
+from aiogram.utils.exceptions import BadRequest, ChatNotFound
 
 from yakusoku.shared import user_factory
 from yakusoku.utils import function
-
-
-class ChatNotFoundError(Exception):
-    pass
 
 
 def get_mention_html(chat: Chat | User, name: str | None = None) -> str:
@@ -31,7 +28,7 @@ async def get_chat(bot: Bot, chat_id: int | str) -> Chat:
     if not chat:
         if isinstance(chat_id, int):
             user_factory.remove_user(chat_id)
-        raise ChatNotFoundError
+        raise ChatNotFound
     user_factory.update_chat(chat)
     return chat
 
@@ -39,8 +36,13 @@ async def get_chat(bot: Bot, chat_id: int | str) -> Chat:
 async def get_chat_member(bot: Bot, chat_id: int | str, user_id: int) -> ChatMember:
     try:
         member = await bot.get_chat_member(chat_id, user_id)
-    except Exception as ex:
-        raise ChatNotFoundError from ex
+    except BadRequest as ex:
+        if ex.args[0] != "User not found":
+            raise
+        if isinstance(chat_id, str):
+            chat_id = (await bot.get_chat(chat_id)).id
+        user_factory.remove_member(chat_id, user_id)
+        raise ChatNotFound from ex
     user_factory.update_user(member.user)
     if isinstance(chat_id, int):
         user_factory.add_member(chat_id, user_id)
@@ -50,8 +52,11 @@ async def get_chat_member(bot: Bot, chat_id: int | str, user_id: int) -> ChatMem
 async def get_member(chat: Chat, user_id: int) -> ChatMember:
     try:
         member = await chat.get_member(user_id)
-    except Exception as ex:
-        raise ChatNotFoundError from ex
+    except BadRequest as ex:
+        if ex.args[0] != "User not found":
+            raise
+        user_factory.remove_member(chat.id, user_id)
+        raise ChatNotFound from ex
     user_factory.update_user(member.user)
     user_factory.add_member(chat.id, user_id)
     return member
@@ -65,5 +70,5 @@ async def get_member_from_username(group: Chat, username: str) -> ChatMember:
             else None
         )
     ):
-        raise ChatNotFoundError
+        raise ChatNotFound
     return member
