@@ -13,6 +13,7 @@ from .config import config
 DATABASE_NAME = "waifu"
 WAIFU_MIN_RARITY = 1
 WAIFU_MAX_RARITY = 10
+WAIFU_DEFAULT_RARITY = 5
 
 
 @dataclass(frozen=True)
@@ -42,7 +43,7 @@ class WaifuGlobalProperty:
 
 @dataclass(frozen=True)
 class WaifuLocalProperty:
-    rarity: int = WAIFU_MIN_RARITY
+    rarity: int = WAIFU_DEFAULT_RARITY
     married: Optional[int] = None
     mentionable: Optional[bool] = None
 
