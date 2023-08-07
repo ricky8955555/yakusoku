@@ -303,6 +303,8 @@ async def propose(message: Message):
         except AssertionError:
             return await message.reply("呜, 找不到你所提及的用户w")
     elif length == 1 and message.reply_to_message:
+        if message.reply_to_message.sender_chat:
+            return await message.reply("呜, 不能跟匿名用户主动结婚捏w")
         target = message.reply_to_message.from_user
     else:
         return await message.reply("戳啦, 正确用法为 `/propose <@用户 (或回复某个用户的消息)>`", parse_mode="Markdown")
