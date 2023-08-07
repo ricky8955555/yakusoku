@@ -14,9 +14,9 @@ from yakusoku.shared import user_factory
 from yakusoku.utils import chat, function
 
 from . import graph, utils
-from .factory import (WAIFU_MAX_RARITY, WAIFU_MIN_RARITY, MemberNotEfficientError,
-                      NoChoosableWaifuError, WaifuFactory, WaifuInfo, WaifuLocalProperty,
-                      WaifuState)
+from .factory import (WAIFU_DEFAULT_RARITY, WAIFU_MAX_RARITY, WAIFU_MIN_RARITY,
+                      MemberNotEfficientError, NoChoosableWaifuError, WaifuFactory, WaifuInfo,
+                      WaifuLocalProperty, WaifuState)
 from .registry import (InvalidTargetError, MarriageStateError, QueueingError, Registry,
                        TargetUnmatchedError)
 
@@ -144,6 +144,20 @@ async def waifu_rarity_get(message: Message):
         f"{chat.get_mention_html(waifu)} 的老婆稀有度为: {property.rarity}", parse_mode="HTML"
     )
     return True
+
+
+@command_handler(
+    ["waifurr"],
+    "重置所有老婆稀有度 (仅管理员)",
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    ManagerFilter(),
+)
+async def waifu_rarity_reset(message: Message):
+    waifu_dict = _factory.get_waifus(message.chat.id)
+    waifus = list(waifu_dict.keys()) + list(waifu_dict.values())
+    for waifu in waifus:
+        _factory.update_waifu_local_property(message.chat.id, waifu, rarity=WAIFU_DEFAULT_RARITY)
+    await message.reply("重置成功力w")
 
 
 @dp.callback_query_handler(
