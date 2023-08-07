@@ -28,9 +28,7 @@ countries: list[str] = []
 
 
 def get_types() -> list[str]:
-    return (
-        config.custom_types if config.overwritten_types else DEFAULT_TYPES + config.custom_types
-    )
+    return config.custom_types if config.overwritten_types else DEFAULT_TYPES + config.custom_types
 
 
 async def get_countries() -> list[str]:

@@ -49,7 +49,9 @@ class UserFactory:
     @staticmethod
     def _is_recordable(chat: User | Chat) -> bool:
         return (
-            chat and chat.id > 0 and chat.id not in FILTERED_IDS
+            chat
+            and chat.id > 0
+            and chat.id not in FILTERED_IDS
             and (isinstance(chat, User) or chat.type == "private")
         )
 
