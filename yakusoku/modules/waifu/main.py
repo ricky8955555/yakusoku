@@ -11,7 +11,7 @@ from sqlalchemy.exc import NoResultFound
 from yakusoku import common_config
 from yakusoku.archive import avatar_manager, user_manager
 from yakusoku.archive import utils as archive_utils
-from yakusoku.archive import validator as chat_validator
+from yakusoku.archive.exceptions import ChatDeleted
 from yakusoku.archive.models import UserData
 from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
 from yakusoku.modules import command_handler, dispatcher
@@ -42,13 +42,15 @@ class MemberWaifuInfo:
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def waifu(message: Message):
-    async def _get_waifu(message: Message, force: bool = False) -> WaifuFetchResult:
+    async def _get_waifu(
+        message: Message, force: bool = False
+    ) -> tuple[WaifuFetchResult, UserData]:
         result = await _manager.fetch_waifu(message.chat.id, message.from_id, force)
         try:
-            await chat_validator.is_valid_member(message.bot, message.chat.id, result.waifu.id)
-            return result
-        except chat.ChatNotFoundError:
-            if result.waifu:
+            waifu = await archive_utils.fetch_member(message.bot, message.chat.id, result.waifu)
+            return (result, waifu)
+        except ChatDeleted:
+            if result.state == WaifuFetchState.FORCED:
                 await _registry.divorce(message.chat.id, message.from_id)
             return await _get_waifu(message, True)
 
@@ -58,7 +60,7 @@ async def waifu(message: Message):
     await message.answer_chat_action(ChatActions.TYPING)
 
     try:
-        result = await _get_waifu(message)
+        result, waifu = await _get_waifu(message)
     except MemberNotEfficientError:
         return await message.reply("目前群员信息不足捏, 等我熟悉一下群里环境? w")
     except NoChoosableWaifuError:
@@ -67,12 +69,8 @@ async def waifu(message: Message):
         await message.reply(f"找不到对象力(悲) www, 错误信息:\n{str(ex)}")
         raise
 
-    config = await _manager.get_waifu_config(result.waifu.id)
-    target = (
-        archive_utils.user_mention_html(result.waifu)
-        if config.mentionable
-        else result.waifu.name
-    )
+    config = await _manager.get_waifu_config(waifu.id)
+    target = archive_utils.user_mention_html(waifu) if config.mentionable else waifu.name
 
     match result.state:
         case WaifuFetchState.NONE:
@@ -88,7 +86,7 @@ async def waifu(message: Message):
                 [
                     InlineKeyboardButton(  # type: ignore
                         text="成立婚事! (仅双方)",
-                        callback_data=f"waifu_propose_callback {message.from_id} {result.waifu.id}",
+                        callback_data=f"waifu_propose_callback {message.from_id} {waifu.id}",
                     ),
                 ]
             ]
@@ -98,7 +96,7 @@ async def waifu(message: Message):
     )
 
     with contextlib.suppress(Exception):
-        avatar = await avatar_manager.get_avatar_file(message.bot, result.waifu.id)
+        avatar = await avatar_manager.get_avatar_file(message.bot, waifu.id)
         if avatar:
             return await message.reply_photo(
                 avatar.file_id, comment, parse_mode="HTML", reply_markup=buttons

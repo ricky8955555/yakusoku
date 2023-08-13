@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters import ChatTypeFilter
 from aiogram.types import ChatType, Message
 
 from yakusoku.archive import utils as archive_utils
-from yakusoku.archive import validator as chat_validator
+from yakusoku.archive.exceptions import ChatDeleted
 from yakusoku.modules import command_handler
 from yakusoku.utils import chat
 
@@ -23,7 +23,9 @@ async def randmember(message: Message):
     if not members:
         return await message.reply("目前群员信息不足捏, 等我熟悉一下群里环境? w")
     member = random.choice(members)
-    if not await chat_validator.is_valid_member(message.bot, message.chat.id, member.id):
+    try:
+        member = await archive_utils.fetch_member(message.bot, message.chat.id, member.id)
+    except ChatDeleted:
         return await message.reply("诶? 没抽到诶! 重新抽一下?")
     await message.reply(
         f"恭喜幸运观众 {archive_utils.user_mention_html(member)} "

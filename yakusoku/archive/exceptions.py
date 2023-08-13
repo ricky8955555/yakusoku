@@ -1,0 +1,2 @@
+class ChatDeleted(Exception):
+    pass

@@ -6,9 +6,7 @@ from enum import Enum, auto
 import sqlmodel
 
 from yakusoku import sql
-from yakusoku.archive import user_manager
 from yakusoku.archive import utils as archive_utils
-from yakusoku.archive.models import UserData
 
 from .config import config
 from .models import WAIFU_MAX_RARITY, WaifuConfig, WaifuData
@@ -22,7 +20,7 @@ class WaifuFetchState(Enum):
 
 @dataclass(frozen=True)
 class WaifuFetchResult:
-    waifu: UserData
+    waifu: int
     state: WaifuFetchState
 
 
@@ -71,17 +69,15 @@ class WaifuManager:
     async def _is_choosable(self, data: WaifuData) -> bool:
         return data.rarity < WAIFU_MAX_RARITY and not data.forced
 
-    async def _random_waifu(self, group: int, member: int) -> UserData:
-        pairs = [
-            (waifu, data)
+    async def _random_waifu(self, group: int, member: int) -> int:
+        waifus = {
+            waifu.id: data.get_weight()
             async for waifu in await archive_utils.get_user_members(group)
             if member != waifu.id
             and await self._is_choosable(data := await self.get_waifu_data(group, waifu.id))
-        ]
+        }
         try:
-            return random.choices(
-                [pair[0] for pair in pairs], [pair[1].get_weight() for pair in pairs], k=1
-            )[0]
+            return random.choices(list(waifus.keys()), list(waifus.values()), k=1)[0]
         except IndexError:
             raise MemberNotEfficientError
         except ValueError:
@@ -106,14 +102,12 @@ class WaifuManager:
     async def fetch_waifu(self, group: int, member: int, force: bool = False) -> WaifuFetchResult:
         if (data := await self.get_waifu_data(group, member)).forced:
             assert data.waifu, "no waifu when forced is true."
-            waifu = await user_manager.get_user(data.waifu)
-            return WaifuFetchResult(waifu, WaifuFetchState.FORCED)
+            return WaifuFetchResult(data.waifu, WaifuFetchState.FORCED)
         if data.waifu and not await self._is_update_needed(data) and not force:
-            waifu = await user_manager.get_user(data.waifu)
-            return WaifuFetchResult(waifu, WaifuFetchState.NONE)
+            return WaifuFetchResult(data.waifu, WaifuFetchState.NONE)
 
         waifu = await self._random_waifu(group, member)
-        await self._update_waifu(group, member, waifu.id)
+        await self._update_waifu(group, member, waifu)
         return WaifuFetchResult(waifu, WaifuFetchState.UPDATED)
 
     async def get_waifu_datas(self, group: int) -> list[WaifuData]:

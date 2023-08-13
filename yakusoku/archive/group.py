@@ -55,7 +55,7 @@ class GroupManager:
 
     async def remove_member(self, group: int, member: int) -> None:
         data = await self.get_group(group)
-        if member in data.members:
+        if member not in data.members:
             return
         members = list(data.members)
         members.remove(member)
