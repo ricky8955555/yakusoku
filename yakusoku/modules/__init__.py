@@ -16,10 +16,9 @@ _dispatcher: Dispatcher | None = None
 
 def _get_modules() -> set[str]:
     modules = [
-        item.stem
+        item.stem + ".main"
         for item in Path(MODULES_PATH).iterdir()
-        if (item.is_dir() and (item / "__init__.py").exists())
-        or (item.is_file() and item.suffix == ".py" and item.stem != "__init__")
+        if (item.is_dir() and (item / "__init__.py").exists() and (item / "main.py").exists())
     ]
     modules_set = set(modules)
     assert len(modules_set) == len(modules), "duplicated modules were detected"

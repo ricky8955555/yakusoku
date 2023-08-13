@@ -12,5 +12,4 @@ async def start(message: Message):
         f"Git 仓库: [GitLab]({constants.GITLAB_REPOSITORY_URL}) (仅有公开查看权限)  "
         f"[GitHub]({constants.GITHUB_REPOSITORY_URL})",
         parse_mode="Markdown",
-        disable_web_page_preview=True,
     )

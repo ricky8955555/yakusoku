@@ -1,4 +1,8 @@
+import os
+
+from yakusoku import constants
 from yakusoku.config import Config
+from yakusoku.database import SQLSessionManager
 
 
 class BotConfig(Config):
@@ -14,3 +18,5 @@ class CommonConfig(Config):
 
 bot_config = BotConfig.load("bot")
 common_config = CommonConfig.load("common")
+
+sql = SQLSessionManager(os.path.join(constants.DATA_PATH, "data.db"))

@@ -3,8 +3,8 @@ from datetime import time
 from yakusoku.config import Config
 
 
-class WaifuConfig(Config):
+class ModuleConfig(Config):
     reset_time: time = time(0, 0)
 
 
-config = WaifuConfig.load("waifu")
+config = ModuleConfig.load("waifu")

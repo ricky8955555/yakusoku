@@ -16,6 +16,6 @@ class Config(BaseModel):
             if os.path.exists(path := os.path.join(CONFIG_PATH, name + ".yaml"))
             else os.path.join(CONFIG_PATH, name + ".yml")
         )
-        if path:
+        if os.path.exists(path):
             return parse_yaml_file_as(cls, path)
         return cls()

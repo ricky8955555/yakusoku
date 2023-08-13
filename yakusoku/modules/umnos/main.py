@@ -1,4 +1,3 @@
-import dataclasses
 import random
 import traceback
 
@@ -17,9 +16,9 @@ FALLBACK_COUNTRIES = ["中国", "美国", "日本", "韩国", "印度", "韩国"
 
 
 class UmnosConfig(Config):
-    custom_types: list[str] = dataclasses.field(default_factory=list)
+    custom_types: list[str] = list()
     overwritten_types: bool = False
-    custom_countries: list[str] = dataclasses.field(default_factory=list)
+    custom_countries: list[str] = list()
     overwritten_countries: bool = False
 
 

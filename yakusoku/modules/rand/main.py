@@ -3,8 +3,9 @@ import random
 from aiogram.dispatcher.filters import ChatTypeFilter
 from aiogram.types import ChatType, Message
 
+from yakusoku.archive import utils as archive_utils
+from yakusoku.archive import validator as chat_validator
 from yakusoku.modules import command_handler
-from yakusoku.shared import user_factory
 from yakusoku.utils import chat
 
 
@@ -16,13 +17,16 @@ from yakusoku.utils import chat
 async def randmember(message: Message):
     members = [
         member
-        for member in user_factory.get_user_members(message.chat.id)
-        if member != message.from_id
+        async for member in await archive_utils.get_user_members(message.chat.id)
+        if member.id != message.from_id
     ]
+    if not members:
+        return await message.reply("目前群员信息不足捏, 等我熟悉一下群里环境? w")
     member = random.choice(members)
-    user = await chat.get_chat(message.bot, member)
+    if not await chat_validator.is_valid_member(message.bot, message.chat.id, member.id):
+        return await message.reply("诶? 没抽到诶! 重新抽一下?")
     await message.reply(
-        f"恭喜幸运观众 {chat.get_mention_html(user)} "
+        f"恭喜幸运观众 {archive_utils.user_mention_html(member)} "
         f"被 {chat.get_mention_html(message.from_user or message.sender_chat)} 抽中!",
         parse_mode="HTML",
     )

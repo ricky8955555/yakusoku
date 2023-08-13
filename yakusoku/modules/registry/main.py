@@ -1,24 +1,39 @@
+from datetime import timedelta
+
 from aiogram.dispatcher.filters import ChatTypeFilter
 from aiogram.types import (Chat, ChatMember, ChatMemberStatus, ChatMemberUpdated, ChatType,
                            ContentType, Message)
+from cashews.wrapper import Cache
 
+from yakusoku.archive import group_manager, user_manager
+from yakusoku.archive import utils as archive_utils
+from yakusoku.config import Config
 from yakusoku.filters import ManagerFilter
 from yakusoku.modules import command_handler, dispatcher
-from yakusoku.shared import user_factory
 
 dp = dispatcher()
 
+cache = Cache()
+cache.setup("mem://")
+
+
+class RegistryConfig(Config):
+    auto_update_ttl: timedelta = timedelta(minutes=30)
+
+
+config = RegistryConfig.load("registry")
+
 
 async def joined(group: Chat, member: ChatMember) -> None:
-    user_factory.add_member(group.id, member.user.id)
-    user_factory.update_user(member.user)
+    await user_manager.update_from_user(member.user)
+    await group_manager.add_member(group.id, member.user.id)
 
 
 async def left(group: Chat, member: ChatMember) -> None:
     if member.user.id == member.bot.id:
-        user_factory.clear_members(group.id)
+        await group_manager.remove_group(group.id)
     else:
-        user_factory.remove_member(group.id, member.user.id)
+        await group_manager.remove_member(group.id, member.user.id)
 
 
 @dp.chat_member_handler(run_task=True)
@@ -31,11 +46,15 @@ async def member_update(update: ChatMemberUpdated):
 
 
 @dp.message_handler(run_task=True, content_types=ContentType.all())
+@cache(ttl=config.auto_update_ttl, key="chat:{message.chat.id},user:{message.from_id}")
 async def message_received(message: Message):
     if not message.sender_chat:
         if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
-            user_factory.add_member(message.chat.id, message.from_id)
-        user_factory.update_user(message.from_user)
+            await group_manager.update_group_from_chat(message.chat)
+            await group_manager.add_member(message.chat.id, message.from_id)
+        else:
+            await user_manager.update_from_chat(message.chat)
+        await user_manager.update_from_user(message.from_user)
 
 
 @command_handler(
@@ -48,14 +67,9 @@ async def get_members(message: Message):
     await message.reply(
         "当前已记录以下成员信息:\n"
         + "\n".join(
-            (info := user_factory.get_userinfo(member)).name
-            or (next(iter(info.usernames)) if info.usernames else str(member))
-            for member in user_factory.get_members(message.chat.id)
+            [
+                member.name or (member.usernames[0] if member.usernames else str(member.id))
+                async for member in archive_utils.get_members(message.chat.id)
+            ]
         )
     )
-
-
-@command_handler(["update_avatar"], "更新自己的头像缓存")
-async def update_avatar(message: Message):
-    avatar = await user_factory.get_avatar(message.from_user, force=True)
-    await message.reply_photo(avatar, "好力, 你的头像已经强制重新缓存了喵w")
