@@ -14,10 +14,11 @@ graphviz = "^0.20.1"
 pydantic-yaml = "^1.1.1"
 sqlmodel = "^0.0.8"
 pydantic = "^1.10.12"
-aiofile = "^3.8.7"
 cashews = "^6.2.0"
 aiosqlite = "^0.19.0"
 alembic = "^1.11.2"
+psutil = "^5.9.5"
+humanize = "^4.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pyright = "^1.1.316"
