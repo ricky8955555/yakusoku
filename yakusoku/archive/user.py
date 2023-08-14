@@ -65,5 +65,5 @@ class UserManager:
         async with sql.session() as session:
             statement = sqlmodel.select(UserData).where(UserData.id == id)
             results = await session.execute(statement)
-            await session.delete(results.one())
+            await session.delete(results.one()[0])
             await session.commit()

@@ -25,8 +25,10 @@ config = RegistryConfig.load("registry")
 
 
 async def joined(group: Chat, member: ChatMember) -> None:
-    await user_manager.update_from_user(member.user)
-    await group_manager.add_member(group.id, member.user.id)
+    await group_manager.update_group_from_chat(group)
+    if member.user.id != member.bot.id:
+        await user_manager.update_from_user(member.user)
+        await group_manager.add_member(group.id, member.user.id)
 
 
 async def left(group: Chat, member: ChatMember) -> None:
@@ -36,6 +38,7 @@ async def left(group: Chat, member: ChatMember) -> None:
         await group_manager.remove_member(group.id, member.user.id)
 
 
+@dp.my_chat_member_handler(run_task=True)
 @dp.chat_member_handler(run_task=True)
 async def member_update(update: ChatMemberUpdated):
     group, user = update.chat, update.new_chat_member

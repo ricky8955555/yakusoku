@@ -128,13 +128,13 @@ class WaifuManager:
                 .where(WaifuData.member == member)
             )
             results = await session.execute(statement)
-            await session.delete(results.one())
+            await session.delete(results.one()[0])
             await session.commit()
 
     async def remove_group(self, group: int) -> None:
         async with sql.session() as session:
             statement = sqlmodel.select(WaifuData).where(WaifuData.group == group)
             results = await session.execute(statement)
-            for rows in results.all():
-                await session.delete(rows)
+            for row in results.all():
+                await session.delete(row)
             await session.commit()

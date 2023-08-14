@@ -41,7 +41,7 @@ class GroupManager:
         async with sql.session() as session:
             statement = sqlmodel.select(GroupData).where(GroupData.id == id)
             results = await session.execute(statement)
-            await session.delete(results.one())
+            await session.delete(results.one()[0])
             await session.commit()
 
     async def add_member(self, group: int, member: int) -> None:
