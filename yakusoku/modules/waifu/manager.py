@@ -100,9 +100,9 @@ class WaifuManager:
         await self.update_waifu_data(data)
 
     async def fetch_waifu(self, group: int, member: int, force: bool = False) -> WaifuFetchResult:
-        if (data := await self.get_waifu_data(group, member)).forced:
-            assert data.waifu, "no waifu when forced is true."
-            return WaifuFetchResult(data.waifu, WaifuFetchState.FORCED)
+        data = await self.get_waifu_data(group, member)
+        if data.partner:
+            return WaifuFetchResult(data.partner, WaifuFetchState.FORCED)
         if data.waifu and not await self._is_update_needed(data) and not force:
             return WaifuFetchResult(data.waifu, WaifuFetchState.NONE)
 

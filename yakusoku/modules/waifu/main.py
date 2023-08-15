@@ -154,10 +154,9 @@ async def waifu_rarity_get(message: Message):
 
 async def handle_divorce_request(message: Message, originator: UserData, removable: bool = False):
     data = await _manager.get_waifu_data(message.chat.id, originator.id)
-    if not data.forced:
+    if not data.partner:
         return await message.reply("啊? 身为单身狗, 离婚什么???")
-    assert data.waifu, "no waifu when forced is true."
-    target = await user_manager.get_user(data.waifu)
+    target = await user_manager.get_user(data.partner)
     try:
         divorced = await _registry.request_divorce(message.chat.id, originator.id)
     except QueueingError:

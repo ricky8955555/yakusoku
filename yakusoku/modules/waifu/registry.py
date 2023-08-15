@@ -32,23 +32,18 @@ class Registry:
         second_data = await self._manager.get_waifu_data(chat, second)
         if first_data.forced or second_data.forced:
             raise MarriageStateError
-        first_data.waifu = second
-        first_data.forced = True
-        second_data.waifu = first
-        second_data.forced = True
+        first_data.partner = second
+        second_data.partner = first
         await self._manager.update_waifu_data(first_data)
         await self._manager.update_waifu_data(second_data)
 
     async def divorce(self, chat: int, originator: int) -> None:
         originator_data = await self._manager.get_waifu_data(chat, originator)
-        if not originator_data.forced:
+        if not originator_data.partner:
             raise MarriageStateError
-        assert originator_data.waifu, "no waifu when forced is true."
-        target_data = await self._manager.get_waifu_data(chat, originator_data.waifu)
-        originator_data.waifu = None
-        originator_data.forced = False
-        target_data.waifu = None
-        target_data.forced = False
+        target_data = await self._manager.get_waifu_data(chat, originator_data.partner)
+        originator_data.partner = None
+        target_data.partner = None
         await self._manager.update_waifu_data(originator_data)
         await self._manager.update_waifu_data(target_data)
 
@@ -72,13 +67,12 @@ class Registry:
 
     async def request_divorce(self, chat: int, originator: int) -> bool:
         data = await self._manager.get_waifu_data(chat, originator)
-        if not data.forced:
+        if not data.partner:
             raise MarriageStateError
         if (chat, originator) in self._divorce_requests:
             raise QueueingError
-        assert data.waifu, "no waifu when forced is true."
-        if (chat, data.waifu) in self._divorce_requests:
-            self._divorce_requests.remove((chat, data.waifu))
+        if (chat, data.partner) in self._divorce_requests:
+            self._divorce_requests.remove((chat, data.partner))
             await self.divorce(chat, originator)
             return True
         self._divorce_requests.append((chat, originator))
@@ -92,9 +86,8 @@ class Registry:
 
     async def revoke_divorce_request(self, chat: int, originator: int) -> None:
         data = await self._manager.get_waifu_data(chat, originator)
-        if not data.forced:
+        if not data.partner:
             raise MarriageStateError
-        assert data.waifu, "no waifu when forced is true."
         if (chat, originator) not in self._divorce_requests:
-            originator = data.waifu
+            originator = data.partner
         self._divorce_requests.remove((chat, originator))

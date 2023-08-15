@@ -17,6 +17,16 @@ class WaifuData(SQLModel, table=True):
     forced: bool = False
     rarity: int = WAIFU_DEFAULT_RARITY
 
+    @property
+    def partner(self) -> Optional[int]:
+        assert not self.forced or self.waifu, "no waifu when forced is true."
+        return self.waifu if self.forced else None
+
+    @partner.setter
+    def partner(self, value: Optional[int]) -> None:
+        self.waifu = value
+        self.forced = value is not None
+
     def get_weight(self) -> int:
         return WAIFU_MAX_RARITY - self.rarity
 
