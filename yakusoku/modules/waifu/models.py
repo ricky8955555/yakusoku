@@ -21,7 +21,7 @@ class WaifuData(SQLModel, table=True):
         return WAIFU_MAX_RARITY - self.rarity
 
     @validator("rarity")
-    def varity_validate(cls, value: int) -> int:
+    def rarity_validate(cls, value: int) -> int:
         assert WAIFU_MIN_RARITY < value < WAIFU_MAX_RARITY, "invalid rarity"
         return value
 
