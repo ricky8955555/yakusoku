@@ -6,7 +6,6 @@ from datetime import datetime
 from aiogram.dispatcher.filters import ChatTypeFilter
 from aiogram.types import (CallbackQuery, ChatActions, ChatMemberStatus, ChatMemberUpdated,
                            ChatType, InlineKeyboardButton, InlineKeyboardMarkup, Message)
-from sqlalchemy.exc import NoResultFound
 
 from yakusoku import common_config
 from yakusoku.archive import avatar_manager, user_manager
@@ -22,7 +21,7 @@ from yakusoku.utils import chat, exception
 from . import graph
 from .manager import (MemberNotEfficientError, NoChoosableWaifuError, WaifuFetchResult,
                       WaifuFetchState, WaifuManager)
-from .models import WAIFU_MAX_RARITY, WAIFU_MIN_RARITY
+from .models import WAIFU_DEFAULT_RARITY, WAIFU_MAX_RARITY, WAIFU_MIN_RARITY
 from .registry import Registry
 
 dp = dispatcher()
@@ -118,19 +117,20 @@ async def waifu_rarity_set(message: Message):
         or not (WAIFU_MIN_RARITY < rarity < WAIFU_MAX_RARITY)
     ):
         return await message.reply(
-            f"戳啦, 正确用法为 `/waifurs <@用户> <稀有度> (稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}])`",
+            "戳啦, 正确用法为 `/waifurs <@用户或ID> <稀有度> "
+            f"(稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}], 默认值为 {WAIFU_DEFAULT_RARITY})`",
             parse_mode="Markdown",
         )
     try:
-        waifu = await user_manager.get_user_from_username(args[1].lstrip("@"))
-    except NoResultFound:
+        waifu = await archive_utils.parse_member(
+            args[1].removeprefix("@"), message.chat.id, message.bot
+        )
+    except ChatDeleted or ChatNotFound:
         return await message.reply("呜, 找不到你所提及的用户w")
     data = await _manager.get_waifu_data(message.chat.id, waifu.id)
     data.rarity = rarity
     await _manager.update_waifu_data(data)
-    await message.reply(
-        f"成功将 {archive_utils.user_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!", parse_mode="HTML"
-    )
+    await message.reply(f"成功将 {archive_utils.user_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!")
 
 
 @command_handler(
@@ -140,16 +140,15 @@ async def waifu_rarity_set(message: Message):
 )
 async def waifu_rarity_get(message: Message):
     if len(args := message.text.split()) != 2:
-        return await message.reply("戳啦, 正确用法为 `/waifurg <@用户>`", parse_mode="Markdown")
+        return await message.reply("戳啦, 正确用法为 `/waifurg <@用户或ID>`", parse_mode="Markdown")
     try:
-        waifu = await user_manager.get_user_from_username(args[1].lstrip("@"))
+        waifu = await archive_utils.parse_member(
+            args[1].removeprefix("@"), message.chat.id, message.bot
+        )
     except AssertionError:
         return await message.reply("呜, 找不到你所提及的用户w")
     data = await _manager.get_waifu_data(message.chat.id, waifu.id)
-    await message.reply(
-        f"{archive_utils.user_mention_html(waifu)} 的老婆稀有度为: {data.rarity}", parse_mode="HTML"
-    )
-    return True
+    await message.reply(f"{archive_utils.user_mention_html(waifu)} 的老婆稀有度为: {data.rarity}")
 
 
 def create_divorce_task_unchecked(
@@ -159,8 +158,7 @@ def create_divorce_task_unchecked(
         await _registry.divorce(chat, originator.id)
         await query.message.reply(
             f"呜呜呜, {archive_utils.user_mention_html(originator)} "
-            f"和 {archive_utils.user_mention_html(target)} "
-            "已通过手续离婚了w\n今后的日子, 自己要照顾好自己捏w",
+            f"和 {archive_utils.user_mention_html(target)} 已通过手续离婚了w\n今后的日子, 自己要照顾好自己捏w",
             reply=False,
         )
         with contextlib.suppress(Exception):
@@ -228,9 +226,7 @@ async def divorce(message: Message):
     buttons = create_divorce_task_unchecked(message.chat.id, originator, target)
     await message.reply(
         f"{archive_utils.user_mention_html(originator)} "
-        f"向 {archive_utils.user_mention_html(target)} "
-        "发起了离婚申请 www",
-        parse_mode="HTML",
+        f"向 {archive_utils.user_mention_html(target)} 发起了离婚申请 www",
         reply_markup=buttons,
     )
 
@@ -242,8 +238,7 @@ def create_proposal_task_unchecked(
         await _registry.marry(chat, originator.id, target.id)
         await query.message.reply(
             f"恭喜 {archive_utils.user_mention_html(originator)} "
-            f"和 {archive_utils.user_mention_html(target)} "
-            "已走入婚姻的殿堂捏~\nkdl kdl kdl www",
+            f"和 {archive_utils.user_mention_html(target)} 已走入婚姻的殿堂捏~\nkdl kdl kdl www",
             reply=False,
         )
         await query.message.reply_sticker(common_config.writing_sticker, reply=False)
