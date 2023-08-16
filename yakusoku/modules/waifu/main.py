@@ -11,11 +11,12 @@ from sqlalchemy.exc import NoResultFound
 from yakusoku import common_config
 from yakusoku.archive import avatar_manager, user_manager
 from yakusoku.archive import utils as archive_utils
-from yakusoku.archive.exceptions import ChatDeleted
+from yakusoku.archive.exceptions import ChatDeleted, ChatNotFound
 from yakusoku.archive.models import UserData
 from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
 from yakusoku.modules import command_handler, dispatcher
 from yakusoku.shared.callback import CallbackQueryTaskManager
+from yakusoku.shared.state import MutexManager
 from yakusoku.utils import chat, exception
 
 from . import graph
@@ -28,7 +29,9 @@ dp = dispatcher()
 
 _manager = WaifuManager()
 _registry = Registry(_manager)
-_task_manager = CallbackQueryTaskManager(dp, "waifu_task/", "任务不见力 QwQ")
+_tasks = CallbackQueryTaskManager(dp, "waifu_task/", "任务不见力 QwQ")
+_registry_mutex = MutexManager()
+_graph_mutex = MutexManager()
 
 
 @dataclass(frozen=True)
@@ -41,6 +44,7 @@ class MemberWaifuInfo:
     ["waifu"],
     "获取每日老婆 (仅群聊)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    NonAnonymousFilter(),
 )
 async def waifu(message: Message):
     async def _get_waifu(
@@ -54,9 +58,6 @@ async def waifu(message: Message):
             if result.state == WaifuFetchState.FORCED:
                 await _registry.divorce(message.chat.id, message.from_id)
             return await _get_waifu(message, True)
-
-    if message.sender_chat:
-        return await message.reply("暂不支持匿名身份抽老婆捏w")
 
     await message.answer_chat_action(ChatActions.TYPING)
 
@@ -92,7 +93,7 @@ async def waifu(message: Message):
                 ]
             ]
         )
-        if result.state != WaifuFetchState.FORCED and not message.sender_chat
+        if result.state != WaifuFetchState.FORCED
         else InlineKeyboardMarkup()
     )
 
@@ -164,6 +165,7 @@ def create_divorce_task_unchecked(
         )
         with contextlib.suppress(Exception):
             await query.message.delete()
+        _registry_mutex.unlock_all(originator.id, target.id)
 
     async def cancelled(query: CallbackQuery):
         if query.from_user.id == originator.id:
@@ -176,14 +178,14 @@ def create_divorce_task_unchecked(
         with contextlib.suppress(Exception):
             await query.message.delete()
 
-    task = _task_manager.create_task(
+    task = _tasks.create_task(
         divorce,
         [
             (lambda query: query.from_user.id != originator.id, "耐心等待对方接受哦w"),  # type: ignore
             (lambda query: query.from_user.id == target.id, "别人的事情不要随便介入哦w"),  # type: ignore
         ],
     )
-    cancellation_task = _task_manager.create_cancellation_task(
+    cancellation_task = _tasks.create_cancellation_task(
         task,
         [
             (
@@ -215,12 +217,14 @@ def create_divorce_task_unchecked(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     NonAnonymousFilter(),
 )
-async def request_divorce(message: Message):
+async def divorce(message: Message):
     data = await _manager.get_waifu_data(message.chat.id, message.from_id)
     if not (partner := data.get_partner()):
         return await message.reply("啊? 身为单身狗, 离婚什么???")
     originator = await user_manager.update_from_user(message.from_user)
     target = await user_manager.get_user(partner)
+    if not _registry_mutex.lock_all(originator.id, target.id):
+        return await message.reply("你或者对方正在处理某些事项哦~")
     buttons = create_divorce_task_unchecked(message.chat.id, originator, target)
     await message.reply(
         f"{archive_utils.user_mention_html(originator)} "
@@ -245,6 +249,7 @@ def create_proposal_task_unchecked(
         await query.message.reply_sticker(common_config.writing_sticker, reply=False)
         with contextlib.suppress(Exception):
             await query.message.delete()
+        _registry_mutex.unlock_all(originator.id, target.id)
 
     async def cancelled(query: CallbackQuery):
         if query.from_user.id == target.id:
@@ -255,15 +260,17 @@ def create_proposal_task_unchecked(
             )
         else:
             await query.answer("已经帮你取消力~")
+        with contextlib.suppress(Exception):
+            await query.message.delete()
 
-    task = _task_manager.create_task(
+    task = _tasks.create_task(
         marry,
         [
             (lambda query: query.from_user.id != originator.id, "耐心等待对方接受哦w"),  # type: ignore
             (lambda query: query.from_user.id == target.id, "别人的事情不要随便介入哦w"),  # type: ignore
         ],
     )
-    cancellation_task = _task_manager.create_cancellation_task(
+    cancellation_task = _tasks.create_cancellation_task(
         task,
         [
             (
@@ -293,15 +300,13 @@ def create_proposal_task_unchecked(
     ["propose"],
     "提出求婚 (仅群聊)",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    NonAnonymousFilter(),
 )
 async def propose(message: Message):
-    if message.sender_chat:
-        return await message.reply("暂不支持匿名身份结婚捏w")
-
     if (length := len(args := message.text.split())) == 2:
         try:
-            target = await archive_utils.parse_user(args[1])
-        except NoResultFound:
+            target = await archive_utils.parse_member(args[1], message.chat.id, message.bot)
+        except ChatDeleted or ChatNotFound:
             return await message.reply("呜, 找不到你所提及的用户w")
     elif length == 1 and message.reply_to_message:
         if message.reply_to_message.sender_chat:
@@ -321,6 +326,9 @@ async def propose(message: Message):
     ).get_partner():
         return await message.reply("你或者对方已经结过婚捏, 不能向对方求婚诺w")
 
+    if not _registry_mutex.lock_all(message.from_id, target.id):
+        return await message.reply("你或者对方正在处理某些事项哦~")
+
     originator = await user_manager.update_from_user(message.from_user)
     buttons = create_proposal_task_unchecked(message.chat.id, originator, target)
     await message.reply(
@@ -337,6 +345,8 @@ async def propose_callback(query: CallbackQuery):  # type: ignore
         return await query.answer("别人的事情不要随便介入哦w")
     originator = await user_manager.update_from_user(query.from_user)
     target = await user_manager.get_user(second_id if originator.id == first_id else first_id)
+    if not _registry_mutex.lock_all(originator.id, target.id):
+        return await query.answer("你或者对方正在处理某些事项哦~")
     buttons = create_proposal_task_unchecked(query.message.chat.id, originator, target)
     await query.message.reply(
         f"{chat.get_mention_html(query.from_user)} "
@@ -361,6 +371,8 @@ async def mention_global(message: Message):
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def waifu_graph(message: Message):
+    if not _graph_mutex.lock(message.chat.id):
+        return await message.reply("呜呜呜, 别骂了, 别骂了, 在画了www")
     reply = await message.reply_sticker(common_config.writing_sticker)
     await message.answer_chat_action(ChatActions.TYPING)
     try:
@@ -371,19 +383,20 @@ async def waifu_graph(message: Message):
     except Exception as ex:
         await message.reply(f"喵呜……渲染失败捏. {ex}")
         traceback.print_exc()
+    _graph_mutex.unlock(message.chat.id)
     await reply.delete()
 
 
+@dp.my_chat_member_handler()
 @dp.chat_member_handler()
 async def member_update(update: ChatMemberUpdated):
-    if (member := update.new_chat_member).status not in [
+    if (member := update.new_chat_member).status not in (
         ChatMemberStatus.LEFT,
         ChatMemberStatus.BANNED,
         ChatMemberStatus.KICKED,
-    ]:
+    ):
         return
     if member.user.id == member.bot.id:
-        await _manager.remove_group(update.chat.id)
-    else:
-        with contextlib.suppress(KeyError):
-            await _manager.remove_waifu(update.chat.id, member.user.id)
+        return await _manager.remove_group(update.chat.id)
+    with contextlib.suppress(KeyError):
+        await _manager.remove_waifu(update.chat.id, member.user.id)

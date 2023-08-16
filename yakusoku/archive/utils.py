@@ -3,10 +3,12 @@ from typing import AsyncIterable
 
 from aiogram import Bot
 from aiogram.utils.exceptions import BadRequest, ChatNotFound
+from sqlalchemy.exc import NoResultFound
 
 from yakusoku.archive import group_manager, user_manager
 from yakusoku.archive.exceptions import ChatDeleted
 from yakusoku.archive.models import GroupData, UserData
+from yakusoku.utils import exception
 
 
 async def get_members(group: int) -> AsyncIterable[UserData]:
@@ -58,12 +60,34 @@ async def fetch_member(bot: Bot, group: int, member: int) -> UserData:
             raise
         await group_manager.remove_member(group, member)
         raise ChatDeleted from ex
+    await group_manager.add_member(group, chat.user.id)
     return await user_manager.update_from_user(chat.user)
 
 
-async def parse_user(exp: str) -> UserData:
+async def parse_user(exp: str, bot: Bot | None = None) -> UserData:
+    id = exception.try_invoke_or_default(lambda: int(exp))
+    if id:
+        user = await user_manager.get_user(id)
     try:
-        return await user_manager.get_user(int(exp))
-    except ValueError:
-        pass
-    return await user_manager.get_user_from_username(exp.removeprefix("@"))
+        user = await user_manager.get_user_from_username(exp.removeprefix("@"))
+    except NoResultFound as ex:
+        raise ChatNotFound from ex
+    if bot:
+        return await fetch_user(bot, user.id)
+    return user
+
+
+async def parse_member(exp: str, group: int, bot: Bot | None = None) -> UserData:
+    id = exception.try_invoke_or_default(lambda: int(exp))
+    if id:
+        member = await user_manager.get_user(id)
+    try:
+        member = await user_manager.get_user_from_username(exp.removeprefix("@"))
+    except NoResultFound as ex:
+        raise ChatNotFound from ex
+    data = await group_manager.get_group(group)
+    if bot:
+        return await fetch_member(bot, group, member.id)
+    if member.id not in data.members:
+        raise ChatNotFound
+    return member
