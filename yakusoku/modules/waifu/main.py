@@ -331,10 +331,10 @@ async def propose(message: Message):
 
 
 @dp.callback_query_handler(CallbackQueryFilter("waifu_propose_callback"))
-async def propose_callback(query: CallbackQuery):
+async def propose_callback(query: CallbackQuery):  # type: ignore
     first_id, second_id = map(int, query.data.split()[1:])
     if query.from_user.id not in (first_id, second_id):
-        await query.answer("别人的事情不要随便介入哦w")
+        return await query.answer("别人的事情不要随便介入哦w")
     originator = await user_manager.update_from_user(query.from_user)
     target = await user_manager.get_user(second_id if originator.id == first_id else first_id)
     buttons = create_proposal_task_unchecked(query.message.chat.id, originator, target)
