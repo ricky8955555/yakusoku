@@ -30,7 +30,6 @@ async def randmember(message: Message):
     await message.reply(
         f"恭喜幸运观众 {archive_utils.user_mention_html(member)} "
         f"被 {chat.get_mention_html(message.from_user or message.sender_chat)} 抽中!",
-        parse_mode="HTML",
     )
 
 
