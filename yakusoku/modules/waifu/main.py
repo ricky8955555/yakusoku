@@ -16,7 +16,7 @@ from yakusoku.archive.models import UserData
 from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
 from yakusoku.modules import command_handler, dispatcher
 from yakusoku.shared.callback import CallbackQueryTaskManager
-from yakusoku.shared.state import MutexManager
+from yakusoku.shared.mutex import MutexManager
 from yakusoku.utils import chat, exception
 
 from . import graph
@@ -165,7 +165,7 @@ def create_divorce_task_unchecked(
         )
         with contextlib.suppress(Exception):
             await query.message.delete()
-        _registry_mutex.unlock_all(originator.id, target.id)
+        _registry_mutex.unlock_all_unchecked(originator.id, target.id)
 
     async def cancelled(query: CallbackQuery):
         if query.from_user.id == originator.id:
@@ -249,7 +249,7 @@ def create_proposal_task_unchecked(
         await query.message.reply_sticker(common_config.writing_sticker, reply=False)
         with contextlib.suppress(Exception):
             await query.message.delete()
-        _registry_mutex.unlock_all(originator.id, target.id)
+        _registry_mutex.unlock_all_unchecked(originator.id, target.id)
 
     async def cancelled(query: CallbackQuery):
         if query.from_user.id == target.id:
