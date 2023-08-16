@@ -37,4 +37,4 @@ async def slash(message: Message):
     target = origin.sender_chat or origin.from_user
     target_mention: str = chat.get_mention_html(target, "自己" if target.id == sender.id else None)
     reply = get_reply(html.escape(first), html.escape(second), sender_mention, target_mention)
-    await message.bot.send_message(message.chat.id, reply, parse_mode="HTML")
+    await message.bot.send_message(message.chat.id, reply)

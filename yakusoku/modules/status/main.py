@@ -25,9 +25,6 @@ async def status(message: Message):
     group_count = len(await group_manager.get_groups())
     user_count = len(await user_manager.get_users())
 
-    service_info = (
-        f"群组数: {group_count}\n"
-        f"用户信息缓存数: {user_count}"
-    )
+    service_info = f"群组数: {group_count}\n" f"用户信息缓存数: {user_count}"
 
     await message.reply(f"进程信息:\n{process_info}\n\n服务信息:\n{service_info}")
