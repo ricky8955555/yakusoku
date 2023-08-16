@@ -352,7 +352,7 @@ async def propose_callback(query: CallbackQuery):  # type: ignore
         f"{chat.get_mention_html(query.from_user)} "
         f"向 {archive_utils.user_mention_html(target)} 发起了求婚邀请",
         reply_markup=buttons,
-        reply=False
+        reply=False,
     )
     await query.answer()
 
