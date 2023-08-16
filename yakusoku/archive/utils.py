@@ -59,3 +59,11 @@ async def fetch_member(bot: Bot, group: int, member: int) -> UserData:
         await group_manager.remove_member(group, member)
         raise ChatDeleted from ex
     return await user_manager.update_from_user(chat.user)
+
+
+async def parse_user(exp: str) -> UserData:
+    try:
+        return await user_manager.get_user(int(exp))
+    except ValueError:
+        pass
+    return await user_manager.get_user_from_username(exp.removeprefix("@"))

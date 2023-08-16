@@ -15,19 +15,20 @@ from yakusoku.archive.exceptions import ChatDeleted
 from yakusoku.archive.models import UserData
 from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
 from yakusoku.modules import command_handler, dispatcher
+from yakusoku.shared.callback import CallbackQueryTaskManager
 from yakusoku.utils import chat, exception
 
 from . import graph
 from .manager import (MemberNotEfficientError, NoChoosableWaifuError, WaifuFetchResult,
                       WaifuFetchState, WaifuManager)
 from .models import WAIFU_MAX_RARITY, WAIFU_MIN_RARITY
-from .registry import (InvalidTargetError, MarriageStateError, QueueingError, Registry,
-                       TargetUnmatchedError)
+from .registry import Registry
 
 dp = dispatcher()
 
 _manager = WaifuManager()
 _registry = Registry(_manager)
+_task_manager = CallbackQueryTaskManager(dp, "waifu_task/", "任务不见力 QwQ")
 
 
 @dataclass(frozen=True)
@@ -98,11 +99,9 @@ async def waifu(message: Message):
     with contextlib.suppress(Exception):
         avatar = await avatar_manager.get_avatar_file(message.bot, waifu.id)
         if avatar:
-            return await message.reply_photo(
-                avatar.file_id, comment, parse_mode="HTML", reply_markup=buttons
-            )
+            return await message.reply_photo(avatar.file_id, comment, reply_markup=buttons)
 
-    await message.reply(comment, parse_mode="HTML", reply_markup=buttons)
+    await message.reply(comment, reply_markup=buttons)
 
 
 @command_handler(
@@ -152,54 +151,62 @@ async def waifu_rarity_get(message: Message):
     return True
 
 
-async def handle_divorce_request(message: Message, originator: UserData, removable: bool = False):
-    data = await _manager.get_waifu_data(message.chat.id, originator.id)
-    if not data.partner:
-        return await message.reply("啊? 身为单身狗, 离婚什么???")
-    target = await user_manager.get_user(data.partner)
-    try:
-        divorced = await _registry.request_divorce(message.chat.id, originator.id)
-    except QueueingError:
-        return await message.reply(
-            f"你已经向 {archive_utils.user_mention_html(target)} 提出了求婚 www, 如果感觉不合适可以取消离婚申请捏 (x",
-            parse_mode="HTML",
-            reply=not removable,
-        )
-    if divorced:
-        await message.reply(
+def create_divorce_task_unchecked(
+    chat: int, originator: UserData, target: UserData
+) -> InlineKeyboardMarkup:
+    async def divorce(query: CallbackQuery):
+        await _registry.divorce(chat, originator.id)
+        await query.message.reply(
             f"呜呜呜, {archive_utils.user_mention_html(originator)} "
             f"和 {archive_utils.user_mention_html(target)} "
             "已通过手续离婚了w\n今后的日子, 自己要照顾好自己捏w",
-            parse_mode="HTML",
-            reply=not removable,
+            reply=False,
         )
-        if removable:
-            await message.delete()
-    else:
-        buttons = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(  # type: ignore
-                        text="接受离婚 www (仅被请求者)",
-                        callback_data=f"waifu_divorce_callback {target.id}",
-                    ),
-                    InlineKeyboardButton(  # type: ignore
-                        text="口头挖路! / 取消请求 (仅双方)",
-                        callback_data=(
-                            f"waifu_revoke_divorce_request_callback {originator.id} {target.id}"
-                        ),
-                    ),
-                ]
+        with contextlib.suppress(Exception):
+            await query.message.delete()
+
+    async def cancelled(query: CallbackQuery):
+        if query.from_user.id == originator.id:
+            await query.answer("取消离婚申请成功捏, 以后要和谐相处哦~")
+        else:
+            await query.message.reply(
+                f"{archive_utils.user_mention_html(originator)} 离婚申请被取消捏, 以后要和谐相处哦~",
+                reply=False,
+            )
+        with contextlib.suppress(Exception):
+            await query.message.delete()
+
+    task = _task_manager.create_task(
+        divorce,
+        [
+            (lambda query: query.from_user.id != originator.id, "耐心等待对方接受哦w"),  # type: ignore
+            (lambda query: query.from_user.id == target.id, "别人的事情不要随便介入哦w"),  # type: ignore
+        ],
+    )
+    cancellation_task = _task_manager.create_cancellation_task(
+        task,
+        [
+            (
+                lambda query: query.from_user.id in (originator.id, target.id),  # type: ignore
+                "别人的事情不要随便介入哦w",
+            )
+        ],
+        cancelled,
+    )
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(  # type: ignore
+                    text="接受离婚 www (仅被请求者)",
+                    callback_data=task.callback_data,
+                ),
+                InlineKeyboardButton(  # type: ignore
+                    text="口头挖路! / 取消请求 (仅双方)",
+                    callback_data=cancellation_task.callback_data,
+                ),
             ]
-        )
-        await message.reply(
-            f"{archive_utils.user_mention_html(originator)} "
-            f"向 {archive_utils.user_mention_html(target)} "
-            "发起了离婚申请 www",
-            parse_mode="HTML",
-            reply_markup=buttons,
-            reply=not removable,
-        )
+        ]
+    )
 
 
 @command_handler(
@@ -209,90 +216,77 @@ async def handle_divorce_request(message: Message, originator: UserData, removab
     NonAnonymousFilter(),
 )
 async def request_divorce(message: Message):
-    await handle_divorce_request(message, await user_manager.get_user(message.from_id))
-
-
-@dp.callback_query_handler(CallbackQueryFilter("waifu_divorce_callback"))
-async def divorce_callback(query: CallbackQuery):
-    target = int(query.data.split()[1])
-    if query.from_user.id != target:
-        await query.answer("别人的家事不要瞎掺和w")
-        return
-    await query.answer()
-    await handle_divorce_request(
-        query.message, await user_manager.get_user(query.from_user.id), True
+    data = await _manager.get_waifu_data(message.chat.id, message.from_id)
+    if not (partner := data.get_partner()):
+        return await message.reply("啊? 身为单身狗, 离婚什么???")
+    originator = await user_manager.update_from_user(message.from_user)
+    target = await user_manager.get_user(partner)
+    buttons = create_divorce_task_unchecked(message.chat.id, originator, target)
+    await message.reply(
+        f"{archive_utils.user_mention_html(originator)} "
+        f"向 {archive_utils.user_mention_html(target)} "
+        "发起了离婚申请 www",
+        parse_mode="HTML",
+        reply_markup=buttons,
     )
 
 
-@dp.callback_query_handler(CallbackQueryFilter("waifu_revoke_divorce_request_callback"))
-async def revoke_divorce_request_callback(query: CallbackQuery):
-    if query.from_user.id not in map(int, query.data.split()[1:]):
-        await query.answer("别人的家事不要瞎掺和w")
-        return
-    await query.answer()
-    await _registry.revoke_divorce_request(query.message.chat.id, query.from_user.id)
-    await query.message.reply("取消离婚申请成功捏, 以后要和谐相处哦~", reply=False)
-    await query.message.delete()
-
-
-async def handle_proposal(
-    message: Message, originator: UserData, target: UserData, removable: bool = False
-):
-    try:
-        married = await _registry.propose(message.chat.id, originator.id, target.id)
-    except InvalidTargetError:
-        return await message.reply("啊? 这是可以选的吗? w", reply=not removable)
-    except MarriageStateError:
-        return await message.reply("你或者对方已经结过婚捏, 不能向对方求婚诺w", reply=not removable)
-    except QueueingError:
-        proposal = _registry.get_proposal(message.chat.id, originator.id)
-        target = await user_manager.get_user(proposal)
-        return await message.reply(
-            f"你已经向 {archive_utils.user_mention_html(target)} 提出了求婚捏, 如果感觉不合适可以取消求婚申请捏",
-            parse_mode="HTML",
-            reply=not removable,
-        )
-    except TargetUnmatchedError:
-        proposal = _registry.get_proposal(message.chat.id, target.id)
-        target = await user_manager.get_user(proposal)
-        return await message.reply(
-            f"对方已经向 {archive_utils.user_mention_html(target)} 提出了求婚捏, 暂时不能向对方提出求婚申请w",
-            parse_mode="HTML",
-            reply=not removable,
-        )
-    if married:
-        await message.reply(
+def create_proposal_task_unchecked(
+    chat: int, originator: UserData, target: UserData
+) -> InlineKeyboardMarkup:
+    async def marry(query: CallbackQuery):
+        await _registry.marry(chat, originator.id, target.id)
+        await query.message.reply(
             f"恭喜 {archive_utils.user_mention_html(originator)} "
             f"和 {archive_utils.user_mention_html(target)} "
             "已走入婚姻的殿堂捏~\nkdl kdl kdl www",
-            parse_mode="HTML",
-            reply=not removable,
+            reply=False,
         )
-        await message.reply_sticker(common_config.writing_sticker, reply=False)
-        if removable:
-            await message.delete()
-    else:
-        buttons = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(  # type: ignore
-                        text="接受求婚! (仅被请求者)",
-                        callback_data=f"waifu_propose_callback {originator.id} {target.id}",
-                    ),
-                    InlineKeyboardButton(  # type: ignore
-                        text="口头挖路! / 取消请求 (仅双方)",
-                        callback_data=f"waifu_revoke_proposal_callback {originator.id}",
-                    ),
-                ]
+        await query.message.reply_sticker(common_config.writing_sticker, reply=False)
+        with contextlib.suppress(Exception):
+            await query.message.delete()
+
+    async def cancelled(query: CallbackQuery):
+        if query.from_user.id == target.id:
+            await query.message.reply(
+                f"呜呜呜, {archive_utils.user_mention_html(originator)} "
+                f"被 {archive_utils.user_mention_html(target)} 拒绝了w",
+                reply=False,
+            )
+        else:
+            await query.answer("已经帮你取消力~")
+
+    task = _task_manager.create_task(
+        marry,
+        [
+            (lambda query: query.from_user.id != originator.id, "耐心等待对方接受哦w"),  # type: ignore
+            (lambda query: query.from_user.id == target.id, "别人的事情不要随便介入哦w"),  # type: ignore
+        ],
+    )
+    cancellation_task = _task_manager.create_cancellation_task(
+        task,
+        [
+            (
+                lambda query: query.from_user.id in (originator.id, target.id),  # type: ignore
+                "别人的事情不要随便介入哦w",
+            )
+        ],
+        cancelled,
+    )
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(  # type: ignore
+                    text="接受求婚! (仅被请求者)",
+                    callback_data=task.callback_data,
+                ),
+                InlineKeyboardButton(  # type: ignore
+                    text="口头挖路! / 取消请求 (仅双方)",
+                    callback_data=cancellation_task.callback_data,
+                ),
             ]
-        )
-        await message.reply(
-            f"{archive_utils.user_mention_html(originator)} "
-            f"向 {archive_utils.user_mention_html(target)} 发起了求婚邀请",
-            parse_mode="HTML",
-            reply_markup=buttons,
-            reply=not removable,
-        )
+        ]
+    )
 
 
 @command_handler(
@@ -306,63 +300,51 @@ async def propose(message: Message):
 
     if (length := len(args := message.text.split())) == 2:
         try:
-            target = await user_manager.get_user_from_username(args[1].lstrip("@"))
-        except AssertionError:
+            target = await archive_utils.parse_user(args[1])
+        except NoResultFound:
             return await message.reply("呜, 找不到你所提及的用户w")
     elif length == 1 and message.reply_to_message:
         if message.reply_to_message.sender_chat:
-            return await message.reply("呜, 不能跟匿名用户主动结婚捏w")
+            return await message.reply("呜, 不能跟匿名用户结婚捏w")
         if message.reply_to_message.from_user.is_bot:
             return await message.reply("呜, 不能跟机器人结婚捏w")
-        target = await user_manager.get_user(message.reply_to_message.from_id)
+        target = await user_manager.update_from_user(message.reply_to_message.from_user)
     else:
-        return await message.reply("戳啦, 正确用法为 `/propose <@用户 (或回复某个用户的消息)>`", parse_mode="Markdown")
-    await handle_proposal(message, await user_manager.get_user(message.from_id), target)
+        return await message.reply(
+            "戳啦, 正确用法为 `/propose <@用户或ID (或回复某个用户的消息)>`", parse_mode="Markdown"
+        )
+
+    if message.from_id == target.id:
+        return await message.reply("啊? 这是可以选的吗? w")
+    if (await _manager.get_waifu_data(message.chat.id, target.id)).get_partner() or (
+        await _manager.get_waifu_data(message.chat.id, message.from_id)
+    ).get_partner():
+        return await message.reply("你或者对方已经结过婚捏, 不能向对方求婚诺w")
+
+    originator = await user_manager.update_from_user(message.from_user)
+    buttons = create_proposal_task_unchecked(message.chat.id, originator, target)
+    await message.reply(
+        f"{archive_utils.user_mention_html(originator)} "
+        f"向 {archive_utils.user_mention_html(target)} 发起了求婚邀请",
+        reply_markup=buttons,
+    )
 
 
 @dp.callback_query_handler(CallbackQueryFilter("waifu_propose_callback"))
 async def propose_callback(query: CallbackQuery):
     first_id, second_id = map(int, query.data.split()[1:])
-    if query.from_user.id == first_id:
-        await handle_proposal(
-            query.message,
-            await user_manager.get_user(query.from_user.id),
-            await user_manager.get_user(second_id),
-            True,
-        )
-    elif query.from_user.id == second_id:
-        await handle_proposal(
-            query.message,
-            await user_manager.get_user(query.from_user.id),
-            await user_manager.get_user(first_id),
-            True,
-        )
-    else:
+    if query.from_user.id not in (first_id, second_id):
         await query.answer("别人的事情不要随便介入哦w")
+    originator = await user_manager.update_from_user(query.from_user)
+    target = await user_manager.get_user(second_id if originator.id == first_id else first_id)
+    buttons = create_proposal_task_unchecked(query.message.chat.id, originator, target)
+    await query.message.reply(
+        f"{chat.get_mention_html(query.from_user)} "
+        f"向 {archive_utils.user_mention_html(target)} 发起了求婚邀请",
+        reply_markup=buttons,
+        reply=False
+    )
     await query.answer()
-
-
-@dp.callback_query_handler(CallbackQueryFilter("waifu_revoke_proposal_callback"))
-async def revoke_proposal_callback(query: CallbackQuery):
-    originator_id = int(query.data.split()[1])
-    target_id = _registry.get_proposal(query.message.chat.id, originator_id)
-    if query.from_user.id not in (originator_id, target_id):
-        await query.answer("别人的事情不要随便介入哦w")
-        return
-    await query.answer()
-    _registry.revoke_proposal(query.message.chat.id, originator_id)
-    if query.from_user.id == originator_id:
-        await query.message.reply("取消求婚请求成功捏, 求婚要三思而后行喏~", reply=False)
-    else:
-        originator = await user_manager.get_user(originator_id)
-        await query.message.reply(
-            f"{archive_utils.user_mention_html(originator)} "
-            f"被 {chat.get_mention_html(query.from_user)} "
-            "拒绝了捏, 求婚要三思而后行喏~",
-            parse_mode="HTML",
-            reply=False,
-        )
-    await query.message.delete()
 
 
 @command_handler(["waifum"], "允许/禁止 waifu 功能的提及 (默认禁止)", NonAnonymousFilter())

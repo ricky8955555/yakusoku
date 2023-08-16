@@ -18,6 +18,7 @@ dp = Dispatcher(bot)
 dp.chat_member_handlers.once = False
 dp.message_handlers.once = False
 bot.disable_web_page_preview = True
+bot.parse_mode = "HTML"
 
 modules.load(dp)
 

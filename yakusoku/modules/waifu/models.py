@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import validator
 from sqlmodel import Field, SQLModel
@@ -12,18 +11,16 @@ WAIFU_DEFAULT_RARITY = 5
 class WaifuData(SQLModel, table=True):
     group: int = Field(primary_key=True)
     member: int = Field(primary_key=True)
-    waifu: Optional[int] = None
-    modified: Optional[datetime] = None
+    waifu: int | None = None
+    modified: datetime | None = None
     forced: bool = False
     rarity: int = WAIFU_DEFAULT_RARITY
 
-    @property
-    def partner(self) -> Optional[int]:
+    def get_partner(self) -> int | None:
         assert not self.forced or self.waifu, "no waifu when forced is true."
         return self.waifu if self.forced else None
 
-    @partner.setter
-    def partner(self, value: Optional[int]) -> None:
+    def set_partner(self, value: int | None) -> None:
         self.waifu = value
         self.forced = value is not None
 
