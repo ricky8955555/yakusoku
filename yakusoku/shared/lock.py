@@ -1,7 +1,7 @@
 from typing import Hashable
 
 
-class MutexManager:
+class SimpleLockManager:
     _keys: set[Hashable]
 
     def __init__(self):
