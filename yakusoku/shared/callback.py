@@ -105,6 +105,7 @@ class CallbackQueryTaskManager:
                 self._query_prefix,
                 datetime.now() + expired_after,
             )
+            timer.start()
             return task
 
         task = self._tasks[uuid] = CallbackQueryTask(
