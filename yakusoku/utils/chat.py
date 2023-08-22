@@ -9,7 +9,7 @@ class ChatNotFoundError(Exception):
 
 def get_mention_html(chat: Chat | User, name: str | None = None) -> str:
     return (  # type: ignore
-        exception.try_invoke_or_default(  # type: ignore
+        exception.try_or_default(  # type: ignore
             lambda: chat.get_mention(
                 name if name else chat.full_name, as_html=True  # type: ignore
             ),

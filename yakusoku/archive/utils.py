@@ -65,8 +65,7 @@ async def fetch_member(bot: Bot, group: int, member: int) -> UserData:
 
 
 async def parse_user(exp: str, bot: Bot | None = None) -> UserData:
-    id = exception.try_invoke_or_default(lambda: int(exp))
-    if id:
+    if id := exception.try_or_default(lambda: int(exp)):
         user = await user_manager.get_user(id)
     try:
         user = await user_manager.get_user_from_username(exp.removeprefix("@"))
@@ -78,8 +77,7 @@ async def parse_user(exp: str, bot: Bot | None = None) -> UserData:
 
 
 async def parse_member(exp: str, group: int, bot: Bot | None = None) -> UserData:
-    id = exception.try_invoke_or_default(lambda: int(exp))
-    if id:
+    if id := exception.try_or_default(lambda: int(exp)):
         member = await user_manager.get_user(id)
     try:
         member = await user_manager.get_user_from_username(exp.removeprefix("@"))
