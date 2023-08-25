@@ -12,9 +12,7 @@ def try_or_fallback(func: Callable[[_PT], _RT], param: _PT) -> _RT | _PT:
         return param
 
 
-async def try_or_fallback_async(
-    func: Callable[[_PT], Awaitable[_RT]], param: _PT
-) -> _RT | _PT:
+async def try_or_fallback_async(func: Callable[[_PT], Awaitable[_RT]], param: _PT) -> _RT | _PT:
     try:
         return await func(param)
     except Exception:
@@ -28,9 +26,7 @@ def try_or_default(func: Callable[[], _RT], default: _T = None) -> _RT | _T:
         return default
 
 
-async def try_or_default_async(
-    func: Callable[[], Awaitable[_RT]], default: _T = None
-) -> _RT | _T:
+async def try_or_default_async(func: Callable[[], Awaitable[_RT]], default: _T = None) -> _RT | _T:
     try:
         return await func()
     except Exception:
