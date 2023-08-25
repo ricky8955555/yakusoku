@@ -52,16 +52,21 @@ async def fetch_group(bot: Bot, id: int) -> GroupData:
     return await group_manager.update_group_from_chat(chat)
 
 
-async def fetch_member(bot: Bot, group: int, member: int) -> UserData:
+async def fetch_member(bot: Bot, group: int, member: int, check_user: bool = False) -> UserData:
     try:
         chat = await bot.get_chat_member(group, member)
-    except BadRequest as ex:
-        if ex.args[0] != "User not found":
+        user = await (
+            fetch_user(bot, member)
+            if check_user
+            else user_manager.update_from_user(chat.user)
+        )
+    except BadRequest and ChatDeleted as ex:
+        if isinstance(ex, BadRequest) and ex.args[0] != "User not found":
             raise
         await group_manager.remove_member(group, member)
         raise ChatDeleted from ex
-    await group_manager.add_member(group, chat.user.id)
-    return await user_manager.update_from_user(chat.user)
+    await group_manager.add_member(group, user.id)
+    return user
 
 
 async def parse_user(exp: str, bot: Bot | None = None) -> UserData:
