@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import inspect
 from dataclasses import dataclass
@@ -21,7 +22,8 @@ UserCallback = Callable[[CallbackQuery], Awaitable[Any]]
 
 def _custom_filter_to_filter(filter: CustomFilter) -> Filter:
     async def async_filter_wrapper(query: CallbackQuery) -> bool:
-        return filter(query)  # type: ignore
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, lambda: filter(query))  # type: ignore
 
     if isinstance(filter, AbstractFilter):
         return filter.check
