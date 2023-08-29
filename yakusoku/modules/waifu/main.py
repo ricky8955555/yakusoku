@@ -361,7 +361,7 @@ async def mention_global(message: Message):
     config = await _manager.get_waifu_config(message.from_id)
     config.mentionable = not config.mentionable
     await _manager.update_waifu_config(config)
-    await message.reply("在所有群别人抽老婆的时候不会打扰到你啦~" if config.mentionable else "在所有群别人抽到你做老婆的时候可以通知你哦~")
+    await message.reply("在所有群别人抽到你做老婆的时候可以通知你哦~" if config.mentionable else "在所有群别人抽老婆的时候不会打扰到你啦~")
 
 
 @command_handler(
