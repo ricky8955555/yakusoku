@@ -49,6 +49,8 @@ async def migrate_users(bot: Bot):
     old_db = SqliteDict(os.path.join(OLD_DATABASE_PATH, "user.sqlite"), "info")
     for id, info in old_db.items():
         id = int(id)  # type: ignore
+        if id < 0:
+            print(f"ignored invalid user id {id}")
         info = OldUserInfo(*info)  # type: ignore
         if info.name is not None:
             user = UserData(
@@ -69,6 +71,8 @@ async def migrate_groups(bot: Bot):
     old_db = SqliteDict(os.path.join(OLD_DATABASE_PATH, "user.sqlite"), "members")
     for id, members in old_db.items():
         id = int(id)  # type: ignore
+        if id > 0:
+            print(f"ignored invalid group id {id}")
         print(f"trying to fetch group {id} info from server...")
         try:
             group = await archive_utils.fetch_group(bot, id)
@@ -91,6 +95,8 @@ async def migrate_waifus():
         for id, old_data in old_datas.items():
             print(f"migrating waifu {id} data from group {group.id}...")
             id = int(id)  # type: ignore
+            if id < 0:
+                print(f"ignored invalid waifu id {id}")
             old_data = OldWaifuData(*old_data)  # type: ignore
             props = (
                 OldWaifuLocalProperty(*props)  # type: ignore
