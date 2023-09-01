@@ -92,22 +92,20 @@ async def migrate_waifus():
         print(f"migrating waifu datas from group {group.id}...")
         old_datas = SqliteDict(old_waifu_db_path, f"waifu_{group.id}")
         old_local_props = SqliteDict(old_waifu_db_path, f"property_{group.id}")
-        for id, old_data in old_datas.items():
+        for id, props in old_local_props.items():
             print(f"migrating waifu {id} data from group {group.id}...")
             id = int(id)  # type: ignore
             if id < 0:
                 print(f"ignored invalid waifu id {id}")
-            old_data = OldWaifuData(*old_data)  # type: ignore
-            props = (
-                OldWaifuLocalProperty(*props)  # type: ignore
-                if (props := old_local_props.get(id))
-                else OldWaifuLocalProperty()
+            props = OldWaifuLocalProperty(*props)  # type: ignore
+            old_data = (
+                OldWaifuData(*old_data) if (old_data := old_datas.get(id)) else None  # type: ignore
             )
             data = WaifuData(
                 group=group.id,
                 member=id,
-                waifu=props.married or old_data.member,
-                modified=datetime.fromtimestamp(old_data.last),
+                waifu=props.married or (old_data.member if old_data else None),
+                modified=datetime.fromtimestamp(old_data.last) if old_data else None,
                 forced=props.married is not None,
                 rarity=props.rarity,
             )
@@ -138,6 +136,7 @@ async def main():
     print("migrating waifus...")
     await migrate_waifus()
     print("waifus migrated.")
+    await bot.close()
 
 
 asyncio.run(main())
