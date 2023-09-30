@@ -58,7 +58,7 @@ async def fetch_member(bot: Bot, group: int, member: int, check_user: bool = Fal
         user = await (
             fetch_user(bot, member) if check_user else user_manager.update_from_user(chat.user)
         )
-    except BadRequest and ChatDeleted as ex:
+    except (BadRequest, ChatDeleted) as ex:
         if isinstance(ex, BadRequest) and ex.args[0] != "User not found":
             raise
         await group_manager.remove_member(group, member)
