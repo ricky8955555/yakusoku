@@ -54,7 +54,9 @@ class UserData(SQLModel, table=True):
 
     def update_from_user(self, user: User) -> None:
         self.id = user.id
-        self.usernames = self.usernames + (
-            [user.username] if user.username not in self.usernames else []
-        ) if user.username else []
+        self.usernames = (
+            self.usernames + ([user.username] if user.username not in self.usernames else [])
+            if user.username
+            else []
+        )
         self.is_bot = user.is_bot
