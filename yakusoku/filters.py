@@ -14,10 +14,17 @@ class CallbackQueryFilter(Filter):
         return query.data.startswith(self.header)
 
 
-class ManagerFilter(AdminFilter):
-    async def check(self, obj: Message | CallbackQuery | InlineQuery | ChatMemberUpdated) -> bool:
+class OwnerFilter(Filter):
+    async def check(  # type: ignore
+        self, obj: Message | CallbackQuery | InlineQuery | ChatMemberUpdated
+    ) -> bool:
         from_id = obj.from_id if isinstance(obj, Message) else obj.from_user.id
-        return from_id == bot_config.owner or await super().check(obj)
+        return from_id == bot_config.owner
+
+
+class ManagerFilter(AdminFilter, OwnerFilter):
+    async def check(self, obj: Message | CallbackQuery | InlineQuery | ChatMemberUpdated) -> bool:
+        return await super(AdminFilter).check(obj) or await super(OwnerFilter).check(obj)
 
 
 class NonAnonymousFilter(Filter):
