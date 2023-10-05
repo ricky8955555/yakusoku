@@ -117,7 +117,7 @@ async def waifu_rarity_set(message: Message):
         not (args := message.get_args())
         or len(args) != 2
         or (rarity := exception.try_or_default(lambda: int(args[1]))) is None
-        or not (WAIFU_MIN_RARITY < rarity < WAIFU_MAX_RARITY)
+        or not (WAIFU_MIN_RARITY <= rarity <= WAIFU_MAX_RARITY)
     ):
         return await message.reply(
             "戳啦, 正确用法为 `/waifurs <@用户或ID> <稀有度> "
