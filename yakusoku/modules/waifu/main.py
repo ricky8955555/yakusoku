@@ -115,7 +115,7 @@ async def waifu(message: Message):
 async def waifu_rarity_set(message: Message):
     if (
         not (args := message.get_args())
-        or len(args) != 2
+        or len(args := args.split()) != 2
         or (rarity := exception.try_or_default(lambda: int(args[1]))) is None
         or not (WAIFU_MIN_RARITY <= rarity <= WAIFU_MAX_RARITY)
     ):
