@@ -24,7 +24,7 @@ class OwnerFilter(Filter):
 
 class ManagerFilter(AdminFilter, OwnerFilter):
     async def check(self, obj: Message | CallbackQuery | InlineQuery | ChatMemberUpdated) -> bool:
-        return await super(AdminFilter).check(obj) or await super(OwnerFilter).check(obj)
+        return await AdminFilter.check(self, obj) or await OwnerFilter.check(self, obj)
 
 
 class NonAnonymousFilter(Filter):

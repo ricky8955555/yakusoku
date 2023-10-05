@@ -114,8 +114,9 @@ async def waifu(message: Message):
 )
 async def waifu_rarity_set(message: Message):
     if (
-        len(args := message.text.split()) != 3
-        or (rarity := exception.try_or_default(lambda: int(args[2]))) is None
+        not (args := message.get_args())
+        or len(args) != 2
+        or (rarity := exception.try_or_default(lambda: int(args[1]))) is None
         or not (WAIFU_MIN_RARITY < rarity < WAIFU_MAX_RARITY)
     ):
         return await message.reply(
@@ -125,7 +126,7 @@ async def waifu_rarity_set(message: Message):
         )
     try:
         waifu = await archive_utils.parse_member(
-            args[1].removeprefix("@"), message.chat.id, message.bot
+            args[0].removeprefix("@"), message.chat.id, message.bot
         )
     except ChatDeleted and ChatNotFound:
         return await message.reply("呜, 找不到你所提及的用户w")
