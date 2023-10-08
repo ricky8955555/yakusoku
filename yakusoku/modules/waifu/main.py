@@ -166,7 +166,6 @@ def create_divorce_task_unchecked(
         )
         with contextlib.suppress(Exception):
             await query.message.delete()
-        _registry_lock.unlock_all_unchecked(originator.id, target.id)
 
     async def cancelled(query: CallbackQuery):
         if query.from_user.id == originator.id:
@@ -179,6 +178,9 @@ def create_divorce_task_unchecked(
         with contextlib.suppress(Exception):
             await query.message.delete()
 
+    async def disposed():
+        _registry_lock.unlock_all_unchecked(originator.id, target.id)
+
     task = _tasks.create_task(
         divorce,
         [
@@ -186,6 +188,7 @@ def create_divorce_task_unchecked(
             (lambda query: query.from_user.id == target.id, "别人的事情不要随便介入哦w"),  # type: ignore
         ],
         expired_after=timedelta(days=1),
+        disposed=disposed
     )
     cancellation_task = _tasks.create_cancellation_task(
         task,
@@ -248,7 +251,6 @@ def create_proposal_task_unchecked(
         await query.message.reply_sticker(common_config.writing_sticker, reply=False)
         with contextlib.suppress(Exception):
             await query.message.delete()
-        _registry_lock.unlock_all_unchecked(originator.id, target.id)
 
     async def cancelled(query: CallbackQuery):
         if query.from_user.id == target.id:
@@ -262,6 +264,9 @@ def create_proposal_task_unchecked(
         with contextlib.suppress(Exception):
             await query.message.delete()
 
+    async def disposed():
+        _registry_lock.unlock_all_unchecked(originator.id, target.id)
+
     task = _tasks.create_task(
         marry,
         [
@@ -269,6 +274,7 @@ def create_proposal_task_unchecked(
             (lambda query: query.from_user.id == target.id, "别人的事情不要随便介入哦w"),  # type: ignore
         ],
         expired_after=timedelta(days=1),
+        disposed=disposed
     )
     cancellation_task = _tasks.create_cancellation_task(
         task,

@@ -18,6 +18,7 @@ CustomFilter = AbstractFilter | Callable[[CallbackQuery], bool] | Filter
 AnsweredFilter = tuple[Filter, str]
 AnsweredCustomFilter = tuple[CustomFilter, str]
 UserCallback = Callable[[CallbackQuery], Awaitable[Any]]
+DisposedCallback = Callable[[], Awaitable[Any]]
 
 
 def _custom_filter_to_filter(filter: CustomFilter) -> Filter:
@@ -51,6 +52,7 @@ class CallbackQueryTask:
     filters: list[AnsweredFilter]
     query_prefix: str
     expired_on: datetime | None
+    disposed: DisposedCallback | None = None
 
     @property
     def callback_data(self) -> str:
@@ -59,6 +61,7 @@ class CallbackQueryTask:
 
 class CallbackQueryTaskManager:
     _tasks: dict[UUID, CallbackQueryTask]
+    _cancellation_tasks: dict[UUID, CallbackQueryTask]
     _query_prefix: str
     _error_answer: str | None
     _timers: list[Timer]
@@ -82,6 +85,7 @@ class CallbackQueryTaskManager:
         fallback_answer: str = "",
         disposable: bool = True,
         expired_after: timedelta | None = None,
+        disposed: DisposedCallback | None = None,
     ) -> CallbackQueryTask:
         filters = [_unify_filter(filter, fallback_answer) for filter in custom_filters]
         uuid = uuid1()
@@ -106,6 +110,7 @@ class CallbackQueryTaskManager:
                 filters,
                 self._query_prefix,
                 datetime.now() + expired_after,
+                disposed,
             )
             timer.start()
             return task
@@ -115,6 +120,14 @@ class CallbackQueryTaskManager:
         )
         return task
 
+    async def cancel_task(self, task: CallbackQueryTask):
+        with contextlib.suppress(KeyError):
+            del self._tasks[task.uuid]
+        if task.disposed:
+            await task.disposed()
+        if cancellation_task := self._cancellation_tasks.get(task.uuid):
+            await self.cancel_task(cancellation_task)
+
     def create_cancellation_task(
         self,
         task: CallbackQueryTask,
@@ -123,20 +136,23 @@ class CallbackQueryTaskManager:
         fallback_answer: str = "",
         cancelled_answer: str | None = None,
     ) -> CallbackQueryTask:
-        async def cancel_task(query: CallbackQuery):
-            with contextlib.suppress(KeyError):
-                del self._tasks[task.uuid]
+        assert task.uuid not in self._cancellation_tasks
+
+        async def cancel(query: CallbackQuery):
+            await self.cancel_task(task)
             if post_callback:
                 await post_callback(query)
             await query.answer(cancelled_answer)
 
         expired_after = task.expired_on - datetime.now() if task.expired_on else None
-        return self.create_task(
-            cancel_task,
+        cancellation_task = self.create_task(
+            cancel,
             task.filters if custom_filters is None else custom_filters,  # type: ignore
             fallback_answer=fallback_answer,
             expired_after=expired_after,
         )
+        self._cancellation_tasks[task.uuid] = cancellation_task
+        return cancellation_task
 
     async def _handle_callback_query_task(self, query: CallbackQuery):  # type: ignore
         uuid = query.data.removeprefix(self._query_prefix)
@@ -147,4 +163,4 @@ class CallbackQueryTaskManager:
                 return await query.answer(answer)
         await task.user_callback(query)
         if task.disposable:
-            del self._tasks[task.uuid]
+            await self.cancel_task(task)
