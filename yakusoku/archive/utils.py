@@ -25,7 +25,7 @@ def user_mention_html(user: UserData, name: str | None = None) -> str:
     if user.usernames:
         return f'<a href="https://t.me/{user.usernames[0]}">{name or user.name}</a>'
     else:
-        return f'<a href="tg://user?id={user.id}>{name or user.name}</a>'
+        return f'<a href="tg://user?id={user.id}">{name or user.name}</a>'
 
 
 async def fetch_user(bot: Bot, id: int) -> UserData:
