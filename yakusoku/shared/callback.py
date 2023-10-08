@@ -73,6 +73,7 @@ class CallbackQueryTaskManager:
         self._query_prefix = query_prefix
         self._error_answer = error_answer
         self._timers = []
+        self._cancellation_tasks = {}
         dispatcher.register_callback_query_handler(
             self._handle_callback_query_task, CallbackQueryFilter(query_prefix)
         )
