@@ -21,14 +21,16 @@ name = "yakusoku"
 version = "0.1.0"
 description = ""
 
-[project.group.dev.dependencies]
-pyright = "^1.1.316"
-pyproject-flake8 = "^6.0.0.post1"
-black = "^23.7.0"
-isort = "^5.12.0"
-
 [tool.pdm.build]
 includes = []
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "pyright>=1.1.330.post0",
+    "pyproject-flake8>=6.1.0",
+    "black>=23.9.1",
+    "isort>=5.12.0",
+]
 
 [tool.pyright]
 typeCheckingMode = "strict"
