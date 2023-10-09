@@ -1,25 +1,3 @@
-[tool.pdm.build]
-includes = []
-
-[tool.pyright]
-typeCheckingMode = "strict"
-reportMissingTypeStubs = false
-reportUnknownMemberType = false
-reportUnknownVariableType = false
-reportUntypedFunctionDecorator = false
-exclude = ["alembic/versions"]
-
-[tool.black]
-line-length = 100
-exclude = "alembic/versions"
-
-[tool.flake8]
-max-line-length = 100
-exclude = "alembic/versions"
-
-[tool.isort]
-line_length = 100
-
 [project]
 authors = [
     {name = "Ricky8955555", email = "rkmiao@duck.com"},
@@ -48,3 +26,25 @@ pyright = "^1.1.316"
 pyproject-flake8 = "^6.0.0.post1"
 black = "^23.7.0"
 isort = "^5.12.0"
+
+[tool.pdm.build]
+includes = []
+
+[tool.pyright]
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportUntypedFunctionDecorator = false
+exclude = ["alembic/versions"]
+
+[tool.black]
+line-length = 100
+exclude = "alembic/versions"
+
+[tool.flake8]
+max-line-length = 100
+exclude = "alembic/versions"
+
+[tool.isort]
+line_length = 100
