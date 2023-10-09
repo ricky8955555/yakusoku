@@ -351,6 +351,10 @@ async def propose_callback(query: CallbackQuery):  # type: ignore
         return await query.answer("别人的事情不要随便介入哦w")
     originator = await user_manager.update_from_user(query.from_user)
     target = await user_manager.get_user(second_id if originator.id == first_id else first_id)
+    if (await _manager.get_waifu_data(query.message.chat.id, target.id)).get_partner() or (
+        await _manager.get_waifu_data(query.message.chat.id, originator.id)
+    ).get_partner():
+        return await query.answer("你或者对方已经结过婚捏, 不能向对方求婚诺w")
     if not _registry_lock.lock_all(originator.id, target.id):
         return await query.answer("你或者对方正在处理某些事项哦~")
     buttons = create_proposal_task_unchecked(query.message.chat.id, originator, target)
