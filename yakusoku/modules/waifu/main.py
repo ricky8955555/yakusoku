@@ -179,7 +179,7 @@ def create_divorce_task_unchecked(
             await query.message.delete()
 
     async def disposed():
-        _registry_lock.unlock_all_unchecked(originator.id, target.id)
+        _registry_lock.unlock_all_unchecked((chat, originator.id), (chat, target.id))
 
     task = _tasks.create_task(
         divorce,
@@ -228,7 +228,7 @@ async def divorce(message: Message):
         return await message.reply("啊? 身为单身狗, 离婚什么???")
     originator = await user_manager.update_from_user(message.from_user)
     target = await user_manager.get_user(partner)
-    if not _registry_lock.lock_all(originator.id, target.id):
+    if not _registry_lock.lock_all((message.chat.id, originator.id), (message.chat.id, target.id)):
         return await message.reply("你或者对方正在处理某些事项哦~")
     buttons = create_divorce_task_unchecked(message.chat.id, originator, target)
     await message.reply(
@@ -265,7 +265,7 @@ def create_proposal_task_unchecked(
             await query.message.delete()
 
     async def disposed():
-        _registry_lock.unlock_all_unchecked(originator.id, target.id)
+        _registry_lock.unlock_all_unchecked((chat, originator.id), (chat, target.id))
 
     task = _tasks.create_task(
         marry,
@@ -332,7 +332,9 @@ async def propose(message: Message):
     ).get_partner():
         return await message.reply("你或者对方已经结过婚捏, 不能向对方求婚诺w")
 
-    if not _registry_lock.lock_all(message.from_id, target.id):
+    if not _registry_lock.lock_all(
+        (message.chat.id, message.from_id), (message.chat.id, target.id)
+    ):
         return await message.reply("你或者对方正在处理某些事项哦~")
 
     originator = await user_manager.update_from_user(message.from_user)
@@ -355,7 +357,9 @@ async def propose_callback(query: CallbackQuery):  # type: ignore
         await _manager.get_waifu_data(query.message.chat.id, originator.id)
     ).get_partner():
         return await query.answer("你或者对方已经结过婚捏, 不能向对方求婚诺w")
-    if not _registry_lock.lock_all(originator.id, target.id):
+    if not _registry_lock.lock_all(
+        (query.message.chat.id, originator.id), (query.message.chat.id, target.id)
+    ):
         return await query.answer("你或者对方正在处理某些事项哦~")
     buttons = create_proposal_task_unchecked(query.message.chat.id, originator, target)
     await query.message.reply(
