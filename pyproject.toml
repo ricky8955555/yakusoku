@@ -50,3 +50,6 @@ exclude = "alembic/versions"
 
 [tool.isort]
 line_length = 100
+
+[tool.setuptools]
+packages = ["yakusoku"]
