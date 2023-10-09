@@ -397,8 +397,11 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# Yakusoku
+# yakusoku user data
 config/
 data/
 !yakusoku/**/config/
 !yakusoku/**/data/
+
+# pdm
+.pdm-python
