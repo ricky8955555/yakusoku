@@ -42,14 +42,15 @@ exclude = ["alembic/versions"]
 
 [tool.black]
 line-length = 100
-exclude = "alembic/versions"
+exclude = "alembic/versions|.venv"
 
 [tool.flake8]
 max-line-length = 100
-exclude = "alembic/versions"
+exclude = "alembic/versions,.venv"
 
 [tool.isort]
 line_length = 100
+skip = ["alembic/versions", ".venv"]
 
 [tool.setuptools]
 packages = ["yakusoku"]
