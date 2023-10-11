@@ -8,10 +8,20 @@ from sqlmodel import SQLModel
 class SQLSessionManager:
     _engine: AsyncEngine
     _session: sessionmaker[AsyncSession]
+    _path: str
 
     def __init__(self, path: str) -> None:
+        self._path = path
         self._engine = create_async_engine("sqlite+aiosqlite:///" + path)
         self._session = sessionmaker(self._engine, class_=AsyncSession)
+
+    @property
+    def path(self) -> str:
+        return self._path
+
+    @property
+    def engine(self) -> AsyncEngine:
+        return self._engine
 
     @property
     def session(self) -> sessionmaker[AsyncSession]:
