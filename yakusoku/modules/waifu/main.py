@@ -188,7 +188,7 @@ def create_divorce_task_unchecked(
             (lambda query: query.from_user.id == target.id, "别人的事情不要随便介入哦w"),  # type: ignore
         ],
         expired_after=timedelta(days=1),
-        disposed=disposed
+        disposed=disposed,
     )
     cancellation_task = _tasks.create_cancellation_task(
         task,
@@ -274,7 +274,7 @@ def create_proposal_task_unchecked(
             (lambda query: query.from_user.id == target.id, "别人的事情不要随便介入哦w"),  # type: ignore
         ],
         expired_after=timedelta(days=1),
-        disposed=disposed
+        disposed=disposed,
     )
     cancellation_task = _tasks.create_cancellation_task(
         task,
