@@ -38,7 +38,7 @@ reportMissingTypeStubs = false
 reportUnknownMemberType = false
 reportUnknownVariableType = false
 reportUntypedFunctionDecorator = false
-exclude = ["alembic/versions"]
+exclude = ["alembic/versions", ".venv"]
 
 [tool.black]
 line-length = 100
