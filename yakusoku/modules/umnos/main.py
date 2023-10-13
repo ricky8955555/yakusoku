@@ -2,10 +2,11 @@ import random
 import traceback
 
 import aiohttp
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from yakusoku.config import Config
-from yakusoku.modules import command_handler
+from yakusoku.filters import CallbackQueryFilter
+from yakusoku.modules import command_handler, dispatcher
 
 COUNTRIES_DATA_URL = (
     "https://raw.githubusercontent.com/zhaoweih/countries_json/master/countries.json"
@@ -21,6 +22,8 @@ class UmnosConfig(Config):
     custom_countries: list[str] = list()
     overwritten_countries: bool = False
 
+
+dp = dispatcher()
 
 config = UmnosConfig.load("umnos")
 countries: list[str] = []
@@ -54,7 +57,25 @@ async def get_countries() -> list[str]:
 
 
 @command_handler(["umnos", "rebirth", "reborn"], "うみなおし 转生吧~")
-async def umnos(message: Message):
+@dp.callback_query_handler(CallbackQueryFilter("umnos_refresh"))
+async def umnos(update: Message | CallbackQuery):  # type: ignore
+    if isinstance(update, CallbackQuery) and int(update.data.split(" ")[1]) != update.from_user.id:
+        return await update.answer("不要帮别人转生捏!")
     country = random.choice(await get_countries())
     type = random.choice(get_types())
-    await message.reply(f"转生成功! 你现在是 {country} 的 {type} 了!")
+    reply = f"转生成功! 你现在是 {country} 的 {type} 了!"
+    if isinstance(update, CallbackQuery):
+        return await update.message.edit_text(reply, reply_markup=update.message.reply_markup)
+    if update.sender_chat:
+        return await update.reply(reply)
+    buttons = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(  # type: ignore
+                    text="继续转生!",
+                    callback_data=f"umnos_refresh {update.from_user.id}",
+                ),
+            ]
+        ]
+    )
+    return await update.reply(reply, reply_markup=buttons)
