@@ -38,7 +38,7 @@ async def status(message: Message):
 
     host_info = (
         f"- 系统: {platform.system()} {platform.release()}\n"
-        f"- CPU 占用: {process.cpu_percent()} %\n"
+        f"- CPU 占用: {psutil.cpu_percent()} %\n"
         f"- 内存: {humanize.naturalsize(memory.used)} / {humanize.naturalsize(memory.total)}"
     )
 
