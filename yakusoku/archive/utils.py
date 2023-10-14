@@ -2,6 +2,7 @@ import contextlib
 from typing import AsyncIterable
 
 from aiogram import Bot
+from aiogram.types import ChatMemberStatus
 from aiogram.utils.exceptions import BadRequest, ChatNotFound
 from sqlalchemy.exc import NoResultFound
 
@@ -54,11 +55,18 @@ async def fetch_group(bot: Bot, id: int) -> GroupData:
 
 async def fetch_member(bot: Bot, group: int, member: int, check_user: bool = False) -> UserData:
     try:
-        chat = await bot.get_chat_member(group, member)
+        chat_member = await bot.get_chat_member(group, member)
+        assert chat_member.status not in [
+            ChatMemberStatus.KICKED,
+            ChatMemberStatus.BANNED,
+            ChatMemberStatus.LEFT,
+        ]
         user = await (
-            fetch_user(bot, member) if check_user else user_manager.update_from_user(chat.user)
+            fetch_user(bot, member)
+            if check_user
+            else user_manager.update_from_user(chat_member.user)
         )
-    except (BadRequest, ChatDeleted) as ex:
+    except (BadRequest, ChatDeleted, AssertionError) as ex:
         if isinstance(ex, BadRequest) and ex.args[0] != "User not found":
             raise
         await group_manager.remove_member(group, member)
