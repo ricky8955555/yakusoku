@@ -169,7 +169,8 @@ cython_debug/
 *.code-workspace
 
 # yakusoku user data
-config/
-data/
-!yakusoku/**/config/
-!yakusoku/**/data/
+/config
+/data
+
+# Debugging
+debug/
