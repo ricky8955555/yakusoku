@@ -43,6 +43,8 @@ async def permission_check(group: Chat, member: ChatMember) -> None:
         await group.bot.send_message(group.id, "我看不到这个群有谁捏, 给我个管理员权限好嘛w, 不然很多功能没法使用唔xwx")
     elif not member.is_chat_admin():
         await group.bot.send_message(group.id, "我没法知道这个群有谁会进进出出捏, 给我个管理员权限好嘛w")
+    elif member.status == ChatMemberStatus.RESTRICTED:
+        await group.bot.send_message(group.id, "坏诶, 怎么被限制了w")
     else:
         await group.bot.send_message(group.id, "好耶!")
 
@@ -51,7 +53,7 @@ async def permission_check(group: Chat, member: ChatMember) -> None:
 @dp.chat_member_handler(run_task=True)
 async def member_update(update: ChatMemberUpdated):
     group, member = update.chat, update.new_chat_member
-    if member.status in [ChatMemberStatus.MEMBER]:
+    if member.status == ChatMemberStatus.MEMBER:
         await joined(group, member)
     elif member.status in [ChatMemberStatus.LEFT, ChatMemberStatus.BANNED, ChatMemberStatus.KICKED]:
         return await left(group, member)
@@ -63,7 +65,7 @@ async def member_update(update: ChatMemberUpdated):
 @cache(ttl=config.auto_update_ttl, key="chat:{message.chat.id},user:{message.from_id}")
 async def message_received(message: Message):
     if not message.sender_chat:
-        if message.chat.type in [ChatType.SUPERGROUP]:
+        if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
             await group_manager.update_group_from_chat(message.chat)
             await group_manager.add_member(message.chat.id, message.from_id)
         else:
@@ -74,7 +76,7 @@ async def message_received(message: Message):
 @command_handler(
     ["members"],
     "获取记录成员列表 (仅管理员)",
-    ChatTypeFilter([ChatType.SUPERGROUP]),  # type: ignore
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     ManagerFilter(),
 )
 async def get_members(message: Message):

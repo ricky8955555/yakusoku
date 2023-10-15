@@ -42,7 +42,7 @@ class MemberWaifuInfo:
 @command_handler(
     ["waifu"],
     "获取每日老婆 (仅群聊)",
-    ChatTypeFilter([ChatType.SUPERGROUP]),  # type: ignore
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     NonAnonymousFilter(),
 )
 async def waifu(message: Message):
@@ -109,7 +109,7 @@ async def waifu(message: Message):
 @command_handler(
     ["waifurs"],
     "修改老婆稀有度 (仅管理员)",
-    ChatTypeFilter([ChatType.SUPERGROUP]),  # type: ignore
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     ManagerFilter(),
 )
 async def waifu_rarity_set(message: Message):
@@ -139,7 +139,7 @@ async def waifu_rarity_set(message: Message):
 @command_handler(
     ["waifurg"],
     f"获取老婆稀有度 (仅群聊) (稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}])",
-    ChatTypeFilter([ChatType.SUPERGROUP]),  # type: ignore
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def waifu_rarity_get(message: Message):
     if len(args := message.text.split()) != 2:
@@ -219,7 +219,7 @@ def create_divorce_task_unchecked(
 @command_handler(
     ["divorce"],
     "提出离婚申请 (仅群聊)",
-    ChatTypeFilter([ChatType.SUPERGROUP]),  # type: ignore
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     NonAnonymousFilter(),
 )
 async def divorce(message: Message):
@@ -305,7 +305,7 @@ def create_proposal_task_unchecked(
 @command_handler(
     ["propose"],
     "提出求婚 (仅群聊)",
-    ChatTypeFilter([ChatType.SUPERGROUP]),  # type: ignore
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     NonAnonymousFilter(),
 )
 async def propose(message: Message):
@@ -382,7 +382,7 @@ async def mention_global(message: Message):
 @command_handler(
     ["waifug", "waifu_graph"],
     "老婆关系图! (仅群聊)",
-    ChatTypeFilter([ChatType.SUPERGROUP]),  # type: ignore
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def waifu_graph(message: Message):
     if not _graph_lock.lock(message.chat.id):
@@ -401,8 +401,8 @@ async def waifu_graph(message: Message):
     await reply.delete()
 
 
-@dp.my_chat_member_handler(run_task=True)
-@dp.chat_member_handler(run_task=True)
+@dp.my_chat_member_handler()
+@dp.chat_member_handler()
 async def member_update(update: ChatMemberUpdated):
     if (member := update.new_chat_member).status not in (
         ChatMemberStatus.LEFT,
@@ -411,7 +411,6 @@ async def member_update(update: ChatMemberUpdated):
     ):
         return
     if member.user.id == member.bot.id:
-        with contextlib.suppress(Exception):
-            return await _manager.remove_group(update.chat.id)
+        return await _manager.remove_group(update.chat.id)
     with contextlib.suppress(KeyError):
         await _manager.remove_waifu(update.chat.id, member.user.id)

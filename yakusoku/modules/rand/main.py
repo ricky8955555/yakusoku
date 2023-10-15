@@ -12,7 +12,7 @@ from yakusoku.utils import chat
 @command_handler(
     ["randmember"],
     "抽取幸运观众!",
-    ChatTypeFilter([ChatType.SUPERGROUP]),  # type: ignore
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def randmember(message: Message):
     members = [
@@ -36,6 +36,7 @@ async def randmember(message: Message):
 @command_handler(
     ["randobj"],
     "不知道干 (吃, ...) 什么? 抽!",
+    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
 )
 async def randobj(message: Message):
     if len(args := message.text.split()) < 3:
