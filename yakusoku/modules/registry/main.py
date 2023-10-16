@@ -1,3 +1,4 @@
+import contextlib
 from datetime import timedelta
 
 from aiogram.dispatcher.filters import ChatTypeFilter
@@ -33,7 +34,8 @@ async def joined(group: Chat, member: ChatMember) -> None:
 
 async def left(group: Chat, member: ChatMember) -> None:
     if member.user.id == member.bot.id:
-        await group_manager.remove_group(group.id)
+        with contextlib.suppress(Exception):
+            await group_manager.remove_group(group.id)
     else:
         await group_manager.remove_member(group.id, member.user.id)
 

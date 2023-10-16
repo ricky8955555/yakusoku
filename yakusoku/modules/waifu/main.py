@@ -411,6 +411,7 @@ async def member_update(update: ChatMemberUpdated):
     ):
         return
     if member.user.id == member.bot.id:
-        return await _manager.remove_group(update.chat.id)
+        with contextlib.suppress(Exception):
+            return await _manager.remove_group(update.chat.id)
     with contextlib.suppress(KeyError):
         await _manager.remove_waifu(update.chat.id, member.user.id)
