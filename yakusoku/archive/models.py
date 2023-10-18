@@ -35,12 +35,14 @@ class UserData(SQLModel, table=True):
         assert chat.type == ChatType.PRIVATE, "chat is not a user"
         return UserData(
             id=chat.id,
+            name=chat.full_name,  # type: ignore
             usernames=chat.active_usernames or [],  # type: ignore
         )
 
     def update_from_chat(self, chat: Chat) -> None:
         assert chat.type == ChatType.PRIVATE, "chat is not a user"
         self.id = chat.id
+        self.name = chat.full_name
         self.usernames = chat.active_usernames or []  # type: ignore
 
     @staticmethod
@@ -54,6 +56,7 @@ class UserData(SQLModel, table=True):
 
     def update_from_user(self, user: User) -> None:
         self.id = user.id
+        self.name = user.full_name
         self.usernames = (
             self.usernames + ([user.username] if user.username not in self.usernames else [])
             if user.username
