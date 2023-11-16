@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime, timedelta
 from enum import Enum, auto
 
 import sqlmodel
@@ -83,13 +83,16 @@ class WaifuManager:
         except ValueError:
             raise NoChoosableWaifuError
 
+    def _last_reset_time(self, query: datetime) -> datetime:
+        return datetime.combine(
+            query.date() - timedelta(days=query.time() < config.reset_time),
+            config.reset_time,
+        )
+
     async def _is_update_needed(self, data: WaifuData) -> bool:
         return not data.forced and (
             not data.modified
-            or (
-                datetime.now() >= datetime.combine(data.modified, config.reset_time)
-                and data.modified <= datetime.combine(date.today(), config.reset_time)
-            )
+            or data.modified <= self._last_reset_time(datetime.now())
             or not await self._is_choosable(data)
         )
 
