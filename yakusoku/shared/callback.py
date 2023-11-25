@@ -3,7 +3,6 @@ import contextlib
 import inspect
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from threading import Timer
 from typing import Any, Awaitable, Callable
 from uuid import UUID, uuid1
 
@@ -64,7 +63,7 @@ class CallbackQueryTaskManager:
     _cancellation_tasks: dict[UUID, CallbackQueryTask]
     _query_prefix: str
     _error_answer: str | None
-    _timers: list[Timer]
+    _expire_tasks: list[asyncio.Task[None]]
 
     def __init__(
         self, dispatcher: Dispatcher, query_prefix: str = "task/", error_answer: str | None = None
@@ -72,7 +71,7 @@ class CallbackQueryTaskManager:
         self._tasks = {}
         self._query_prefix = query_prefix
         self._error_answer = error_answer
-        self._timers = []
+        self._expire_tasks = []
         self._cancellation_tasks = {}
         dispatcher.register_callback_query_handler(
             self._handle_callback_query_task, CallbackQueryFilter(query_prefix)
@@ -93,27 +92,31 @@ class CallbackQueryTaskManager:
 
         if expired_after:
 
-            def remove_task():
+            async def expirable_disposed():
+                if disposed:
+                    await disposed()
+                expire_task.cancel()
+                self._expire_tasks.remove(expire_task)
+
+            async def expire():
+                await asyncio.sleep(expired_after.total_seconds())
+                if disposed:
+                    await disposed()
+                self._expire_tasks.remove(expire_task)
                 del self._tasks[uuid]
-                self._timers.remove(timer)
 
-            async def expirable_callback(query: CallbackQuery):
-                await callback(query)
-                self._timers.remove(timer)
-
-            timer = Timer(expired_after.total_seconds(), remove_task)
-            self._timers.append(timer)
             task = self._tasks[uuid] = CallbackQueryTask(
                 uuid,
                 description,
                 disposable,
-                expirable_callback,
+                callback,
                 filters,
                 self._query_prefix,
                 datetime.now() + expired_after,
-                disposed,
+                expirable_disposed,
             )
-            timer.start()
+            expire_task = asyncio.create_task(expire())
+            self._expire_tasks.append(expire_task)
             return task
 
         task = self._tasks[uuid] = CallbackQueryTask(
