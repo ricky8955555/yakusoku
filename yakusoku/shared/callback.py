@@ -93,17 +93,17 @@ class CallbackQueryTaskManager:
         if expired_after:
 
             async def expirable_disposed():
-                if disposed:
-                    await disposed()
                 expire_task.cancel()
                 self._expire_tasks.remove(expire_task)
+                if disposed:
+                    await disposed()
 
             async def expire():
                 await asyncio.sleep(expired_after.total_seconds())
-                if disposed:
-                    await disposed()
                 self._expire_tasks.remove(expire_task)
                 del self._tasks[uuid]
+                if disposed:
+                    await disposed()
 
             task = self._tasks[uuid] = CallbackQueryTask(
                 uuid,
@@ -128,7 +128,8 @@ class CallbackQueryTaskManager:
         with contextlib.suppress(KeyError):
             del self._tasks[task.uuid]
         if task.disposed:
-            await task.disposed()
+            with contextlib.suppress(Exception):
+                await task.disposed()
         if cancellation_task := self._cancellation_tasks.get(task.uuid):
             await self.cancel_task(cancellation_task)
 
