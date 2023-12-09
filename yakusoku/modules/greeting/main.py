@@ -25,14 +25,16 @@ loaded = datetime.now()
 async def greet(message: Message):
     greeting = basic.basic_greeting(datetime.now().time())
     sentence = await try_or_default_async(hitokoto.hitokoto, logging=True)
+    # fmt: off
     sentence_content = (
-        (f"{sentence.hitokoto}\n" f"—— {sentence.from_who or '佚名'} ({sentence.source})")
-        if sentence
-        else ""
-    )
+        f"{sentence.hitokoto}\n"
+        f"—— {sentence.from_who or '佚名'} ({sentence.source})"
+    ) if sentence else ""
     await message.reply(
-        f"{greeting}, {chat.get_mention_html(message.from_user)}!\n\n" f"{sentence_content}"
+        f"{greeting}, {chat.get_mention_html(message.from_user)}!\n\n"
+        f"{sentence_content}"
     )
+    # fmt: on
 
 
 @dp.message_handler(content_types=ContentTypes.all())
