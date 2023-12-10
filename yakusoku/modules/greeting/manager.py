@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import sqlmodel
 
 from yakusoku import sql
@@ -22,8 +20,3 @@ class GreetingManager:
             session.add(data)
             await session.commit()
             await session.refresh(data)
-
-    async def update_time(self, user: int, time: datetime) -> None:
-        data = await self.get_greeting_data(user)
-        data.last_message_time = time
-        await self.update_greeting_data(data)

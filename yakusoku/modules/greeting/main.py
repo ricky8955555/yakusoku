@@ -3,7 +3,7 @@ from datetime import datetime
 from aiogram.types import ContentTypes, Message
 from cashews import Cache
 
-from yakusoku.modules import dispatcher
+from yakusoku.modules import command_handler, dispatcher
 from yakusoku.utils import chat
 from yakusoku.utils.exception import try_or_default_async
 
@@ -20,6 +20,14 @@ config = ModuleConfig.load("greeting")
 manager = GreetingManager()
 
 loaded = datetime.now()
+
+
+@command_handler(["greet"], "启用/禁用问候功能")
+async def switch_greeting(message: Message):
+    data = await manager.get_greeting_data(message.from_id)
+    data.enabled = not data.enabled
+    await manager.update_greeting_data(data)
+    await message.reply("问候功能已经禁用啦! 以后不再打扰你了w" if data.enabled else "问候功能启用啦! 以后会跟你问好的w")
 
 
 async def greet(message: Message):
@@ -41,6 +49,8 @@ async def greet(message: Message):
 @cache(ttl=config.check_ttl, key="user:{message.from_id}")
 async def message_received(message: Message):
     data = await manager.get_greeting_data(message.from_id)
+    if not data.enabled:
+        return
     now = datetime.now()
     if (
         (now - data.last_message_time >= config.trigger_span)
