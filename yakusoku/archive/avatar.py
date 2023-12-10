@@ -4,15 +4,19 @@ from cashews.wrapper import Cache
 
 from yakusoku.archive.config import config
 
-_cache = Cache()
-_cache.setup("mem://")
-
 
 class AvatarManager:
-    def __init__(self) -> None:
-        pass
+    _cache: Cache
 
-    @_cache(ttl=config.avatar_ttl, key="user:{user}")
+    def __init__(self) -> None:
+        self._cache = Cache()
+        self._cache.setup("mem://")
+        setattr(
+            self,
+            "get_avatar_file",
+            self._cache(ttl=config.avatar_ttl, key="user:{user}")(self.get_avatar_file),
+        )
+
     async def get_avatar_file(self, bot: Bot, user: int) -> PhotoSize | None:
         avatars = await bot.get_user_profile_photos(user)
         return avatars.photos[0][0] if avatars.photos else None
