@@ -2,6 +2,7 @@ from datetime import datetime
 
 from aiogram.types import ContentTypes, Message
 from cashews import Cache
+from yakusoku.constants import FILTERED_IDS
 
 from yakusoku.modules import command_handler, dispatcher
 from yakusoku.utils import chat
@@ -49,7 +50,7 @@ async def greet(message: Message):
 @cache(ttl=config.check_ttl, key="user:{message.from_id}")
 async def message_received(message: Message):
     data = await manager.get_greeting_data(message.from_id)
-    if not data.enabled:
+    if message.from_id in FILTERED_IDS or not data.enabled:
         return
     now = datetime.now()
     if (
