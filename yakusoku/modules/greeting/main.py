@@ -31,7 +31,7 @@ async def greet(message: Message):
         f"—— {sentence.from_who or '佚名'} ({sentence.source})"
     ) if sentence else ""
     await message.reply(
-        f"{greeting}, {chat.get_mention_html(message.sender_chat or message.from_user)}!\n\n"
+        f"{greeting}! {chat.get_mention_html(message.sender_chat or message.from_user)}.\n\n"
         f"{sentence_content}"
     )
     # fmt: on
