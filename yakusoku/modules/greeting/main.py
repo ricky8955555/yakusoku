@@ -2,8 +2,8 @@ from datetime import datetime
 
 from aiogram.types import ContentTypes, Message
 from cashews import Cache
-from yakusoku.constants import FILTERED_IDS
 
+from yakusoku.constants import FILTERED_IDS
 from yakusoku.modules import command_handler, dispatcher
 from yakusoku.utils import chat
 from yakusoku.utils.exception import try_or_default_async
@@ -39,8 +39,9 @@ async def greet(message: Message):
         f"{sentence.hitokoto}\n"
         f"—— {sentence.from_who or '佚名'} ({sentence.source})"
     ) if sentence else ""
+    user = chat.get_mention_html(message.sender_chat or message.from_user)
     await message.reply(
-        f"{greeting}! {chat.get_mention_html(message.sender_chat or message.from_user)}.\n\n"
+        f"{greeting}! {user}.\n\n"
         f"{sentence_content}"
     )
     # fmt: on
