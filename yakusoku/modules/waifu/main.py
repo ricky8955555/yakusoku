@@ -226,7 +226,7 @@ async def divorce(message: Message):
     data = await _manager.get_waifu_data(message.chat.id, message.from_id)
     if not (partner := data.get_partner()):
         return await message.reply("啊? 身为单身狗, 离婚什么???")
-    originator = await user_manager.update_from_user(message.from_user)
+    originator = await user_manager.get_user(message.from_user.id)
     target = await user_manager.get_user(partner)
     if not _registry_lock.lock_all((message.chat.id, originator.id), (message.chat.id, target.id)):
         return await message.reply("你或者对方正在处理某些事项哦~")
@@ -319,7 +319,7 @@ async def propose(message: Message):
             return await message.reply("呜, 不能跟匿名用户结婚捏w")
         if message.reply_to_message.from_user.is_bot:
             return await message.reply("呜, 不能跟机器人结婚捏w")
-        target = await user_manager.update_from_user(message.reply_to_message.from_user)
+        target = await user_manager.get_user(message.reply_to_message.from_user.id)
     else:
         return await message.reply(
             "戳啦, 正确用法为 `/propose <@用户或ID (或回复某个用户的消息)>`", parse_mode="Markdown"
@@ -337,7 +337,7 @@ async def propose(message: Message):
     ):
         return await message.reply("你或者对方正在处理某些事项哦~")
 
-    originator = await user_manager.update_from_user(message.from_user)
+    originator = await user_manager.get_user(message.from_user.id)
     buttons = create_proposal_task_unchecked(message.chat.id, originator, target)
     await message.reply(
         f"{archive_utils.user_mention_html(originator)} "
@@ -351,7 +351,7 @@ async def propose_callback(query: CallbackQuery):  # type: ignore
     first_id, second_id = map(int, query.data.split()[1:])
     if query.from_user.id not in (first_id, second_id):
         return await query.answer("别人的事情不要随便介入哦w")
-    originator = await user_manager.update_from_user(query.from_user)
+    originator = await user_manager.get_user(query.from_user.id)
     target = await user_manager.get_user(second_id if originator.id == first_id else first_id)
     if (await _manager.get_waifu_data(query.message.chat.id, target.id)).get_partner() or (
         await _manager.get_waifu_data(query.message.chat.id, originator.id)
