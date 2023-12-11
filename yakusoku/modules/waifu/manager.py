@@ -67,7 +67,7 @@ class WaifuManager:
             await session.refresh(config)
 
     async def _is_choosable(self, data: WaifuData) -> bool:
-        return data.rarity < WAIFU_MAX_RARITY and not data.forced
+        return data.rarity < WAIFU_MAX_RARITY and not data.restricted
 
     async def _random_waifu(self, group: int, member: int) -> int:
         waifus = {
@@ -90,7 +90,7 @@ class WaifuManager:
         )
 
     async def _is_update_needed(self, data: WaifuData) -> bool:
-        return not data.forced and (
+        return not data.restricted and (
             not data.modified
             or data.modified <= self._last_reset_time(datetime.now())
             or not await self._is_choosable(data)

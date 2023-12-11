@@ -13,16 +13,16 @@ class WaifuData(SQLModel, table=True):
     member: int = Field(primary_key=True)
     waifu: int | None = None
     modified: datetime | None = None
-    forced: bool = False
+    restricted: bool = False
     rarity: int = WAIFU_DEFAULT_RARITY
 
     def get_partner(self) -> int | None:
-        assert not self.forced or self.waifu, "no waifu when forced is true."
-        return self.waifu if self.forced else None
+        assert not self.restricted or self.waifu, "no waifu when restricted is true."
+        return self.waifu if self.restricted else None
 
     def set_partner(self, value: int | None) -> None:
         self.waifu = value
-        self.forced = value is not None
+        self.restricted = value is not None
 
     def get_weight(self) -> int:
         return WAIFU_MAX_RARITY - self.rarity

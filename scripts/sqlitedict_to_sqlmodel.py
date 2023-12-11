@@ -106,7 +106,7 @@ async def migrate_waifus():
                 member=id,
                 waifu=props.married or (old_data.member if old_data else None),
                 modified=datetime.fromtimestamp(old_data.last) if old_data else None,
-                forced=props.married is not None,
+                restricted=props.married is not None,
                 rarity=props.rarity,
             )
             await manager.update_waifu_data(data)

@@ -18,7 +18,7 @@ class Registry:
     async def marry(self, chat: int, first: int, second: int) -> None:
         first_data = await self._manager.get_waifu_data(chat, first)
         second_data = await self._manager.get_waifu_data(chat, second)
-        if first_data.forced or second_data.forced:
+        if first_data.restricted or second_data.restricted:
             raise MarriageStateError
         first_data.set_partner(second)
         second_data.set_partner(first)
@@ -38,7 +38,7 @@ class Registry:
     async def validate_marriage(self, chat: int, originator: int, target: int) -> None:
         originator_data = await self._manager.get_waifu_data(chat, originator)
         target_data = await self._manager.get_waifu_data(chat, target)
-        if originator_data.forced or target_data.forced:
+        if originator_data.restricted or target_data.restricted:
             raise MarriageStateError
 
     async def validate_divorce(self, chat: int, originator: int) -> None:
