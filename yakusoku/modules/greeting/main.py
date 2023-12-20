@@ -34,17 +34,20 @@ async def switch_greeting(message: Message):
 async def greet(message: Message):
     greeting = basic.basic_greeting(datetime.now().time())
     sentence = await try_or_default_async(hitokoto.hitokoto, logging=True)
-    # fmt: off
     sentence_content = (
-        f"{sentence.hitokoto}\n"
-        f"—— {sentence.from_who or '佚名'} ({sentence.source})"
-    ) if sentence else ""
-    user = chat.get_mention_html(message.sender_chat or message.from_user)
-    await message.reply(
-        f"{greeting}! {user}.\n\n"
-        f"{sentence_content}"
+        (
+            f"{sentence.hitokoto}\n"
+            + (
+                f"—— {sentence.from_who} ({sentence.source})"
+                if sentence.from_who
+                else f"—— {sentence.source}"
+            )
+        )
+        if sentence
+        else ""
     )
-    # fmt: on
+    user = chat.get_mention_html(message.sender_chat or message.from_user)
+    await message.reply(f"{greeting}! {user}.\n\n" f"{sentence_content}")
 
 
 @dp.message_handler(content_types=ContentTypes.all())
