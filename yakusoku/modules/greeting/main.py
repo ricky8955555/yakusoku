@@ -57,10 +57,8 @@ async def message_received(message: Message):
     if message.from_id in FILTERED_IDS or not data.enabled:
         return
     now = datetime.now()
-    if (
-        (now - data.last_message_time >= config.trigger_span)
-        if data.last_message_time
-        else (now - loaded >= config.initial_trigger_span)
+    if now - loaded >= config.initial_trigger_span and (
+        not data.last_message_time or now - data.last_message_time >= config.trigger_span
     ):
         await greet(message)
     data.last_message_time = datetime.now()
