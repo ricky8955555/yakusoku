@@ -4,6 +4,7 @@ from yakusoku.config import Config
 
 
 class ModuleConfig(Config):
+    timezone: timedelta = timedelta()
     check_ttl: timedelta = timedelta(minutes=5)
     trigger_span: timedelta = timedelta(hours=6)
     initial_trigger_span: timedelta = timedelta(hours=1)

@@ -32,7 +32,8 @@ async def switch_greeting(message: Message):
 
 
 async def greet(message: Message):
-    greeting = basic.basic_greeting(datetime.now().time())
+    adjusted = datetime.now() + config.timezone
+    greeting = basic.basic_greeting(adjusted.time())
     sentence = await try_or_default_async(hitokoto.hitokoto, logging=True)
     sentence_content = (
         (
