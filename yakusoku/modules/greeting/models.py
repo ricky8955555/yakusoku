@@ -7,3 +7,8 @@ class GreetingData(SQLModel, table=True):
     user: int = Field(primary_key=True)
     last_message_time: datetime | None = None
     enabled: bool = True
+
+
+class GreetingConfig(SQLModel, table=True):
+    group: int = Field(primary_key=True)
+    enabled: bool = True
