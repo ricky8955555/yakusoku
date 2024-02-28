@@ -5,6 +5,7 @@ from aiogram.types import ChatType, Message
 
 from yakusoku.archive import utils as archive_utils
 from yakusoku.archive.exceptions import ChatDeleted
+from yakusoku.filters import ManagerFilter
 from yakusoku.modules import command_handler
 from yakusoku.utils import chat
 
@@ -13,6 +14,7 @@ from yakusoku.utils import chat
     ["randmember"],
     "抽取幸运观众!",
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    ManagerFilter(),
 )
 async def randmember(message: Message):
     members = [
