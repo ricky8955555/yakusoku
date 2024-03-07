@@ -51,6 +51,7 @@ exclude = "alembic/versions,.venv"
 [tool.isort]
 line_length = 100
 skip = ["alembic/versions", ".venv"]
+profile = "black"
 
 [tool.setuptools]
 packages = ["yakusoku"]

@@ -2,8 +2,15 @@ import contextlib
 from datetime import timedelta
 
 from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import (Chat, ChatMember, ChatMemberStatus, ChatMemberUpdated, ChatType,
-                           ContentType, Message)
+from aiogram.types import (
+    Chat,
+    ChatMember,
+    ChatMemberStatus,
+    ChatMemberUpdated,
+    ChatType,
+    ContentType,
+    Message,
+)
 from cashews.wrapper import Cache
 
 from yakusoku.archive import group_manager, user_manager

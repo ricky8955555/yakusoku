@@ -4,8 +4,16 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import (CallbackQuery, ChatActions, ChatMemberStatus, ChatMemberUpdated,
-                           ChatType, InlineKeyboardButton, InlineKeyboardMarkup, Message)
+from aiogram.types import (
+    CallbackQuery,
+    ChatActions,
+    ChatMemberStatus,
+    ChatMemberUpdated,
+    ChatType,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 
 from yakusoku import common_config
 from yakusoku.archive import avatar_manager, user_manager
@@ -19,8 +27,13 @@ from yakusoku.shared.lock import SimpleLockManager
 from yakusoku.utils import chat, exception
 
 from . import graph
-from .manager import (MemberNotEfficientError, NoChoosableWaifuError, WaifuFetchResult,
-                      WaifuFetchState, WaifuManager)
+from .manager import (
+    MemberNotEfficientError,
+    NoChoosableWaifuError,
+    WaifuFetchResult,
+    WaifuFetchState,
+    WaifuManager,
+)
 from .models import WAIFU_DEFAULT_RARITY, WAIFU_MAX_RARITY, WAIFU_MIN_RARITY
 from .registry import Registry
 
