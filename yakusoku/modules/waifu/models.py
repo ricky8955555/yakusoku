@@ -29,7 +29,7 @@ class WaifuData(SQLModel, table=True):
 
     @validator("rarity")
     def rarity_validate(cls, value: int) -> int:
-        assert WAIFU_MIN_RARITY < value < WAIFU_MAX_RARITY, "invalid rarity"
+        assert WAIFU_MIN_RARITY <= value <= WAIFU_MAX_RARITY, "invalid rarity"
         return value
 
 
