@@ -21,7 +21,7 @@ def _get_modules() -> set[str]:
         if (item.is_dir() and (item / "__init__.py").exists() and (item / "main.py").exists())
     ]
     modules_set = set(modules)
-    assert len(modules_set) == len(modules), "duplicated modules were detected"
+    assert len(modules_set) == len(modules), "duplicate modules were detected"
     return modules_set
 
 
