@@ -69,7 +69,7 @@ async def waifu(message: Message):
             )
             return (result, waifu)
         except ChatDeleted:
-            if result.state == WaifuFetchState.FORCED:
+            if result.state == WaifuFetchState.RESTRICTED:
                 await _registry.divorce(message.chat.id, message.from_id)
             return await _get_waifu(message, True)
 
@@ -93,7 +93,7 @@ async def waifu(message: Message):
             comment = f"每天一老婆哦~ 你今天已经抽过老婆了喵w.\n你今天的老婆是 {target}"
         case WaifuFetchState.UPDATED:
             comment = f"你今天的老婆是 {target}"
-        case WaifuFetchState.FORCED:
+        case WaifuFetchState.RESTRICTED:
             comment = f"你已经结婚啦, 不能抽老婆捏.\n记住你的老婆是 {target}"
 
     buttons = (
@@ -107,7 +107,7 @@ async def waifu(message: Message):
                 ]
             ]
         )
-        if result.state != WaifuFetchState.FORCED
+        if result.state != WaifuFetchState.RESTRICTED
         else InlineKeyboardMarkup()
     )
 

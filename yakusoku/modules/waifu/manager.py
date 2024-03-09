@@ -15,7 +15,7 @@ from .models import WAIFU_MAX_RARITY, WaifuConfig, WaifuData
 class WaifuFetchState(Enum):
     NONE = auto()
     UPDATED = auto()
-    FORCED = auto()
+    RESTRICTED = auto()
 
 
 @dataclass(frozen=True)
@@ -105,7 +105,7 @@ class WaifuManager:
     async def fetch_waifu(self, group: int, member: int, force: bool = False) -> WaifuFetchResult:
         data = await self.get_waifu_data(group, member)
         if partner := data.get_partner():
-            return WaifuFetchResult(partner, WaifuFetchState.FORCED)
+            return WaifuFetchResult(partner, WaifuFetchState.RESTRICTED)
         if data.waifu and not await self._is_update_needed(data) and not force:
             return WaifuFetchResult(data.waifu, WaifuFetchState.NONE)
 
