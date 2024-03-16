@@ -1,10 +1,12 @@
 from aiogram.types import Message
 
 from yakusoku import constants
-from yakusoku.modules import command_handler
+from yakusoku.context import module_manager
+
+dp = module_manager.dispatcher()
 
 
-@command_handler(["start"], "yakusoku!")
+@dp.message_handler(commands=["start"])
 async def start(message: Message):
     await message.reply(
         "欢迎使用 yakusoku (約束, 约定)\n\n"

@@ -15,13 +15,12 @@ from aiogram.types import (
     Message,
 )
 
-from yakusoku import common_config
 from yakusoku.archive import avatar_manager, user_manager
 from yakusoku.archive import utils as archive_utils
 from yakusoku.archive.exceptions import ChatDeleted, ChatNotFound
 from yakusoku.archive.models import UserData
 from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
-from yakusoku.modules import command_handler, dispatcher
+from yakusoku.context import common_config, module_manager
 from yakusoku.shared.callback import CallbackQueryTaskManager
 from yakusoku.shared.lock import SimpleLockManager
 from yakusoku.utils import chat, exception
@@ -37,7 +36,7 @@ from .manager import (
 from .models import WAIFU_DEFAULT_RARITY, WAIFU_MAX_RARITY, WAIFU_MIN_RARITY
 from .registry import Registry
 
-dp = dispatcher()
+dp = module_manager.dispatcher()
 
 _manager = WaifuManager()
 _registry = Registry(_manager)
@@ -52,11 +51,10 @@ class MemberWaifuInfo:
     waifu: int
 
 
-@command_handler(
-    ["waifu"],
-    "获取每日老婆 (仅群聊)",
+@dp.message_handler(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     NonAnonymousFilter(),
+    commands=["waifu"],
 )
 async def waifu(message: Message):
     async def _get_waifu(
@@ -119,11 +117,10 @@ async def waifu(message: Message):
     await message.reply(comment, reply_markup=buttons)
 
 
-@command_handler(
-    ["waifurs"],
-    "修改老婆稀有度 (仅管理员)",
+@dp.message_handler(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     ManagerFilter(),
+    commands=["waifurs"],
 )
 async def waifu_rarity_set(message: Message):
     if (
@@ -146,13 +143,14 @@ async def waifu_rarity_set(message: Message):
     data = await _manager.get_waifu_data(message.chat.id, waifu.id)
     data.rarity = rarity
     await _manager.update_waifu_data(data)
-    await message.reply(f"成功将 {archive_utils.user_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!")
+    await message.reply(
+        f"成功将 {archive_utils.user_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!"
+    )
 
 
-@command_handler(
-    ["waifurg"],
-    f"获取老婆稀有度 (仅群聊) (稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}])",
+@dp.message_handler(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    commands=["waifurg"],
 )
 async def waifu_rarity_get(message: Message):
     if len(args := message.text.split()) != 2:
@@ -229,11 +227,10 @@ def create_divorce_task_unchecked(
     )
 
 
-@command_handler(
-    ["divorce"],
-    "提出离婚申请 (仅群聊)",
+@dp.message_handler(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     NonAnonymousFilter(),
+    commands=["divorce"],
 )
 async def divorce(message: Message):
     data = await _manager.get_waifu_data(message.chat.id, message.from_id)
@@ -315,11 +312,10 @@ def create_proposal_task_unchecked(
     )
 
 
-@command_handler(
-    ["propose"],
-    "提出求婚 (仅群聊)",
+@dp.message_handler(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     NonAnonymousFilter(),
+    commands=["propose"],
 )
 async def propose(message: Message):
     if (length := len(args := message.text.split())) == 2:
@@ -384,18 +380,21 @@ async def propose_callback(query: CallbackQuery):  # type: ignore
     await query.answer()
 
 
-@command_handler(["waifum"], "允许/禁止 waifu 功能的提及 (默认禁止)", NonAnonymousFilter())
+@dp.message_handler(NonAnonymousFilter(), commands=["waifum"])
 async def mention_global(message: Message):
     config = await _manager.get_waifu_config(message.from_id)
     config.mentionable = not config.mentionable
     await _manager.update_waifu_config(config)
-    await message.reply("在所有群别人抽到你做老婆的时候可以通知你哦~" if config.mentionable else "在所有群别人抽老婆的时候不会打扰到你啦~")
+    await message.reply(
+        "在所有群别人抽到你做老婆的时候可以通知你哦~"
+        if config.mentionable
+        else "在所有群别人抽老婆的时候不会打扰到你啦~"
+    )
 
 
-@command_handler(
-    ["waifug", "waifu_graph"],
-    "老婆关系图! (仅群聊)",
+@dp.message_handler(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
+    commands=["waifug", "waifu_graph"],
 )
 async def waifu_graph(message: Message):
     if not _graph_lock.lock(message.chat.id):

@@ -5,7 +5,7 @@ from enum import Enum, auto
 
 import sqlmodel
 
-from yakusoku import sql
+from yakusoku.context import sql
 from yakusoku.archive import utils as archive_utils
 
 from .config import config

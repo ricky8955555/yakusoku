@@ -4,10 +4,10 @@ import re
 from aiogram.dispatcher.filters import Filter
 from aiogram.types import Message
 
-from yakusoku.modules import dispatcher
+from yakusoku.context import module_manager
 from yakusoku.utils import chat
 
-dp = dispatcher()
+dp = module_manager.dispatcher()
 
 PATTERN = re.compile(r"\/(?:\$([a-zA-Z0-9]\S*)|\$?([^a-zA-Z0-9\s]\S*))\s*(.*)")
 

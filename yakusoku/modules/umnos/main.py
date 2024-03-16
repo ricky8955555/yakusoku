@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 
 from yakusoku.config import Config
 from yakusoku.filters import CallbackQueryFilter
-from yakusoku.modules import command_handler, dispatcher
+from yakusoku.context import module_manager
 
 COUNTRIES_DATA_URL = (
     "https://raw.githubusercontent.com/zhaoweih/countries_json/master/countries.json"
@@ -23,7 +23,7 @@ class UmnosConfig(Config):
     overwritten_countries: bool = False
 
 
-dp = dispatcher()
+dp = module_manager.dispatcher()
 
 config = UmnosConfig.load("umnos")
 countries: list[str] = []
@@ -56,7 +56,7 @@ async def get_countries() -> list[str]:
     return countries
 
 
-@command_handler(["umnos", "rebirth", "reborn"], "うみなおし 转生吧~")
+@dp.message_handler(commands=["umnos", "rebirth", "reborn"])
 @dp.callback_query_handler(CallbackQueryFilter("umnos_refresh"))
 async def umnos(update: Message | CallbackQuery):  # type: ignore
     if isinstance(update, CallbackQuery) and int(update.data.split(" ")[1]) != update.from_user.id:

@@ -1,6 +1,6 @@
 import sqlmodel
 
-from yakusoku import sql
+from yakusoku.context import sql
 
 from .models import GreetingConfig, GreetingData
 

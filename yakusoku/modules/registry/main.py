@@ -17,9 +17,9 @@ from yakusoku.archive import group_manager, user_manager
 from yakusoku.archive import utils as archive_utils
 from yakusoku.config import Config
 from yakusoku.filters import ManagerFilter
-from yakusoku.modules import command_handler, dispatcher
+from yakusoku.context import module_manager
 
-dp = dispatcher()
+dp = module_manager.dispatcher()
 
 cache = Cache()
 cache.setup("mem://")
@@ -82,11 +82,10 @@ async def message_received(message: Message):
         await user_manager.update_from_user(message.from_user)
 
 
-@command_handler(
-    ["members"],
-    "获取记录成员列表 (仅管理员)",
+@dp.message_handler(
     ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
     ManagerFilter(),
+    commands=["members"],
 )
 async def get_members(message: Message):
     await message.reply(

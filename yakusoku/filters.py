@@ -1,7 +1,7 @@
 from aiogram.dispatcher.filters import AdminFilter, Filter
 from aiogram.types import CallbackQuery, ChatMemberUpdated, InlineQuery, Message
 
-from yakusoku import bot_config
+from yakusoku.context import bot_config
 
 
 class CallbackQueryFilter(Filter):

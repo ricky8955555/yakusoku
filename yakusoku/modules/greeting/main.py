@@ -5,49 +5,35 @@ from aiogram.types import ChatType, ContentTypes, Message
 from cashews import Cache
 
 from yakusoku.constants import FILTERED_IDS
-from yakusoku.filters import ManagerFilter, NonAnonymousFilter
-from yakusoku.modules import command_handler, dispatcher
+from yakusoku.filters import NonAnonymousFilter
+from yakusoku.context import module_manager
 from yakusoku.utils import chat
 from yakusoku.utils.exception import try_or_default_async
 
 from . import basic, hitokoto
-from .config import ModuleConfig
+from .config import GreetingConfig
 from .manager import GreetingManager
 
-dp = dispatcher()
+dp = module_manager.dispatcher()
 
 cache = Cache()
 cache.setup("mem://")
 
-config = ModuleConfig.load("greeting")
+config = GreetingConfig.load("greeting")
 manager = GreetingManager()
 
 loaded = datetime.now()
 
 
-@command_handler(
-    ["greet"],
-    "启用/禁用问候功能",
+@dp.message_handler(
     NonAnonymousFilter(),
+    commands=["greet"],
 )
 async def switch_user_greeting(message: Message):
     data = await manager.get_greeting_data(message.from_id)
     data.enabled = not data.enabled
     await manager.update_greeting_data(data)
     await message.reply("问候功能启用啦! 以后会跟你问好的w" if data.enabled else "问候功能已经禁用啦! 以后不再打扰你了w")
-
-
-@command_handler(
-    ["greetgrp"],
-    "启用/禁用群组问候功能",
-    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    ManagerFilter(),
-)
-async def switch_group_greeting(message: Message):
-    config = await manager.get_greeting_config(message.chat.id)
-    config.enabled = not config.enabled
-    await manager.update_greeting_config(config)
-    await message.reply("问候功能启用啦! 以后会跟群里的大家问好的w" if config.enabled else "问候功能已经禁用啦! 以后不再打扰群组里的各位了w")
 
 
 async def greet(message: Message):

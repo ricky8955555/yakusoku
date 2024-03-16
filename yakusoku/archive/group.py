@@ -2,7 +2,7 @@ import sqlmodel
 from aiogram.types import Chat
 from sqlalchemy.exc import NoResultFound
 
-from yakusoku import sql
+from yakusoku.context import sql
 from yakusoku.archive.models import GroupData
 
 
