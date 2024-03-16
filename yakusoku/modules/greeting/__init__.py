@@ -5,5 +5,5 @@ __module_config__ = ModuleConfig(
     description="问候",
     commands={
         "greet": "启用/禁用问候功能",
-    }
+    },
 )

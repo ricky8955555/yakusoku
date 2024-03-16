@@ -19,8 +19,8 @@ from yakusoku.archive import avatar_manager, user_manager
 from yakusoku.archive import utils as archive_utils
 from yakusoku.archive.exceptions import ChatDeleted, ChatNotFound
 from yakusoku.archive.models import UserData
-from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
 from yakusoku.context import common_config, module_manager
+from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
 from yakusoku.shared.callback import CallbackQueryTaskManager
 from yakusoku.shared.lock import SimpleLockManager
 from yakusoku.utils import chat, exception
@@ -143,9 +143,7 @@ async def waifu_rarity_set(message: Message):
     data = await _manager.get_waifu_data(message.chat.id, waifu.id)
     data.rarity = rarity
     await _manager.update_waifu_data(data)
-    await message.reply(
-        f"成功将 {archive_utils.user_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!"
-    )
+    await message.reply(f"成功将 {archive_utils.user_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!")
 
 
 @dp.message_handler(
@@ -385,11 +383,7 @@ async def mention_global(message: Message):
     config = await _manager.get_waifu_config(message.from_id)
     config.mentionable = not config.mentionable
     await _manager.update_waifu_config(config)
-    await message.reply(
-        "在所有群别人抽到你做老婆的时候可以通知你哦~"
-        if config.mentionable
-        else "在所有群别人抽老婆的时候不会打扰到你啦~"
-    )
+    await message.reply("在所有群别人抽到你做老婆的时候可以通知你哦~" if config.mentionable else "在所有群别人抽老婆的时候不会打扰到你啦~")
 
 
 @dp.message_handler(

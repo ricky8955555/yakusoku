@@ -2,9 +2,9 @@ import sqlmodel
 from aiogram.types import Chat, User
 from sqlalchemy.exc import NoResultFound
 
-from yakusoku.context import sql
 from yakusoku.archive.models import UserData
 from yakusoku.constants import FILTERED_IDS
+from yakusoku.context import sql
 
 
 class UserManager:

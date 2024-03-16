@@ -2,8 +2,8 @@ import sqlmodel
 from aiogram.types import Chat
 from sqlalchemy.exc import NoResultFound
 
-from yakusoku.context import sql
 from yakusoku.archive.models import GroupData
+from yakusoku.context import sql
 
 
 class GroupManager:

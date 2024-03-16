@@ -1,5 +1,5 @@
 from yakusoku.module import ModuleConfig
-from yakusoku.modules.waifu.models import WAIFU_MIN_RARITY, WAIFU_MAX_RARITY
+from yakusoku.modules.waifu.models import WAIFU_MAX_RARITY, WAIFU_MIN_RARITY
 
 __module_config__ = ModuleConfig(
     name="waifu",

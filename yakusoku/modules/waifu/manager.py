@@ -5,8 +5,8 @@ from enum import Enum, auto
 
 import sqlmodel
 
-from yakusoku.context import sql
 from yakusoku.archive import utils as archive_utils
+from yakusoku.context import sql
 
 from .config import config
 from .models import WAIFU_MAX_RARITY, WaifuConfig, WaifuData

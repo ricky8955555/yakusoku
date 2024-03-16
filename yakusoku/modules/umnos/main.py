@@ -5,8 +5,8 @@ import aiohttp
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from yakusoku.config import Config
-from yakusoku.filters import CallbackQueryFilter
 from yakusoku.context import module_manager
+from yakusoku.filters import CallbackQueryFilter
 
 COUNTRIES_DATA_URL = (
     "https://raw.githubusercontent.com/zhaoweih/countries_json/master/countries.json"

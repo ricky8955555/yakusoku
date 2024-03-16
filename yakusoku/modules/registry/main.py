@@ -16,8 +16,8 @@ from cashews.wrapper import Cache
 from yakusoku.archive import group_manager, user_manager
 from yakusoku.archive import utils as archive_utils
 from yakusoku.config import Config
-from yakusoku.filters import ManagerFilter
 from yakusoku.context import module_manager
+from yakusoku.filters import ManagerFilter
 
 dp = module_manager.dispatcher()
 

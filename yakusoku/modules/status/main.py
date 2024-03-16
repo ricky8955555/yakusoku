@@ -7,8 +7,8 @@ import humanize
 import psutil
 from aiogram.types import Message
 
-from yakusoku.context import sql, module_manager
 from yakusoku.archive import group_manager, user_manager
+from yakusoku.context import module_manager, sql
 
 dp = module_manager.dispatcher()
 
@@ -43,6 +43,4 @@ async def status(message: Message):
         f"- 内存: {humanize.naturalsize(memory.used)} / {humanize.naturalsize(memory.total)}"
     )
 
-    await message.reply(
-        f"进程信息:\n{process_info}\n\n服务信息:\n{service_info}\n\n宿主信息:\n{host_info}\n"
-    )
+    await message.reply(f"进程信息:\n{process_info}\n\n服务信息:\n{service_info}\n\n宿主信息:\n{host_info}\n")
