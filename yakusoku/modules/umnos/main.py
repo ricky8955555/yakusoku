@@ -91,4 +91,4 @@ async def umnos(update: Message | CallbackQuery):  # type: ignore
             ]
         ]
     )
-    return await update.reply(reply, reply_markup=buttons)
+    return await update.reply(reply, reply_markup=buttons, inform=False)  # type: ignore
