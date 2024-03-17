@@ -84,7 +84,7 @@ async def waifu(message: Message):
         raise
 
     config = await _manager.get_waifu_config(waifu.id)
-    target = archive_utils.user_mention_html(waifu) if config.mentionable else waifu.name
+    target = archive_utils.user_mention(waifu) if config.mentionable else waifu.name
 
     match result.state:
         case WaifuFetchState.NONE:
@@ -143,7 +143,7 @@ async def waifu_rarity_set(message: Message):
     data = await _manager.get_waifu_data(message.chat.id, waifu.id)
     data.rarity = rarity
     await _manager.update_waifu_data(data)
-    await message.reply(f"成功将 {archive_utils.user_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!")
+    await message.reply(f"成功将 {archive_utils.user_mention(waifu)} 的老婆稀有度修改为 {rarity}!")
 
 
 @dp.message_handler(
@@ -160,7 +160,7 @@ async def waifu_rarity_get(message: Message):
     except AssertionError:
         return await message.reply("呜, 找不到你所提及的用户w")
     data = await _manager.get_waifu_data(message.chat.id, waifu.id)
-    await message.reply(f"{archive_utils.user_mention_html(waifu)} 的老婆稀有度为: {data.rarity}")
+    await message.reply(f"{archive_utils.user_mention(waifu)} 的老婆稀有度为: {data.rarity}")
 
 
 def create_divorce_task_unchecked(
@@ -169,8 +169,8 @@ def create_divorce_task_unchecked(
     async def divorce(query: CallbackQuery):
         await _registry.divorce(chat, originator.id)
         await query.message.reply(
-            f"呜呜呜, {archive_utils.user_mention_html(originator)} "
-            f"和 {archive_utils.user_mention_html(target)} 已通过手续离婚了w\n今后的日子, 自己要照顾好自己捏w",
+            f"呜呜呜, {archive_utils.user_mention(originator)} "
+            f"和 {archive_utils.user_mention(target)} 已通过手续离婚了w\n今后的日子, 自己要照顾好自己捏w",
             reply=False,
         )
         with contextlib.suppress(Exception):
@@ -181,7 +181,7 @@ def create_divorce_task_unchecked(
             await query.answer("取消离婚申请成功捏, 以后要和谐相处哦~")
         else:
             await query.message.reply(
-                f"{archive_utils.user_mention_html(originator)} 离婚申请被取消捏, 以后要和谐相处哦~",
+                f"{archive_utils.user_mention(originator)} 离婚申请被取消捏, 以后要和谐相处哦~",
                 reply=False,
             )
         with contextlib.suppress(Exception):
@@ -240,8 +240,8 @@ async def divorce(message: Message):
         return await message.reply("你或者对方正在处理某些事项哦~")
     buttons = create_divorce_task_unchecked(message.chat.id, originator, target)
     await message.reply(
-        f"{archive_utils.user_mention_html(originator)} "
-        f"向 {archive_utils.user_mention_html(target)} 发起了离婚申请 www",
+        f"{archive_utils.user_mention(originator)} "
+        f"向 {archive_utils.user_mention(target)} 发起了离婚申请 www",
         reply_markup=buttons,
     )
 
@@ -252,8 +252,8 @@ def create_proposal_task_unchecked(
     async def marry(query: CallbackQuery):
         await _registry.marry(chat, originator.id, target.id)
         await query.message.reply(
-            f"恭喜 {archive_utils.user_mention_html(originator)} "
-            f"和 {archive_utils.user_mention_html(target)} 已走入婚姻的殿堂捏~\nkdl kdl kdl www",
+            f"恭喜 {archive_utils.user_mention(originator)} "
+            f"和 {archive_utils.user_mention(target)} 已走入婚姻的殿堂捏~\nkdl kdl kdl www",
             reply=False,
         )
         await query.message.reply_sticker(common_config.writing_sticker, reply=False)
@@ -263,8 +263,8 @@ def create_proposal_task_unchecked(
     async def cancelled(query: CallbackQuery):
         if query.from_user.id == target.id:
             await query.message.reply(
-                f"呜呜呜, {archive_utils.user_mention_html(originator)} "
-                f"被 {archive_utils.user_mention_html(target)} 拒绝了w",
+                f"呜呜呜, {archive_utils.user_mention(originator)} "
+                f"被 {archive_utils.user_mention(target)} 拒绝了w",
                 reply=False,
             )
         else:
@@ -347,8 +347,8 @@ async def propose(message: Message):
     originator = await user_manager.get_user(message.from_user.id)
     buttons = create_proposal_task_unchecked(message.chat.id, originator, target)
     await message.reply(
-        f"{archive_utils.user_mention_html(originator)} "
-        f"向 {archive_utils.user_mention_html(target)} 发起了求婚邀请",
+        f"{archive_utils.user_mention(originator)} "
+        f"向 {archive_utils.user_mention(target)} 发起了求婚邀请",
         reply_markup=buttons,
     )
 
@@ -370,8 +370,8 @@ async def propose_callback(query: CallbackQuery):  # type: ignore
         return await query.answer("你或者对方正在处理某些事项哦~")
     buttons = create_proposal_task_unchecked(query.message.chat.id, originator, target)
     await query.message.reply(
-        f"{chat.get_mention_html(query.from_user)} "
-        f"向 {archive_utils.user_mention_html(target)} 发起了求婚邀请",
+        f"{chat.get_mention(query.from_user)} "
+        f"向 {archive_utils.user_mention(target)} 发起了求婚邀请",
         reply_markup=buttons,
         reply=False,
     )

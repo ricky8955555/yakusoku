@@ -4,6 +4,7 @@ from typing import AsyncIterable
 from aiogram import Bot
 from aiogram.types import ChatMemberStatus
 from aiogram.utils.exceptions import BadRequest, ChatNotFound
+from aiogram.utils import markdown
 from sqlalchemy.exc import NoResultFound
 
 from yakusoku.archive import group_manager, user_manager
@@ -22,11 +23,12 @@ async def get_user_members(group: int) -> AsyncIterable[UserData]:
     return (member async for member in get_members(group) if not member.is_bot)
 
 
-def user_mention_html(user: UserData, name: str | None = None) -> str:
+def user_mention(user: UserData, name: str | None = None, as_html: bool = True) -> str:
+    link = markdown.hlink if as_html else markdown.link
     if user.usernames:
-        return f'<a href="https://t.me/{user.usernames[0]}">{name or user.name}</a>'
+        return link(name or user.name, f"https://t.me/{user.usernames[0]}")
     else:
-        return f'<a href="tg://user?id={user.id}">{name or user.name}</a>'
+        return link(name or user.name, f"tg://user?id={user.id}")
 
 
 async def fetch_user(bot: Bot, id: int) -> UserData:

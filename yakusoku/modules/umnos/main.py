@@ -75,7 +75,7 @@ async def umnos(update: Message | CallbackQuery):  # type: ignore
         return await update.answer("不要帮别人转生捏!")
     country = random.choice(await get_countries())
     type = random.choice(get_types())
-    mention = chat.get_mention_html(getattr(update, "sender_chat", None) or update.from_user)
+    mention = chat.get_mention(getattr(update, "sender_chat", None) or update.from_user)
     reply = f"转生成功! {mention} 现在是 {country} 的 {type} 了!"
     if isinstance(update, CallbackQuery):
         return await update.message.edit_text(reply, reply_markup=update.message.reply_markup)

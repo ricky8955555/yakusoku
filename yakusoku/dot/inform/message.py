@@ -1,6 +1,6 @@
 from typing import Any, cast
 
-from aiogram.types import ChatType, Message
+from aiogram.types import ChatType, Message, ParseMode
 
 from yakusoku.dot.patch import patch, patched
 from yakusoku.utils import chat
@@ -13,7 +13,11 @@ class PatchedMessage:
         inform = kwargs.pop("inform", True)
         if not inform or message.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]:
             return text
-        mention = chat.get_mention_html(message.sender_chat or message.from_user)
+        parse_mode = kwargs.get("parse_mode") or message.bot.parse_mode
+        if not parse_mode:
+            kwargs["parse_mode"] = parse_mode = ParseMode.HTML
+        as_html = cast(bool, parse_mode == ParseMode.HTML)
+        mention = chat.get_mention(message.sender_chat or message.from_user, as_html=as_html)
         return f"{mention} {text}"
 
     @patched

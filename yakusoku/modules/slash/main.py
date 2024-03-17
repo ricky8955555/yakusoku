@@ -32,9 +32,9 @@ async def slash(message: Message):
         return
     second = matches.group(3)
     sender = message.sender_chat or message.from_user
-    sender_mention: str = chat.get_mention_html(sender)
+    sender_mention: str = chat.get_mention(sender)
     origin = message.reply_to_message or message
     target = origin.sender_chat or origin.from_user
-    target_mention: str = chat.get_mention_html(target, "自己" if target.id == sender.id else None)
+    target_mention: str = chat.get_mention(target, "自己" if target.id == sender.id else None)
     reply = get_reply(html.escape(first), html.escape(second), sender_mention, target_mention)
     await message.reply(reply, inform=False)  # type: ignore
