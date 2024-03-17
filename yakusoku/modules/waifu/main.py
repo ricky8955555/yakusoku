@@ -240,8 +240,7 @@ async def divorce(message: Message):
         return await message.reply("你或者对方正在处理某些事项哦~")
     buttons = create_divorce_task_unchecked(message.chat.id, originator, target)
     await message.reply(
-        f"{archive_utils.user_mention(originator)} "
-        f"向 {archive_utils.user_mention(target)} 发起了离婚申请 www",
+        f"你向 {archive_utils.user_mention(target)} 发起了离婚申请 www",
         reply_markup=buttons,
     )
 
@@ -347,8 +346,7 @@ async def propose(message: Message):
     originator = await user_manager.get_user(message.from_user.id)
     buttons = create_proposal_task_unchecked(message.chat.id, originator, target)
     await message.reply(
-        f"{archive_utils.user_mention(originator)} "
-        f"向 {archive_utils.user_mention(target)} 发起了求婚邀请",
+        f"你向 {archive_utils.user_mention(target)} 发起了求婚邀请",
         reply_markup=buttons,
     )
 
