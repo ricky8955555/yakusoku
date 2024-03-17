@@ -29,61 +29,65 @@ class PatchedMessage:
         return self.__old_answer(PatchedMessage._process(self, text, kwargs), *args, **kwargs)
 
     @patched
-    def reply_photo(self: Any, photo: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def reply_photo(self: Any, photo: Any, caption: str = "", *args: Any, **kwargs: Any) -> Any:
         return self.__old_reply_photo(
             photo, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def answer_photo(self: Any, photo: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def answer_photo(self: Any, photo: Any, caption: str = "", *args: Any, **kwargs: Any) -> Any:
         return self.__old_answer_photo(
             photo, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def reply_audio(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def reply_audio(self: Any, video: Any, caption: str = "", *args: Any, **kwargs: Any) -> Any:
         return self.__old_reply_audio(
             video, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def answer_audio(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def answer_audio(self: Any, video: Any, caption: str = "", *args: Any, **kwargs: Any) -> Any:
         return self.__old_answer_audio(
             video, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def reply_document(self: Any, document: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def reply_document(
+        self: Any, document: Any, caption: str = "", *args: Any, **kwargs: Any
+    ) -> Any:
         return self.__old_reply_document(
             document, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def answer_document(self: Any, document: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def answer_document(
+        self: Any, document: Any, caption: str = "", *args: Any, **kwargs: Any
+    ) -> Any:
         return self.__old_answer_document(
             document, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def reply_video(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def reply_video(self: Any, video: Any, caption: str = "", *args: Any, **kwargs: Any) -> Any:
         return self.__old_reply_video(
             video, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def answer_video(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def answer_video(self: Any, video: Any, caption: str = "", *args: Any, **kwargs: Any) -> Any:
         return self.__old_answer_video(
             video, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def reply_voice(self: Any, voice: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def reply_voice(self: Any, voice: Any, caption: str = "", *args: Any, **kwargs: Any) -> Any:
         return self.__old_reply_voice(
             voice, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def answer_voice(self: Any, voice: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+    def answer_voice(self: Any, voice: Any, caption: str = "", *args: Any, **kwargs: Any) -> Any:
         return self.__old_answer_voice(
             voice, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
