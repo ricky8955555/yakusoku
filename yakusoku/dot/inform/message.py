@@ -8,7 +8,7 @@ from yakusoku.utils import chat
 
 @patch(Message)
 class PatchedMessage:
-    async def _process(self: Any, text: str, kwargs: dict[str, Any]) -> str:
+    def _process(self: Any, text: str, kwargs: dict[str, Any]) -> str:
         message = cast(Message, self)
         inform = kwargs.pop("inform", True)
         if not inform or message.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]:
@@ -17,77 +17,77 @@ class PatchedMessage:
         return f"{mention} {text}"
 
     @patched
-    async def reply(self: Any, text: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_reply(
-            await PatchedMessage._process(self, text, kwargs), *args, **kwargs
+    def reply(self: Any, text: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_reply(
+            PatchedMessage._process(self, text, kwargs), *args, **kwargs
         )
 
     @patched
-    async def answer(self: Any, text: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_answer(
-            await PatchedMessage._process(self, text, kwargs), *args, **kwargs
+    def answer(self: Any, text: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_answer(
+            PatchedMessage._process(self, text, kwargs), *args, **kwargs
         )
 
     @patched
-    async def reply_photo(self: Any, photo: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_reply_photo(
-            photo, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+    def reply_photo(self: Any, photo: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_reply_photo(
+            photo, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    async def answer_photo(self: Any, photo: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_answer_photo(
-            photo, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+    def answer_photo(self: Any, photo: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_answer_photo(
+            photo, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    async def reply_audio(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_reply_audio(
-            video, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+    def reply_audio(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_reply_audio(
+            video, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    async def answer_audio(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_answer_audio(
-            video, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+    def answer_audio(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_answer_audio(
+            video, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    async def reply_document(
+    def reply_document(
         self: Any, document: Any, caption: str, *args: Any, **kwargs: Any
     ) -> Any:
-        return await self.__old_reply_document(
-            document, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+        return self.__old_reply_document(
+            document, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    async def answer_document(
+    def answer_document(
         self: Any, document: Any, caption: str, *args: Any, **kwargs: Any
     ) -> Any:
-        return await self.__old_answer_document(
-            document, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+        return self.__old_answer_document(
+            document, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    async def reply_video(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_reply_video(
-            video, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+    def reply_video(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_reply_video(
+            video, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    async def answer_video(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_answer_video(
-            video, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+    def answer_video(self: Any, video: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_answer_video(
+            video, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    async def reply_voice(self: Any, voice: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_reply_voice(
-            voice, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+    def reply_voice(self: Any, voice: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_reply_voice(
+            voice, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    async def answer_voice(self: Any, voice: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
-        return await self.__old_answer_voice(
-            voice, await PatchedMessage._process(self, caption, kwargs), *args, **kwargs
+    def answer_voice(self: Any, voice: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
+        return self.__old_answer_voice(
+            voice, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
