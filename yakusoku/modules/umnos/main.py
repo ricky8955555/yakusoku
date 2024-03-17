@@ -7,13 +7,25 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 from yakusoku.config import Config
 from yakusoku.context import module_manager
 from yakusoku.filters import CallbackQueryFilter
+from yakusoku.utils import chat
 
 COUNTRIES_DATA_URL = (
     "https://raw.githubusercontent.com/zhaoweih/countries_json/master/countries.json"
 )
 
 DEFAULT_TYPES = ["男孩子", "女孩子", "正太", "萝莉", "喵喵", "汪!"]
-FALLBACK_COUNTRIES = ["中国", "美国", "日本", "韩国", "印度", "韩国", "泰国", "英国", "马来西亚", "澳大利亚"]
+FALLBACK_COUNTRIES = [
+    "中国",
+    "美国",
+    "日本",
+    "韩国",
+    "印度",
+    "韩国",
+    "泰国",
+    "英国",
+    "马来西亚",
+    "澳大利亚",
+]
 
 
 class UmnosConfig(Config):
@@ -63,11 +75,12 @@ async def umnos(update: Message | CallbackQuery):  # type: ignore
         return await update.answer("不要帮别人转生捏!")
     country = random.choice(await get_countries())
     type = random.choice(get_types())
-    reply = f"转生成功! 你现在是 {country} 的 {type} 了!"
+    mention = chat.get_mention_html(getattr(update, "sender_chat", None) or update.from_user)
+    reply = f"转生成功! {mention} 现在是 {country} 的 {type} 了!"
     if isinstance(update, CallbackQuery):
         return await update.message.edit_text(reply, reply_markup=update.message.reply_markup)
     if update.sender_chat:
-        return await update.reply(reply)
+        return await update.reply(reply, inform=False)  # type: ignore
     buttons = InlineKeyboardMarkup(
         inline_keyboard=[
             [

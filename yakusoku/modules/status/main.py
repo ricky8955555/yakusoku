@@ -43,4 +43,7 @@ async def status(message: Message):
         f"- 内存: {humanize.naturalsize(memory.used)} / {humanize.naturalsize(memory.total)}"
     )
 
-    await message.reply(f"进程信息:\n{process_info}\n\n服务信息:\n{service_info}\n\n宿主信息:\n{host_info}\n")
+    await message.reply(
+        f"进程信息:\n{process_info}\n\n服务信息:\n{service_info}\n\n宿主信息:\n{host_info}\n",
+        inform=False,  # type: ignore
+    )

@@ -24,18 +24,18 @@ class ModuleConfig:
 
 @dataclass(frozen=True)
 class ModuleInfo:
+    base: ModuleType
     main: ModuleType
     config: ModuleConfig
 
 
 class ModuleManager:
     _dispatcher: Dispatcher
-    _modules: dict[ModuleType, ModuleInfo]
-    _names: dict[str, ModuleType]
+    _modules: dict[str, ModuleInfo]
 
     @property
-    def loaded_modules(self) -> set[ModuleType]:
-        return set(self._modules.keys())
+    def loaded_modules(self) -> list[ModuleInfo]:
+        return list(self._modules.values())
 
     def __init__(self, dispatcher: Dispatcher) -> None:
         self._dispatcher = dispatcher
@@ -75,10 +75,13 @@ class ModuleManager:
     def import_modules(self, *modules: str) -> None:
         for name in modules:
             base = importlib.import_module(name)
-            main = importlib.import_module(f"{name}.main")
             config = self._get_config(base)
-            info = ModuleInfo(main, config)
-            self._modules[base] = info
+            assert (
+                config.name not in self._modules
+            ), f"module named '{config.name}' already existed."
+            main = importlib.import_module(f"{name}.main")
+            info = ModuleInfo(base, main, config)
+            self._modules[config.name] = info
 
     def import_modules_from(self, path: str | Path) -> None:
         modules = self._collect_modules(path)

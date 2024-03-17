@@ -7,7 +7,6 @@ from cashews import Cache
 from yakusoku.constants import FILTERED_IDS
 from yakusoku.context import module_manager
 from yakusoku.filters import NonAnonymousFilter
-from yakusoku.utils import chat
 from yakusoku.utils.exception import try_or_default_async
 
 from . import basic, hitokoto
@@ -52,8 +51,7 @@ async def greet(message: Message):
         if sentence
         else ""
     )
-    user = chat.get_mention_html(message.sender_chat or message.from_user)
-    await message.reply(f"{greeting}! {user}.\n\n" f"{sentence_content}")
+    await message.reply(f"{greeting}!.\n\n" f"{sentence_content}")
 
 
 @dp.message_handler(
