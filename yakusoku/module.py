@@ -34,8 +34,8 @@ class ModuleManager:
     _modules: dict[str, ModuleInfo]
 
     @property
-    def loaded_modules(self) -> list[ModuleInfo]:
-        return list(self._modules.values())
+    def loaded_modules(self) -> dict[str, ModuleInfo]:
+        return dict(self._modules)
 
     def __init__(self, dispatcher: Dispatcher) -> None:
         self._dispatcher = dispatcher
@@ -62,7 +62,8 @@ class ModuleManager:
         assert len(modules_set) == len(modules), "duplicate modules were detected."
         return modules_set
 
-    def _get_config(self, module: ModuleType) -> ModuleConfig:
+    @staticmethod
+    def get_config(module: ModuleType) -> ModuleConfig:
         config = getattr(module, "__module_config__", None)
         assert (
             config is not None
@@ -75,7 +76,7 @@ class ModuleManager:
     def import_modules(self, *modules: str) -> None:
         for name in modules:
             base = importlib.import_module(name)
-            config = self._get_config(base)
+            config = self.get_config(base)
             assert (
                 config.name not in self._modules
             ), f"module named '{config.name}' already existed."

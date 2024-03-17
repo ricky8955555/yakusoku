@@ -62,8 +62,7 @@ async def greet(message: Message):
 @cache(ttl=config.check_ttl, key="user:{message.from_id}")
 async def message_received(message: Message):
     data = await manager.get_greeting_data(message.from_id)
-    cfg = await manager.get_greeting_config(message.chat.id)
-    if message.from_id in FILTERED_IDS or not data.enabled or not cfg.enabled:
+    if message.from_id in FILTERED_IDS or not data.enabled:
         return
     now = datetime.now()
     if now - loaded >= config.initial_trigger_span and (

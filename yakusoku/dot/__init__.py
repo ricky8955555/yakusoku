@@ -1,1 +1,2 @@
-from . import inform as inform
+from .inform import message as message
+from .switch import handler as handler
