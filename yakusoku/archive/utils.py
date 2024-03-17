@@ -3,8 +3,8 @@ from typing import AsyncIterable
 
 from aiogram import Bot
 from aiogram.types import ChatMemberStatus
-from aiogram.utils.exceptions import BadRequest, ChatNotFound
 from aiogram.utils import markdown
+from aiogram.utils.exceptions import BadRequest, ChatNotFound
 from sqlalchemy.exc import NoResultFound
 
 from yakusoku.archive import group_manager, user_manager

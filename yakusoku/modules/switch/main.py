@@ -1,5 +1,5 @@
 from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import Message, ChatType
+from aiogram.types import ChatType, Message
 
 from yakusoku.context import module_manager
 from yakusoku.dot.switch import switch_manager
@@ -25,6 +25,4 @@ async def switch(message: Message):
     config = await switch_manager.get_switch_config(message.chat.id, module.config)
     config.enabled = not config.enabled
     await switch_manager.update_switch_config(config)
-    await message.reply(
-        f"已经启用 {name} 模块了捏w" if config.enabled else f"已经停用 {name} 模块了捏w"
-    )
+    await message.reply(f"已经启用 {name} 模块了捏w" if config.enabled else f"已经停用 {name} 模块了捏w")

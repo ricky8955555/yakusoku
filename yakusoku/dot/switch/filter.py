@@ -1,9 +1,9 @@
 from typing import Any
 
-from aiogram.types import Chat, Message, ChatType
 from aiogram.dispatcher.filters import Filter
-from yakusoku.dot.switch import switch_manager
+from aiogram.types import Chat, ChatType, Message
 
+from yakusoku.dot.switch import switch_manager
 from yakusoku.module import ModuleConfig
 
 

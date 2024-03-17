@@ -370,8 +370,7 @@ async def propose_callback(query: CallbackQuery):  # type: ignore
         return await query.answer("你或者对方正在处理某些事项哦~")
     buttons = create_proposal_task_unchecked(query.message.chat.id, originator, target)
     await query.message.reply(
-        f"{chat.get_mention(query.from_user)} "
-        f"向 {archive_utils.user_mention(target)} 发起了求婚邀请",
+        f"{chat.get_mention(query.from_user)} " f"向 {archive_utils.user_mention(target)} 发起了求婚邀请",
         reply_markup=buttons,
         reply=False,
     )

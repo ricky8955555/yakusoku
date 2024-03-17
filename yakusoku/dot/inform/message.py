@@ -22,15 +22,11 @@ class PatchedMessage:
 
     @patched
     def reply(self: Any, text: str, *args: Any, **kwargs: Any) -> Any:
-        return self.__old_reply(
-            PatchedMessage._process(self, text, kwargs), *args, **kwargs
-        )
+        return self.__old_reply(PatchedMessage._process(self, text, kwargs), *args, **kwargs)
 
     @patched
     def answer(self: Any, text: str, *args: Any, **kwargs: Any) -> Any:
-        return self.__old_answer(
-            PatchedMessage._process(self, text, kwargs), *args, **kwargs
-        )
+        return self.__old_answer(PatchedMessage._process(self, text, kwargs), *args, **kwargs)
 
     @patched
     def reply_photo(self: Any, photo: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
@@ -57,17 +53,13 @@ class PatchedMessage:
         )
 
     @patched
-    def reply_document(
-        self: Any, document: Any, caption: str, *args: Any, **kwargs: Any
-    ) -> Any:
+    def reply_document(self: Any, document: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
         return self.__old_reply_document(
             document, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
 
     @patched
-    def answer_document(
-        self: Any, document: Any, caption: str, *args: Any, **kwargs: Any
-    ) -> Any:
+    def answer_document(self: Any, document: Any, caption: str, *args: Any, **kwargs: Any) -> Any:
         return self.__old_answer_document(
             document, PatchedMessage._process(self, caption, kwargs), *args, **kwargs
         )
