@@ -16,6 +16,7 @@ dependencies = [
     "alembic<2.0.0,>=1.11.2",
     "psutil<6.0.0,>=5.9.5",
     "humanize<5.0.0,>=4.7.0",
+    "matplotlib>=3.8.4",
 ]
 name = "yakusoku"
 version = "0.1.0"
