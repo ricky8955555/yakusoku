@@ -14,7 +14,7 @@ def render(expression: str, *, format: str | None = None, dpi: int | None = None
         if dpi:
             args["dpi"] = dpi
         buf = io.BytesIO()
-        pyplot.savefig(buf, bbox_inches="tight", pad_inches=0.1, **args)
+        fig.savefig(buf, bbox_inches="tight", pad_inches=0.1, **args)
         buf.seek(0)
         return buf.read()
     finally:
