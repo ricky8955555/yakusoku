@@ -22,7 +22,6 @@ async def latex(message: Message):
     except Exception as ex:
         await message.reply(
             f"喵呜……渲染失败捏.\n{html.escape(str(ex))}",
-            parse_mode=None,
             inform=False,  # type: ignore
         )
         return
