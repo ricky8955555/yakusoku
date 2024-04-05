@@ -5,9 +5,10 @@ from matplotlib import pyplot
 
 
 def render(expression: str, *, format: str | None = None, dpi: int | None = None) -> bytes:
+    expression = "\n".join(f"${line}$" for line in expression.splitlines() if line)
     fig = pyplot.figure(figsize=(0.01, 0.01))
     try:
-        fig.text(0, 0, f"${expression}$")
+        fig.text(0, 0, expression)
         args: dict[str, Any] = {}
         if format:
             args["format"] = format
