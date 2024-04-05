@@ -6,5 +6,4 @@ __module_config__ = ModuleConfig(
     commands={
         "latex": "渲染 LaTeX 公式",
     },
-    can_disable=False,
 )
