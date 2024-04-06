@@ -51,7 +51,7 @@ async def greet(message: Message):
         if sentence
         else ""
     )
-    await message.reply(f"{greeting}!.\n\n" f"{sentence_content}")
+    await message.reply(f"{greeting}!\n\n" f"{sentence_content}")
 
 
 @dp.message_handler(
