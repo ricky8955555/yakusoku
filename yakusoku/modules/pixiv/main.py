@@ -145,7 +145,7 @@ async def download_illust(query: CallbackQuery):  # type: ignore
 
 
 @dp.callback_query_handler(CallbackQueryFilter("pixiv_ugoira"))
-async def download_illust(query: CallbackQuery):  # type: ignore
+async def ugoira(query: CallbackQuery):  # type: ignore
     try:
         id = int(query.data.split(":")[1])
     except ValueError:
