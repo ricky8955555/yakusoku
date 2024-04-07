@@ -28,6 +28,7 @@ class XRestrict(IntEnum):
 class IllustType(IntEnum):
     ILLUST = 0
     MANGA = 1
+    UGOIRA = 2
 
 
 class Urls(BaseSchema):

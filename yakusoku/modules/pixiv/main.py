@@ -40,6 +40,8 @@ def illust_type_description(type: IllustType) -> str:
             return "插图"
         case IllustType.MANGA:
             return "漫画"
+        case IllustType.UGOIRA:
+            return "动图"
 
 
 async def send_illust(message: Message, id: int) -> Message:
