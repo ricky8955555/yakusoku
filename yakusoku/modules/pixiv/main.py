@@ -1,4 +1,5 @@
 import contextlib
+import html
 import re
 import urllib.parse
 
@@ -45,22 +46,22 @@ async def send_illust(message: Message, id: int) -> Message:
     try:
         illust = await api.illust(id)
     except api.ApiError as ex:
-        return await message.reply(f"上面返回了错误, 看不到图力. {ex.message}")
+        return await message.reply(f"上面返回了错误, 看不到图力. {html.escape(ex.message)}")
     except Exception as ex:
         print(ex)
-        return await message.reply(f"坏了, 出现了没预料到的错误! {ex}")
+        return await message.reply(f"坏了, 出现了没预料到的错误! {html.escape(str(ex))}")
     illust.description = illust.description.replace("<br />", "\n")
     info = (
         f"<u><b>{illust.title}</b></u>\n\n"
         + f'ID: <a href="https://www.pixiv.net/artworks/{illust.id}">{illust.id}</a>\n'
         + (
-            f"描述: \n<blockquote>{illust.description}</blockquote>\n"
+            f"描述: \n<blockquote>{html.escape(illust.description)}</blockquote>\n"
             if 0 < len(illust.description) <= 100
             else ""
         )
-        + f'作者: {illust.user_name} (<a href="https://www.pixiv.net/users/{illust.user_id}">{illust.user_account}</a>)\n'
+        + f'作者: {html.escape(illust.user_name)} (<a href="https://www.pixiv.net/users/{illust.user_id}">{illust.user_account}</a>)\n'
         + f"类型: {illust_type_description(illust.illust_type)}\n"
-        + f'标签: {", ".join(tag.tag for tag in illust.tags.tags)}\n'
+        + f'标签: {", ".join(html.escape(tag.tag) for tag in illust.tags.tags)}\n'
         + f'限制类型: {"全年龄" if illust.x_restrict == XRestrict.NONE else illust.x_restrict.name}\n'
         + f"发布日期: {illust.create_date}\n"
         + f"更新日期: {illust.upload_date}\n"
