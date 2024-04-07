@@ -17,6 +17,8 @@ dependencies = [
     "psutil<6.0.0,>=5.9.5",
     "humanize<5.0.0,>=4.7.0",
     "matplotlib>=3.8.4",
+    "aiofile>=3.8.8",
+    "imageio>=2.34.0",
 ]
 name = "yakusoku"
 version = "0.1.0"

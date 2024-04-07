@@ -1,14 +1,24 @@
 import contextlib
 import html
+import io
 import re
+import traceback
 import urllib.parse
 
-from aiogram.types import Message
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InputFile,
+    Message,
+)
 
 from yakusoku.context import module_manager
+from yakusoku.filters import CallbackQueryFilter
 
 from . import api
 from .types import IllustType, XRestrict
+from .ugoira import compose_ugoira_gif
 
 _ARTWORK_URL_REGEX = re.compile(r"pixiv\.net/artworks/(\d+)")
 
@@ -45,13 +55,17 @@ def illust_type_description(type: IllustType) -> str:
 
 
 async def send_illust(message: Message, id: int) -> Message:
+    reply = await message.reply("处理中...")
     try:
         illust = await api.illust(id)
     except api.ApiError as ex:
-        return await message.reply(f"上面返回了错误, 看不到图力. {html.escape(ex.message)}")
+        await message.reply(f"上面返回了错误, 看不到图力. {html.escape(ex.message)}")
+        raise
     except Exception as ex:
-        print(ex)
-        return await message.reply(f"坏了, 出现了没预料到的错误! {html.escape(str(ex))}")
+        await message.reply(f"坏了, 出现了没预料到的错误! {html.escape(str(ex))}")
+        raise
+    finally:
+        await reply.delete()
     illust.description = illust.description.replace("<br />", "\n")
     info = (
         f"<u><b>{illust.title}</b></u>\n\n"
@@ -68,24 +82,90 @@ async def send_illust(message: Message, id: int) -> Message:
         + f"发布日期: {illust.create_date}\n"
         + f"更新日期: {illust.upload_date}\n"
     )
+    buttons = []
+    if illust.urls.original:
+        buttons.append(
+            [
+                InlineKeyboardButton("下载原图", callback_data=f"pixiv_download_illust:{id}")  # type: ignore
+            ]
+        )
+    if illust.illust_type == IllustType.UGOIRA:
+        buttons.append(
+            [InlineKeyboardButton("获取动图预览", callback_data=f"pixiv_ugoira:{id}")]  # type: ignore
+        )
     if illust.x_restrict == XRestrict.NONE:
         try:
-            assert illust.urls.original, "original url not found."
-            photo = await api.download_illust(illust.urls.original)
+            assert illust.urls.regular, "regular size url not found."
+            photo = await api.download_asset(illust.urls.regular)
             return await message.reply_photo(
                 photo,
                 info,
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
                 inform=False,  # type: ignore
             )
         except Exception as ex:
             reason = "发送失败了"
-            print(ex)
+            traceback.print_exc()
     else:
         reason = "为 R-18 / R-18G 类型"
     return await message.reply(
         info + f"\n由于插图{reason}, 没法展示出来 QwQ",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
         inform=False,  # type: ignore
     )
+
+
+@dp.callback_query_handler(CallbackQueryFilter("pixiv_download_illust"))
+async def download_illust(query: CallbackQuery):  # type: ignore
+    try:
+        id = int(query.data.split(":")[1])
+    except ValueError:
+        return await query.answer("坏, 怎么来的非法请求!")
+
+    try:
+        illust = await api.illust(id)
+    except Exception:
+        await query.answer("请求出错了!")
+        raise
+    if not illust.urls.original:
+        return await query.answer("坏了, 没有找到原图w")
+    try:
+        image = await api.download_asset(illust.urls.original)
+    except Exception:
+        await query.answer("下载失败捏xwx")
+        raise
+    stream = io.BytesIO(image)
+    try:
+        await query.message.reply_document(InputFile(stream, f"{id}.jpg"))
+    except Exception:
+        await query.answer("发送失败了xwx")
+        raise
+
+
+@dp.callback_query_handler(CallbackQueryFilter("pixiv_ugoira"))
+async def download_illust(query: CallbackQuery):  # type: ignore
+    try:
+        id = int(query.data.split(":")[1])
+    except ValueError:
+        return await query.answer("坏, 怎么来的非法请求!")
+
+    try:
+        meta = await api.illust_ugoira_meta(id)
+    except Exception:
+        await query.answer("请求出错了!")
+        raise
+    try:
+        archive = await api.download_asset(meta.src)
+        gif = await compose_ugoira_gif(archive, meta.frames)
+    except Exception:
+        await query.answer("处理失败捏xwx")
+        raise
+    try:
+        stream = io.BytesIO(gif)
+        await query.message.reply_animation(InputFile(stream, f"{id}.gif"))
+    except Exception:
+        await query.answer("发送失败了xwx")
+        raise
 
 
 @dp.message_handler(run_task=True)
@@ -95,7 +175,7 @@ async def match_url(message: Message):
         await send_illust(message, id)
 
 
-@dp.message_handler(commands="pixiv")
+@dp.message_handler(commands=["pixiv"])
 async def pixiv(message: Message):
     target = message.get_args()
     if not target:

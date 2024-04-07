@@ -3,7 +3,7 @@ from typing import TypeVar
 from aiohttp import ClientSession
 from pydantic import BaseModel
 
-from .types import AjaxResponse, Illust, IllustPage
+from .types import AjaxResponse, Illust, IllustPage, UgoiraMeta
 
 _T = TypeVar("_T", bound=BaseModel)
 
@@ -43,7 +43,15 @@ async def illust_pages(id: int) -> list[IllustPage]:
     return _extract_body(_IllustPages, response).__root__
 
 
-async def download_illust(url: str) -> bytes:
+async def illust_ugoira_meta(id: int) -> UgoiraMeta:
+    async with ClientSession(_API) as session:
+        async with session.get(f"/ajax/illust/{id}/ugoira_meta") as response:
+            data = await response.read()
+    response = AjaxResponse.parse_raw(data)
+    return _extract_body(UgoiraMeta, response)
+
+
+async def download_asset(url: str) -> bytes:
     async with ClientSession(headers={"Referer": _API}) as session:
         async with session.get(url) as response:
             return await response.read()

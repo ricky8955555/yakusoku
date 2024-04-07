@@ -53,6 +53,11 @@ class Tags(BaseSchema):
     tags: list[Tag]
 
 
+class Frame(BaseSchema):
+    file: str
+    delay: int
+
+
 class Illust(BaseSchema):
     # illust_id: int
     # illust_title: str
@@ -79,3 +84,10 @@ class IllustPage(BaseSchema):
     urls: Urls
     width: int
     height: int
+
+
+class UgoiraMeta(BaseSchema):
+    src: str
+    original_src: str
+    mime_type: str = Field(alias="mime_type")
+    frames: list[Frame]
