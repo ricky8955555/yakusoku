@@ -141,6 +141,8 @@ async def download_illust(query: CallbackQuery):  # type: ignore
         await query.answer("发送失败了xwx")
         raise
 
+    await query.answer()
+
 
 @dp.callback_query_handler(CallbackQueryFilter("pixiv_ugoira"))
 async def download_illust(query: CallbackQuery):  # type: ignore
@@ -166,6 +168,8 @@ async def download_illust(query: CallbackQuery):  # type: ignore
     except Exception:
         await query.answer("发送失败了xwx")
         raise
+
+    await query.answer()
 
 
 @dp.message_handler(run_task=True)
