@@ -32,4 +32,4 @@ async def help(message: Message):
             )
         reply += "\n\n"
     reply = reply.rstrip()
-    await message.reply(reply, inform=False)  # type: ignore
+    await message.reply(reply)

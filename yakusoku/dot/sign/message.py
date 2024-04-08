@@ -1,23 +1,24 @@
+import html
 import inspect
 from typing import Any, cast
 
-from aiogram.types import ChatType, Message, ParseMode
+from aiogram.types import ChatType, Message, ParseMode, CallbackQuery
+from aiogram.utils import markdown
 
 from yakusoku.dot.patch import patch, patched
+from yakusoku.dot.sign import sign_manager
 from yakusoku.utils import chat
 
 
 @patch(Message)
 class PatchedMessage:
-    def _handle(self: Any, raw: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> str:
+    async def _handle(self: Any, raw: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> str:
         message = cast(Message, self)
-        inform = kwargs.pop("inform", True)
         if (
-            not inform
-            or message.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]
-            or message.from_user.id == message.bot.id
+            message.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]
+            or not (await sign_manager.get_sign_config(message.chat.id)).enabled
         ):
-            return raw(*args, **kwargs)
+            return await raw(*args, **kwargs)
 
         sig = inspect.signature(raw)
         params = list(sig.parameters.keys())
@@ -37,15 +38,31 @@ class PatchedMessage:
             else:
                 kwargs["parse_mode"] = parse_mode = ParseMode.HTML
 
+        from_callback_query: CallbackQuery | None = getattr(self, "_from_callback_query", None)
+        sender = (
+            from_callback_query.from_user
+            if from_callback_query
+            else message.sender_chat or message.from_user
+        )
+
         as_html = cast(bool, parse_mode == ParseMode.HTML)
-        mention = chat.get_mention(message.sender_chat or message.from_user, as_html=as_html)
+        mention = chat.get_mention(sender, as_html=as_html)
+
+        trigger = from_callback_query.data if from_callback_query else message.text
+
+        if as_html:
+            trigger = f"<code>{html.escape(trigger)}</code>"
+        else:
+            trigger = f"`{markdown.escape_md(trigger)}`"
+
+        info = f"{mention} 触发了 {trigger}"
 
         if (text := kwargs.get(text_param) or "") or len(args) <= text_index:
-            kwargs[text_param] = f"{mention} {text}"
+            kwargs[text_param] = f"{info}\n\n{text}"
         else:
-            modified_args[text_index] = f"{mention} {args[text_index]}"
+            modified_args[text_index] = f"{info}\n\n{args[text_index]}"
 
-        return raw(*modified_args, **kwargs)
+        return await raw(*modified_args, **kwargs)
 
     @patched
     def reply(self: Any, *args: Any, **kwargs: Any) -> Any:

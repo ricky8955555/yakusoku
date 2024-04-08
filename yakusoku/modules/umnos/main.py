@@ -80,7 +80,7 @@ async def umnos(update: Message | CallbackQuery):  # type: ignore
     if isinstance(update, CallbackQuery):
         return await update.message.edit_text(reply, reply_markup=update.message.reply_markup)
     if update.sender_chat:
-        return await update.reply(reply, inform=False)  # type: ignore
+        return await update.reply(reply)
     buttons = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -91,4 +91,4 @@ async def umnos(update: Message | CallbackQuery):  # type: ignore
             ]
         ]
     )
-    return await update.reply(reply, reply_markup=buttons, inform=False)  # type: ignore
+    return await update.reply(reply, reply_markup=buttons)

@@ -11,7 +11,11 @@ def patch(target: type) -> Callable[[type[_T]], type[_T]]:
     def decorator(cls: type[_T]) -> type[_T]:
         for name, field in inspect.getmembers(cls, is_patched):
             old = getattr(target, name, None)
-            setattr(target, f"_{cls.__name__}__old_{name}", old)
+            if name.startswith("__") and name.endswith("__"):
+                old_name = f'__old_{name.removeprefix("__")}'
+            else:
+                old_name = f"_{cls.__name__}__old_{name}"
+            setattr(target, old_name, old)
             setattr(target, name, field)
         return cls
 

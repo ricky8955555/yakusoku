@@ -101,7 +101,6 @@ async def send_illust(message: Message, id: int) -> Message:
                 photo,
                 info,
                 reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
-                inform=False,  # type: ignore
             )
         except Exception as ex:
             reason = "发送失败了"
@@ -111,7 +110,6 @@ async def send_illust(message: Message, id: int) -> Message:
     return await message.reply(
         info + f"\n由于插图{reason}, 没法展示出来 QwQ",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
-        inform=False,  # type: ignore
     )
 
 

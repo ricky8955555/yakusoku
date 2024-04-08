@@ -397,7 +397,7 @@ async def waifu_graph(message: Message):
         datas = await _manager.get_active_waifu_datas(message.chat.id)
         waifu_dict = {data.member: data.waifu for data in datas if data.waifu}
         image = await graph.render(message.bot, waifu_dict, "png")
-        await message.reply_photo(image, inform=False)  # type: ignore
+        await message.reply_photo(image)
     except Exception as ex:
         await message.reply(f"喵呜……渲染失败捏. {html.escape(str(ex))}")
         traceback.print_exc()

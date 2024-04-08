@@ -20,13 +20,9 @@ async def latex(message: Message):
     try:
         image = render(expression, format="png", dpi=300)
     except Exception as ex:
-        await message.reply(
-            f"喵呜……渲染失败捏.\n{html.escape(str(ex))}",
-            inform=False,  # type: ignore
-        )
-        return
+        return await message.reply(f"喵呜……渲染失败捏.\n{html.escape(str(ex))}")
     try:
-        await message.reply_photo(image, inform=False)  # type: ignore
+        await message.reply_photo(image)
     except PhotoDimensions as ex:
         file = InputFile(BytesIO(image), f"latex-{int(time.time())}.png")
-        await message.reply_document(file, inform=False)  # type: ignore
+        await message.reply_document(file)
