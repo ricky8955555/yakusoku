@@ -41,11 +41,11 @@ class PatchedMessage:
         mention = chat.get_mention(message.sender_chat or message.from_user, as_html=as_html)
 
         if (text := kwargs.get(text_param) or "") or len(args) <= text_index:
-            kwargs[text_param] = mention + text
+            kwargs[text_param] = f"{mention} {text}"
         else:
-            modified_args[text_index] = mention + args[text_index]
+            modified_args[text_index] = f"{mention} {args[text_index]}"
 
-        return raw(*args, **kwargs)
+        return raw(*modified_args, **kwargs)
 
     @patched
     def reply(self: Any, *args: Any, **kwargs: Any) -> Any:
