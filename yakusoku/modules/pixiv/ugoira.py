@@ -8,7 +8,7 @@ from PIL import Image
 from .types import Frame
 
 
-async def compose_ugoira_gif(archive: bytes, frames: list[Frame]) -> bytes:
+def compose_ugoira_gif(archive: bytes, frames: list[Frame]) -> bytes:
     with TemporaryDirectory() as tempdir:
         tempdir = Path(tempdir)
         with zipfile.ZipFile(io.BytesIO(archive)) as file:
