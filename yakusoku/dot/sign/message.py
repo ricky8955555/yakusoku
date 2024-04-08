@@ -2,7 +2,7 @@ import html
 import inspect
 from typing import Any, cast
 
-from aiogram.types import ChatType, Message, ParseMode, CallbackQuery
+from aiogram.types import CallbackQuery, ChatType, Message, ParseMode
 from aiogram.utils import markdown
 
 from yakusoku.dot.patch import patch, patched
