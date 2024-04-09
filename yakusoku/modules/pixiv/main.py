@@ -139,9 +139,6 @@ async def download_illust(query: CallbackQuery):  # type: ignore
     finally:
         await reply.delete()
 
-    if illust.x_restrict != XRestrict.NONE:
-        return await query.answer("不可以涩涩哦!")
-
     reply = await query.message.reply("下载中...")
 
     try:
