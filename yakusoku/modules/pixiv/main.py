@@ -170,8 +170,6 @@ async def download_illust(query: CallbackQuery):  # type: ignore
     finally:
         await reply.delete()
 
-    await query.answer()
-
 
 @dp.message_handler(run_task=True)
 async def match_url(message: Message):
