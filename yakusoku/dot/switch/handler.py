@@ -42,9 +42,16 @@ class PatchedHandler:
                 config = ModuleManager.get_config(base)
                 if config.can_disable:
                     filters.insert(0, SwitchFilter(config))
+                else:
+                    print(
+                        f"ignored handler '{handler.__name__}' at '{module}' in switch patching for module can't disable."
+                    )
             except Exception:
                 print(f"failed to patch handler '{handler}' in switch patching.")
                 traceback.print_exc()
         else:
-            print(f"ignored handler '{handler}' in switch patching.")
+            module = inspect.getmodule(handler)
+            print(
+                f"ignored handler '{handler.__name__}' at '{module and module.__name__}' in switch patching for module was not found."
+            )
         return self.__old_register(handler, filters, index)

@@ -10,7 +10,7 @@ from yakusoku.module import ModuleConfig
 class SwitchFilter(Filter):
     _module: ModuleConfig
 
-    def __init__(self, module: ModuleConfig):
+    def __init__(self, module: ModuleConfig) -> None:
         self._module = module
 
     async def check(self, *args: Any) -> bool:
