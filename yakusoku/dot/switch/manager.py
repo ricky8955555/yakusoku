@@ -1,17 +1,19 @@
 import sqlmodel
 
-from yakusoku.context import sql
+from yakusoku.database import SQLSessionManager
 from yakusoku.module import ModuleConfig
 
 from .models import SwitchConfig
 
 
 class SwitchManager:
-    def __init__(self):
-        pass
+    sql: SQLSessionManager
+
+    def __init__(self, sql: SQLSessionManager) -> None:
+        self.sql = sql
 
     async def get_switch_config(self, group: int, module: ModuleConfig) -> SwitchConfig:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             statement = (
                 sqlmodel.select(SwitchConfig)
                 .where(SwitchConfig.group == group)
@@ -25,7 +27,7 @@ class SwitchManager:
             )
 
     async def update_switch_config(self, config: SwitchConfig) -> None:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             session.add(config)
             await session.commit()
             await session.refresh(config)

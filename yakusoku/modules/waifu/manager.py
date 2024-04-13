@@ -6,7 +6,7 @@ from enum import Enum, auto
 import sqlmodel
 
 from yakusoku.archive import utils as archive_utils
-from yakusoku.context import sql
+from yakusoku.database import SQLSessionManager
 
 from .config import config
 from .models import WAIFU_MAX_RARITY, WaifuConfig, WaifuData
@@ -33,11 +33,13 @@ class NoChoosableWaifuError(Exception):
 
 
 class WaifuManager:
-    def __init__(self) -> None:
-        pass
+    sql: SQLSessionManager
+
+    def __init__(self, sql: SQLSessionManager) -> None:
+        self.sql = sql
 
     async def get_waifu_data(self, group: int, member: int) -> WaifuData:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             statement = (
                 sqlmodel.select(WaifuData)
                 .where(WaifuData.group == group)
@@ -49,19 +51,19 @@ class WaifuManager:
             )
 
     async def get_waifu_config(self, user: int) -> WaifuConfig:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             statement = sqlmodel.select(WaifuConfig).where(WaifuConfig.user == user)
             results = await session.execute(statement)
             return row[0] if (row := results.one_or_none()) else WaifuConfig(user=user)
 
     async def update_waifu_data(self, data: WaifuData) -> None:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             session.add(data)
             await session.commit()
             await session.refresh(data)
 
     async def update_waifu_config(self, config: WaifuConfig) -> None:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             session.add(config)
             await session.commit()
             await session.refresh(config)
@@ -114,7 +116,7 @@ class WaifuManager:
         return WaifuFetchResult(waifu, WaifuFetchState.UPDATED)
 
     async def get_waifu_datas(self, group: int) -> list[WaifuData]:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             statement = sqlmodel.select(WaifuData).where(WaifuData.group == group)
             results = await session.execute(statement)
             return [row[0] for row in results.all()]
@@ -124,7 +126,7 @@ class WaifuManager:
         return [data for data in datas if not await self._is_update_needed(data)]
 
     async def remove_waifu(self, group: int, member: int) -> None:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             statement = (
                 sqlmodel.select(WaifuData)
                 .where(WaifuData.group == group)
@@ -135,7 +137,7 @@ class WaifuManager:
             await session.commit()
 
     async def remove_group(self, group: int) -> None:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             statement = sqlmodel.select(WaifuData).where(WaifuData.group == group)
             results = await session.execute(statement)
             for row in results.all():

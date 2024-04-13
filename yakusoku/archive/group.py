@@ -3,12 +3,14 @@ from aiogram.types import Chat
 from sqlalchemy.exc import NoResultFound
 
 from yakusoku.archive.models import GroupData
-from yakusoku.context import sql
+from yakusoku.database import SQLSessionManager
 
 
 class GroupManager:
-    def __init__(self) -> None:
-        pass
+    sql: SQLSessionManager
+
+    def __init__(self, sql: SQLSessionManager) -> None:
+        self.sql = sql
 
     async def update_group_from_chat(self, chat: Chat) -> GroupData:
         try:
@@ -20,25 +22,25 @@ class GroupManager:
         return data
 
     async def update_group(self, group: GroupData) -> None:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             session.add(group)
             await session.commit()
             await session.refresh(group)
 
     async def get_group(self, id: int) -> GroupData:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             statement = sqlmodel.select(GroupData).where(GroupData.id == id)
             results = await session.execute(statement)
             return results.one()[0]
 
     async def get_groups(self) -> list[GroupData]:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             statement = sqlmodel.select(GroupData)
             results = await session.execute(statement)
             return [row[0] for row in results.all()]
 
     async def remove_group(self, id: int) -> None:
-        async with sql.session() as session:
+        async with self.sql.session() as session:
             statement = sqlmodel.select(GroupData).where(GroupData.id == id)
             results = await session.execute(statement)
             await session.delete(results.one()[0])

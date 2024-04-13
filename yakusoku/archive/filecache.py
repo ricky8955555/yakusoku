@@ -2,20 +2,15 @@ import os
 
 from aiogram.types import File, PhotoSize
 
-from yakusoku.constants import DATA_PATH
-
-_FILE_CACHE_PATH = os.path.join(DATA_PATH, "filecache")
-
-os.makedirs(_FILE_CACHE_PATH, exist_ok=True)
-
 
 class FileCacheManager:
-    def __init__(self) -> None:
-        pass
+    path: str
 
-    @staticmethod
-    def _get_path(file_unique_id: str) -> str:
-        return os.path.join(_FILE_CACHE_PATH, file_unique_id)
+    def __init__(self, path: str) -> None:
+        self.path = path
+
+    def _get_path(self, file_unique_id: str) -> str:
+        return os.path.join(self.path, file_unique_id)
 
     async def get_file(self, file: File | PhotoSize) -> str:
         path = self._get_path(file.file_unique_id)

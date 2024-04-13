@@ -20,7 +20,7 @@ from yakusoku.archive import avatar_manager, user_manager
 from yakusoku.archive import utils as archive_utils
 from yakusoku.archive.exceptions import ChatDeleted, ChatNotFound
 from yakusoku.archive.models import UserData
-from yakusoku.context import common_config, module_manager
+from yakusoku.context import common_config, module_manager, sql
 from yakusoku.filters import CallbackQueryFilter, ManagerFilter, NonAnonymousFilter
 from yakusoku.shared.callback import CallbackQueryTaskManager
 from yakusoku.shared.lock import SimpleLockManager
@@ -39,7 +39,7 @@ from .registry import Registry
 
 dp = module_manager.dispatcher()
 
-_manager = WaifuManager()
+_manager = WaifuManager(sql)
 _registry = Registry(_manager)
 _tasks = CallbackQueryTaskManager(dp, "waifu_task/", "任务不见力 QwQ")
 _registry_lock = SimpleLockManager()

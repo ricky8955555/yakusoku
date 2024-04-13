@@ -5,7 +5,7 @@ from aiogram.types import ChatType, ContentTypes, Message
 from cashews import Cache
 
 from yakusoku.constants import FILTERED_IDS
-from yakusoku.context import module_manager
+from yakusoku.context import module_manager, sql
 from yakusoku.filters import NonAnonymousFilter
 from yakusoku.utils import chat
 from yakusoku.utils.exception import try_or_default_async
@@ -20,7 +20,7 @@ cache = Cache()
 cache.setup("mem://")
 
 config = GreetingConfig.load("greeting")
-manager = GreetingManager()
+manager = GreetingManager(sql)
 
 loaded = datetime.now()
 
