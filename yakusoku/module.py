@@ -47,10 +47,10 @@ class ModuleManager:
     @staticmethod
     def _collect_modules(path: str | Path) -> set[str]:
         # it only collects modules in the root of specific path located in current working path.
-        path = Path(path).absolute().relative_to(Path(os.getcwd()))
+        path = Path(path).absolute().relative_to(os.getcwd())
         assert path.is_dir(), "attempt to collect modules from a non-directory path."
         modules = [
-            item.with_suffix("").as_posix().replace("/", ".")
+            ".".join(item.with_suffix("").parts)
             for item in Path(path).iterdir()
             if (
                 (item.is_file() and item.suffix == ".py")
