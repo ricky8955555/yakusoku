@@ -2,7 +2,9 @@ import aiogram
 from aiogram import Bot, Dispatcher
 from sqlmodel import SQLModel
 
-from yakusoku import context, environ
+from yakusoku import context
+from yakusoku import dot as dot
+from yakusoku import environ
 from yakusoku.module import ModuleManager
 
 
