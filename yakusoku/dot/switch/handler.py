@@ -25,9 +25,10 @@ class PatchedHandler:
                 name = path.relative_to(module_path).parts[0]
             except ValueError:
                 continue
-            assert not result, "more than one module found in stack."
             path = (module_path / name).relative_to(os.getcwd())
-            result = ".".join(path.parts)
+            package = ".".join(path.parts)
+            assert not result or result == package, "more than one module found in stack."
+            result = package
         return result
 
     @patched
