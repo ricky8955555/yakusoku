@@ -1,3 +1,4 @@
+import asyncio
 import os
 import platform
 import sys
@@ -18,9 +19,13 @@ async def status(message: Message):
     process = psutil.Process()
     working_time = datetime.now() - datetime.fromtimestamp(process.create_time())
 
+    # drop the first call.
+    process.cpu_percent()
+    await asyncio.sleep(1)
+
     process_info = (
         f"- 运行时间: {humanize.naturaldelta(working_time)}\n"
-        f"- CPU 占用: {process.cpu_percent()} %\n"
+        f"- CPU 占用: {round(process.cpu_percent() / psutil.cpu_count(), 1)} %\n"
         f"- 内存占用: {humanize.naturalsize(process.memory_info().rss)}\n"
         f"- Python 版本: {sys.version.split(' ')[0]}"
     )
