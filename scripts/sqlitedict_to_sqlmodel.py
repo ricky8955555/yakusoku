@@ -7,16 +7,16 @@ from datetime import datetime
 from aiogram import Bot
 from sqlitedict import SqliteDict
 
-from yakusoku import bot_config, sql
 from yakusoku.archive import group_manager, user_manager
 from yakusoku.archive import utils as archive_utils
 from yakusoku.archive.exceptions import ChatDeleted, ChatNotFound
 from yakusoku.archive.models import UserData
-from yakusoku.constants import DATA_PATH
+from yakusoku.context import bot_config, sql
+from yakusoku.environ import data_path
 from yakusoku.modules.waifu.manager import WaifuManager
 from yakusoku.modules.waifu.models import WAIFU_DEFAULT_RARITY, WaifuConfig, WaifuData
 
-OLD_DATABASE_PATH = os.path.join(DATA_PATH, "database")
+OLD_DATABASE_PATH = os.path.join(data_path, "database")
 
 
 @dataclass
