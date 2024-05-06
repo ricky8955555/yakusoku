@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
+from typing import Any, Callable
 
 from aiogram import Dispatcher
 from aiogram.types import BotCommand
@@ -32,6 +33,8 @@ class ModuleInfo:
 class ModuleManager:
     _dispatcher: Dispatcher
     _modules: dict[str, ModuleInfo]
+    _on_startups: list[Callable[[], Any]]
+    _on_shutdowns: list[Callable[[], Any]]
 
     @property
     def loaded_modules(self) -> dict[str, ModuleInfo]:
@@ -40,6 +43,10 @@ class ModuleManager:
     def __init__(self, dispatcher: Dispatcher) -> None:
         self._dispatcher = dispatcher
         self._modules = {}
+        self._on_startups = []
+        self._on_shutdowns = []
+
+        self.on_startup(self._register_commands)
 
     def dispatcher(self) -> Dispatcher:
         return self._dispatcher
@@ -88,7 +95,23 @@ class ModuleManager:
         modules = self._collect_modules(path)
         self.import_modules(*modules)
 
-    async def register_commands(self) -> None:
+    async def startup(self) -> None:
+        for handler in self._on_startups:
+            await handler()
+
+    async def shutdown(self) -> None:
+        for handler in self._on_shutdowns:
+            await handler()
+
+    def on_startup(self, handler: Callable[[], Any]) -> Callable[[], Any]:
+        self._on_startups.append(handler)
+        return handler
+
+    def on_shutdown(self, handler: Callable[[], Any]) -> Callable[[], Any]:
+        self._on_shutdowns.append(handler)
+        return handler
+
+    async def _register_commands(self) -> None:
         commands = [
             BotCommand(command, description)
             for info in self._modules.values()

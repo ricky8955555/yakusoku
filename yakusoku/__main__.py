@@ -1,17 +1,19 @@
 import aiogram
 from aiogram import Bot, Dispatcher
+from sqlmodel import SQLModel
 
 from yakusoku import context, environ
 from yakusoku.module import ModuleManager
 
 
 async def on_startup(_):
-    await context.sql.init_db()
-    await context.module_manager.register_commands()
+    await context.sql.init_db(SQLModel.metadata)
+    await context.module_manager.startup()
 
 
 async def on_shutdown(_):
-    context.sql.close()
+    await context.sql.close()
+    await context.module_manager.shutdown()
 
 
 bot = Bot(context.bot_config.token)

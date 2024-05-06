@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from sqlalchemy import MetaData, Table
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from sqlmodel import SQLModel
 
 
 class SQLSessionManager:
@@ -27,9 +27,20 @@ class SQLSessionManager:
     def session(self) -> sessionmaker[AsyncSession]:
         return self._session
 
-    async def init_db(self) -> None:
+    async def init_db(self, metadata: MetaData) -> None:
         async with self._engine.begin() as conn:
-            await conn.run_sync(SQLModel.metadata.create_all)
+            await conn.run_sync(metadata.create_all)
 
-    def close(self) -> None:
-        self._session.close_all()
+    async def init_db_with_tables(self, *tables: Table) -> None:
+        async with self._engine.begin() as conn:
+            for table in tables:
+                await conn.run_sync(lambda engine: table.create(engine, True))  # type: ignore
+
+    async def close(self) -> None:
+        await self._engine.dispose()
+
+    async def __aenter__(self) -> "SQLSessionManager":
+        return self
+
+    async def __aexit__(self, *_) -> None:
+        await self.close()
