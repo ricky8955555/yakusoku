@@ -10,9 +10,9 @@ from yakusoku.config import Config
 from .providers import AnyPackageRepository as _T
 from .providers import PackageProvider
 from .providers.alpm import Alpm, AlpmRepository, AlpmSource
+from .providers.apk import Apk, ApkRepository
 from .providers.apt import Apt, AptComponent, AptSource
 from .providers.rpmmd import RpmMd, RpmMdRepository
-from .providers.apk import Apk, ApkRepository
 
 
 class PkgDistroConfig(BaseModel, Generic[_T], abc.ABC):

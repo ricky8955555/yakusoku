@@ -22,10 +22,10 @@ class ApkRepository(PackageRepository):
     @property
     def identifier(self) -> str:
         return self.source
-    
+
     def db_url(self) -> str:
         return posixpath.join(self.source, "APKINDEX.tar.gz")
-    
+
     def package_url(self, name: str, version: str) -> str:
         return posixpath.join(self.source, f"{name}-{version}.apk")
 
