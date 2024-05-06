@@ -16,7 +16,7 @@ dp = module_manager.dispatcher()
 async def switch(message: Message):
     name = message.get_args()
     if not name:
-        return await message.reply("戳啦, 正确用法为 `/switch <模块名称>`")
+        return await message.reply("戳啦, 正确用法为 `/switch <模块名称>`", parse_mode="Markdown")
     module = module_manager.loaded_modules.get(name)
     if not module:
         return await message.reply(f"没找到 {name} 模块捏w")
