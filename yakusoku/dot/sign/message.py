@@ -12,8 +12,11 @@ from yakusoku.utils import chat
 
 @patch(Message)
 class PatchedMessage:
-    async def _handle(self: Any, raw: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> str:
+    async def _handle(
+        self: Any, raw: Any, args: tuple[Any, ...], kwargs: dict[str, Any]
+    ) -> Message:
         message = cast(Message, self)
+        message: Message = getattr(message, "_original_message", None) or message
         if (
             message.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]
             or not (await sign_manager.get_sign_config(message.chat.id)).enabled
@@ -62,7 +65,9 @@ class PatchedMessage:
         else:
             modified_args[text_index] = f"{info}\n\n{args[text_index]}"
 
-        return await raw(*modified_args, **kwargs)
+        sent = await raw(*modified_args, **kwargs)
+        setattr(sent, "_original_message", message)
+        return sent
 
     @patched
     def reply(self: Any, *args: Any, **kwargs: Any) -> Any:
