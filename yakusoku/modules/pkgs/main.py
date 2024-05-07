@@ -83,7 +83,7 @@ async def pkgs_all(message: Message, name: str):
     for distro, manager in managers.items():
         try:
             package = await manager.info(name)
-            info = package.version
+            info = f"{package.name}-{package.version}"
             if manager.updating:
                 updating.append(distro)
                 info += "*"
