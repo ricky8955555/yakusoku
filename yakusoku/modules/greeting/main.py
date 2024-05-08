@@ -33,7 +33,11 @@ async def switch_user_greeting(message: Message):
     data = await manager.get_greeting_data(message.from_id)
     data.enabled = not data.enabled
     await manager.update_greeting_data(data)
-    await message.reply("问候功能启用啦! 以后会跟你问好的w" if data.enabled else "问候功能已经禁用啦! 以后不再打扰你了w")
+    await message.reply(
+        "问候功能启用啦! 以后会跟你问好的w"
+        if data.enabled
+        else "问候功能已经禁用啦! 以后不再打扰你了w"
+    )
 
 
 async def greet(message: Message):

@@ -49,9 +49,13 @@ async def left(group: Chat, member: ChatMember) -> None:
 
 async def permission_check(group: Chat, member: ChatMember) -> None:
     if group.type == ChatType.GROUP:
-        await group.bot.send_message(group.id, "我看不到这个群有谁捏, 给我个管理员权限好嘛w, 不然很多功能没法使用唔xwx")
+        await group.bot.send_message(
+            group.id, "我看不到这个群有谁捏, 给我个管理员权限好嘛w, 不然很多功能没法使用唔xwx"
+        )
     elif not member.is_chat_admin():
-        await group.bot.send_message(group.id, "我没法知道这个群有谁会进进出出捏, 给我个管理员权限好嘛w")
+        await group.bot.send_message(
+            group.id, "我没法知道这个群有谁会进进出出捏, 给我个管理员权限好嘛w"
+        )
     elif member.status == ChatMemberStatus.RESTRICTED:
         await group.bot.send_message(group.id, "坏诶, 怎么被限制了w")
     else:

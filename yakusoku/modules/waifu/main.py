@@ -369,7 +369,8 @@ async def propose_callback(query: CallbackQuery):  # type: ignore
         return await query.answer("你或者对方正在处理某些事项哦~")
     buttons = create_proposal_task_unchecked(query.message.chat.id, originator, target)
     await query.message.reply(
-        f"{chat.get_mention(query.from_user)} " f"向 {archive_utils.user_mention(target)} 发起了求婚邀请",
+        f"{chat.get_mention(query.from_user)} "
+        f"向 {archive_utils.user_mention(target)} 发起了求婚邀请",
         reply_markup=buttons,
         reply=False,
     )
@@ -381,7 +382,11 @@ async def mention_global(message: Message):
     config = await _manager.get_waifu_config(message.from_id)
     config.mentionable = not config.mentionable
     await _manager.update_waifu_config(config)
-    await message.reply("在所有群别人抽到你做老婆的时候可以通知你哦~" if config.mentionable else "在所有群别人抽老婆的时候不会打扰到你啦~")
+    await message.reply(
+        "在所有群别人抽到你做老婆的时候可以通知你哦~"
+        if config.mentionable
+        else "在所有群别人抽老婆的时候不会打扰到你啦~"
+    )
 
 
 @dp.message_handler(

@@ -35,8 +35,7 @@ class PkgDistroConfig(BaseModel, Generic[_T], abc.ABC):
         cls.__subtypes__[cls.__scheme__] = cls
 
     @abc.abstractmethod
-    def to_instance(self) -> tuple[PackageProvider[_T], list[_T]]:
-        ...
+    def to_instance(self) -> tuple[PackageProvider[_T], list[_T]]: ...
 
 
 class PkgsConfig(Config):
