@@ -3,6 +3,7 @@ from aiogram.types import ChatType, Message
 
 from yakusoku.context import module_manager
 from yakusoku.dot.switch import switch_manager
+from yakusoku.utils.message import cut_message
 
 dp = module_manager.dispatcher()
 
@@ -32,4 +33,6 @@ async def help(message: Message):
             )
         reply += "\n\n"
     reply = reply.rstrip()
-    await message.reply(reply)
+
+    for part in cut_message(reply, "\n\n"):
+        message = await message.reply(part)
