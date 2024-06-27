@@ -7,6 +7,9 @@ from aiogram.types import Message
 from yakusoku.context import module_manager
 from yakusoku.utils import chat
 
+from . import process
+
+
 dp = module_manager.dispatcher()
 
 PATTERN = re.compile(r"\/(?:\$([a-zA-Z0-9]\S*)|\$?([^a-zA-Z0-9\s]\S*))\s*(.*)")
@@ -15,14 +18,6 @@ PATTERN = re.compile(r"\/(?:\$([a-zA-Z0-9]\S*)|\$?([^a-zA-Z0-9\s]\S*))\s*(.*)")
 class SlashFilter(Filter):
     async def check(self, message: Message) -> bool:  # type: ignore
         return message.text.startswith("/")
-
-
-def get_reply(first: str, second: str, sender: str, target: str) -> str:
-    if second:
-        return f"{sender} {first} {target} {second} !"
-    if "了" in first:
-        return f"{sender} {first} {target} !"
-    return f"{sender} {first}了 {target} !"
 
 
 @dp.message_handler(SlashFilter())
@@ -36,5 +31,13 @@ async def slash(message: Message):
     origin = message.reply_to_message or message
     target = origin.sender_chat or origin.from_user
     target_mention: str = chat.get_mention(target, "自己" if target.id == sender.id else None)
-    reply = get_reply(html.escape(first), html.escape(second), sender_mention, target_mention)
+
+    if second:
+        first = html.escape(process.normalize_string(process.complete_ul(first)))
+        second = html.escape(process.normalize_string(second))
+        reply = f"{sender_mention} {first} {target_mention} {second} !"
+    else:
+        first = html.escape(process.normalize_string(first))
+        reply = f"{sender_mention} {first} {target_mention} !"
+
     await message.reply(reply)
