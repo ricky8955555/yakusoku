@@ -71,7 +71,7 @@ class Illust(BaseSchema):
     restrict: int  # ?
     x_restrict: XRestrict
     tags: Tags
-    sl: int  # ?
+    sl: int  # 2 - sfw ?
     urls: Urls
     alt: str
     user_id: int

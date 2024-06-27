@@ -84,7 +84,7 @@ async def send_illust(message: Message, id: int) -> Message:
         + f"更新日期: {illust.upload_date}\n"
     )
     buttons = []
-    if illust.x_restrict == XRestrict.NONE:
+    if illust.x_restrict == XRestrict.NONE and illust.sl == 2:
         buttons.append(
             [
                 InlineKeyboardButton(
@@ -117,7 +117,7 @@ async def send_illust(message: Message, id: int) -> Message:
         finally:
             await reply.delete()
     else:
-        reason = "为 R-18 / R-18G 类型"
+        reason = "为 R-18 / R-18G 类型或敏感内容"
     return await message.reply(
         info + f"\n由于插图{reason}, 没法展示出来 QwQ",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
