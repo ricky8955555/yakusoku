@@ -2,13 +2,13 @@ import contextlib
 from typing import AsyncIterable
 
 from aiogram import Bot
-from aiogram.types import ChatMemberStatus
+from aiogram.enums import ChatMemberStatus
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.utils import markdown
-from aiogram.utils.exceptions import BadRequest, ChatNotFound
 from sqlalchemy.exc import NoResultFound
 
 from yakusoku.archive import group_manager, user_manager
-from yakusoku.archive.exceptions import ChatDeleted
+from yakusoku.archive.exceptions import ChatDeleted, ChatNotFound
 from yakusoku.archive.models import GroupData, UserData
 from yakusoku.utils import exception
 
@@ -34,7 +34,7 @@ def user_mention(user: UserData, name: str | None = None, as_html: bool = True) 
 async def fetch_user(bot: Bot, id: int) -> UserData:
     try:
         chat = await bot.get_chat(id)
-    except ChatNotFound as ex:
+    except TelegramBadRequest as ex:
         with contextlib.suppress(Exception):
             await user_manager.remove_user(id)
         for group in await group_manager.get_groups():
@@ -48,7 +48,7 @@ async def fetch_user(bot: Bot, id: int) -> UserData:
 async def fetch_group(bot: Bot, id: int) -> GroupData:
     try:
         chat = await bot.get_chat(id)
-    except ChatNotFound as ex:
+    except TelegramBadRequest as ex:
         with contextlib.suppress(Exception):
             await group_manager.remove_group(id)
         raise ChatDeleted from ex
@@ -58,19 +58,13 @@ async def fetch_group(bot: Bot, id: int) -> GroupData:
 async def fetch_member(bot: Bot, group: int, member: int, check_user: bool = False) -> UserData:
     try:
         chat_member = await bot.get_chat_member(group, member)
-        assert chat_member.status not in [
-            ChatMemberStatus.KICKED,
-            ChatMemberStatus.BANNED,
-            ChatMemberStatus.LEFT,
-        ]
+        assert chat_member.status not in [ChatMemberStatus.KICKED, ChatMemberStatus.LEFT]
         user = await (
             fetch_user(bot, member)
             if check_user
             else user_manager.update_from_user(chat_member.user)
         )
-    except (BadRequest, ChatDeleted, AssertionError) as ex:
-        if isinstance(ex, BadRequest) and ex.args[0] != "User not found":
-            raise
+    except (TelegramBadRequest, ChatDeleted, AssertionError) as ex:
         await group_manager.remove_member(group, member)
         raise ChatDeleted from ex
     await group_manager.add_member(group, user.id)

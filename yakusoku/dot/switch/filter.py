@@ -1,7 +1,8 @@
 from typing import Any
 
-from aiogram.dispatcher.filters import Filter
-from aiogram.types import Chat, ChatType, Message
+from aiogram.enums import ChatType
+from aiogram.filters import Filter
+from aiogram.types import Chat, Message
 
 from yakusoku.dot.switch import switch_manager
 from yakusoku.module import ModuleConfig
@@ -13,13 +14,10 @@ class SwitchFilter(Filter):
     def __init__(self, module: ModuleConfig) -> None:
         self._module = module
 
-    async def check(self, *args: Any) -> bool:
-        if not args:
-            return True
-        update = args[0]
-        chat: Chat | None = getattr(update, "chat", None)
+    async def __call__(self, obj: Any) -> bool:
+        chat: Chat | None = getattr(obj, "chat", None)
         if not chat:
-            message: Message | None = getattr(update, "message", None)
+            message: Message | None = getattr(obj, "message", None)
             if not message:
                 return True
             chat = message.chat

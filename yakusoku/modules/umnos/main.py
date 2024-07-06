@@ -1,12 +1,14 @@
 import random
 import traceback
+from typing import Any
 
 import aiohttp
+from aiogram.filters import Command
+from aiogram.filters.callback_data import CallbackData, CallbackQueryFilter
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from yakusoku.config import Config
 from yakusoku.context import module_manager
-from yakusoku.filters import CallbackQueryFilter
 from yakusoku.utils import chat
 
 COUNTRIES_DATA_URL = (
@@ -36,7 +38,11 @@ class UmnosConfig(Config):
     overwritten_countries: bool = False
 
 
-dp = module_manager.dispatcher()
+class Refresh(CallbackData, prefix="umnos_refresh"):
+    user: int
+
+
+router = module_manager.create_router()
 
 config = UmnosConfig.load("umnos")
 countries: list[str] = []
@@ -69,18 +75,23 @@ async def get_countries() -> list[str]:
     return countries
 
 
-@dp.message_handler(commands=["umnos", "rebirth", "reborn"])
-@dp.callback_query_handler(CallbackQueryFilter("umnos_refresh"))
-async def umnos(update: Message | CallbackQuery):  # type: ignore
-    if isinstance(update, CallbackQuery) and int(update.data.split(" ")[1]) != update.from_user.id:
-        return await update.answer("不要帮别人转生捏!")
+@router.message(Command("umnos", "rebirth", "reborn"))
+@router.callback_query(CallbackQueryFilter(callback_data=Refresh))
+async def umnos(update: Message | CallbackQuery, **kwargs: Any):
+    if isinstance(update, CallbackQuery):
+        data: Refresh = kwargs["callback_data"]
+        if data.user != update.from_user.id:
+            return await update.answer("不要帮别人转生捏!")
     country = random.choice(await get_countries())
     type = random.choice(get_types())
-    mention = chat.get_mention(getattr(update, "sender_chat", None) or update.from_user)
+    assert (sender := getattr(update, "sender_chat", None) or update.from_user)
+    mention = chat.mention_html(sender)
     reply = f"转生成功! {mention} 现在是 {country} 的 {type} 了!"
     if isinstance(update, CallbackQuery):
+        if not isinstance(update.message, Message):
+            return await update.answer("消息太远古了, 我不是考古学家w")
         return await update.message.edit_text(reply, reply_markup=update.message.reply_markup)
-    if update.sender_chat:
+    if update.sender_chat or not update.from_user:
         return await update.reply(reply)
     buttons = InlineKeyboardMarkup(
         inline_keyboard=[

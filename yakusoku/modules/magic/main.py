@@ -1,15 +1,15 @@
 import html
 import traceback
-from typing import cast
 
 import aiohttp
 import magic
-from aiogram.types import ContentType, Message
-from aiogram.types.mixins import Downloadable
+from aiogram import Bot
+from aiogram.filters import Command, CommandObject
+from aiogram.types import Downloadable, Message
 
 from yakusoku.context import module_manager
 
-dp = module_manager.dispatcher()
+router = module_manager.create_router()
 
 
 def extract_file(message: Message) -> Downloadable | None:
@@ -24,12 +24,14 @@ def extract_file(message: Message) -> Downloadable | None:
     )
 
 
-async def get_file_type(message: Message, mime: bool) -> str:
+async def get_file_type(bot: Bot, message: Message, mime: bool) -> str:
     file = extract_file(message)
     if not file:
         raise FileNotFoundError
 
-    url = cast(str, await file.get_url())
+    file = await bot.get_file(file.file_id)
+    assert (path := file.file_path), "'file_path' should not be None."
+    url = bot.session.api.file_url(bot.token, path)
     size = 512  # read 512 bytes only
 
     async with aiohttp.ClientSession(read_bufsize=size) as session:
@@ -40,17 +42,13 @@ async def get_file_type(message: Message, mime: bool) -> str:
     return magic.from_buffer(header, mime)
 
 
-@dp.message_handler(
-    commands=["magic", "mime"],
-    content_types=ContentType.all(),
-)
-async def entry(message: Message):
+@router.message(Command("magic", "mime"))
+async def entry(message: Message, bot: Bot, command: CommandObject):
     analyzing = message.reply_to_message or message
-    command = message.get_command(True)
-    mime = command == "mime"
+    mime = command.command == "mime"
 
     try:
-        typ = await get_file_type(analyzing, mime)
+        typ = await get_file_type(bot, analyzing, mime)
     except FileNotFoundError:
         return await message.reply(
             f"诶? 没找到文件捏! 回复一条带文件的消息或者发送带 /{command} 指令的带文件消息再试试w"

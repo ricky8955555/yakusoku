@@ -42,4 +42,4 @@ async def hitokoto(params: dict[str, str] | None = None, api: str | None = None)
     async with aiohttp.ClientSession() as session:
         async with session.get(api or DEFAULT_API_URL, params=params) as response:
             data = await response.read()
-            return Sentence.parse_raw(data)
+            return Sentence.model_validate_json(data)

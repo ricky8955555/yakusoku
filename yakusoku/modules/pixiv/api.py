@@ -1,11 +1,10 @@
 from typing import TypeVar
 
 from aiohttp import ClientSession
-from pydantic import BaseModel
 
 from .types import AjaxResponse, Illust, IllustPage, UgoiraMeta
 
-_T = TypeVar("_T", bound=BaseModel)
+_T = TypeVar("_T")
 
 _API = "https://www.pixiv.net/"
 
@@ -17,38 +16,34 @@ class ApiError(Exception):
         self.message = message
 
 
-class _IllustPages(BaseModel):
-    __root__: list[IllustPage]
-
-
-def _extract_body(type: type[_T], response: AjaxResponse) -> _T:
+def _extract_body(response: AjaxResponse[_T]) -> _T:
     if response.error or response.body is None:
         raise ApiError(response.message)
-    return type.parse_obj(response.body)
+    return response.body
 
 
 async def illust(id: int) -> Illust:
     async with ClientSession(_API) as session:
         async with session.get(f"/ajax/illust/{id}") as response:
             data = await response.read()
-    response = AjaxResponse.parse_raw(data)
-    return _extract_body(Illust, response)
+    response = AjaxResponse[Illust].model_validate_json(data)
+    return _extract_body(response)
 
 
 async def illust_pages(id: int) -> list[IllustPage]:
     async with ClientSession(_API) as session:
         async with session.get(f"/ajax/illust/{id}/pages") as response:
             data = await response.read()
-    response = AjaxResponse.parse_raw(data)
-    return _extract_body(_IllustPages, response).__root__
+    response = AjaxResponse[list[IllustPage]].model_validate_json(data)
+    return _extract_body(response)
 
 
 async def illust_ugoira_meta(id: int) -> UgoiraMeta:
     async with ClientSession(_API) as session:
         async with session.get(f"/ajax/illust/{id}/ugoira_meta") as response:
             data = await response.read()
-    response = AjaxResponse.parse_raw(data)
-    return _extract_body(UgoiraMeta, response)
+    response = AjaxResponse[UgoiraMeta].model_validate_json(data)
+    return _extract_body(response)
 
 
 async def download_asset(url: str) -> bytes:

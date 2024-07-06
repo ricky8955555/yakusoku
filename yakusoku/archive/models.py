@@ -1,4 +1,5 @@
-from aiogram.types import Chat, ChatType, User
+from aiogram.enums import ChatType
+from aiogram.types import Chat, User
 from sqlmodel import JSON, Column, Field, SQLModel
 
 

@@ -1,23 +1,26 @@
-from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import ChatType, Message
+from aiogram.enums import ChatType
+from aiogram.filters import Command
+from aiogram.types import Message
 
 from yakusoku.context import module_manager
 from yakusoku.dot.switch import switch_manager
 from yakusoku.utils.message import cut_message
 
-dp = module_manager.dispatcher()
+router = module_manager.create_router()
 
 
-@dp.message_handler(
-    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    commands=["help"],
-)
+@router.message(Command("help"))
 async def help(message: Message):
     reply = ""
+    group = message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]
     for module in sorted(module_manager.loaded_modules.values(), key=lambda x: x.config.name):
         config = module.config
-        switch = await switch_manager.get_switch_config(message.chat.id, config)
-        if switch.enabled:
+        if group:
+            switch = await switch_manager.get_switch_config(message.chat.id, config)
+            enabled = switch.enabled
+        else:
+            enabled = True
+        if enabled:
             reply += f"<u><b>=== {config.name} ({config.description}) ===</b></u>\n"
             if config.commands:
                 reply += "\n".join(

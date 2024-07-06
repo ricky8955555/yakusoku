@@ -3,7 +3,7 @@ from collections import Counter
 from datetime import timedelta
 from typing import Any, ClassVar, Generic
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 from yakusoku.config import Config
 
@@ -45,7 +45,7 @@ class PkgsConfig(Config):
     commit_on: int = 1000
     default_update: timedelta = timedelta(hours=4)
 
-    @validator("distros")
+    @field_validator("distros")
     def distros_no_duplicate(cls, v: list[PkgDistroConfig[Any]]) -> list[PkgDistroConfig[Any]]:
         duplicate = [
             name for name, count in Counter(distro.name for distro in v).items() if count > 1

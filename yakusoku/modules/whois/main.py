@@ -3,12 +3,13 @@ import traceback
 from typing import Any, cast
 
 import asyncwhois
+from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from yakusoku.context import module_manager
 from yakusoku.utils.message import cut_message
 
-dp = module_manager.dispatcher()
+router = module_manager.create_router()
 
 
 def stringify_entries(entries: dict[str, Any]) -> str:
@@ -28,9 +29,9 @@ def stringify_entries(entries: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-@dp.message_handler(commands=["whois"])
-async def whois(message: Message):
-    if not (target := message.get_args()):
+@router.message(Command("whois"))
+async def whois(message: Message, command: CommandObject):
+    if not (target := command.args):
         return await message.reply("不给我目标我不造查什么w")
 
     try:

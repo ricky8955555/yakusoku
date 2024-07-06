@@ -1,19 +1,22 @@
 from datetime import datetime
 from enum import IntEnum
-from typing import Any
+from typing import Any, Generic, TypeVar
 
-import pydantic.utils
-from pydantic import BaseModel, Field
+import pydantic.alias_generators
+from pydantic import BaseModel, ConfigDict, Field
+
+_T = TypeVar("_T")
 
 
 class BaseSchema(BaseModel):
-    class Config:
-        alias_generator = pydantic.utils.to_lower_camel
-        populate_by_name = True
-        from_attributes = True
+    model_config = ConfigDict(
+        alias_generator=pydantic.alias_generators.to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+    )
 
 
-class AjaxResponse(BaseSchema):
+class AjaxResponse(BaseSchema, Generic[_T]):
     error: bool
     message: str
     body: Any | None

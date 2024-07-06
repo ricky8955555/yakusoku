@@ -6,15 +6,16 @@ from datetime import datetime
 
 import humanize
 import psutil
+from aiogram.filters import Command
 from aiogram.types import Message
 
 from yakusoku.archive import group_manager, user_manager
 from yakusoku.context import module_manager, sql
 
-dp = module_manager.dispatcher()
+router = module_manager.create_router()
 
 
-@dp.message_handler(commands=["status"])
+@router.message(Command("status"))
 async def status(message: Message):
     process = psutil.Process()
     working_time = datetime.now() - datetime.fromtimestamp(process.create_time())

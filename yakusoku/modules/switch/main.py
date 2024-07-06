@@ -1,21 +1,16 @@
-from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import ChatType, Message
+from aiogram.filters import Command, CommandObject
+from aiogram.types import Message
 
 from yakusoku.context import module_manager
 from yakusoku.dot.switch import switch_manager
-from yakusoku.filters import ManagerFilter
+from yakusoku.filters import GroupFilter, ManagerFilter
 
-dp = module_manager.dispatcher()
+router = module_manager.create_router()
 
 
-@dp.message_handler(
-    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    ManagerFilter(),
-    commands=["switch"],
-)
-async def switch(message: Message):
-    name = message.get_args()
-    if not name:
+@router.message(Command("switch"), GroupFilter, ManagerFilter)
+async def switch(message: Message, command: CommandObject):
+    if not (name := command.args):
         return await message.reply("戳啦, 正确用法为 `/switch <模块名称>`", parse_mode="Markdown")
     module = module_manager.loaded_modules.get(name)
     if not module:

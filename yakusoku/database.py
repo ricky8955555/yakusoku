@@ -1,19 +1,23 @@
 from __future__ import annotations
 
 from sqlalchemy import MetaData, Table
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 
 class SQLSessionManager:
     _engine: AsyncEngine
-    _session: sessionmaker[AsyncSession]
+    _session: async_sessionmaker[AsyncSession]
     _path: str
 
     def __init__(self, path: str) -> None:
         self._path = path
         self._engine = create_async_engine("sqlite+aiosqlite:///" + path)
-        self._session = sessionmaker(self._engine, class_=AsyncSession)
+        self._session = async_sessionmaker(self._engine)
 
     @property
     def path(self) -> str:
@@ -24,7 +28,7 @@ class SQLSessionManager:
         return self._engine
 
     @property
-    def session(self) -> sessionmaker[AsyncSession]:
+    def session(self) -> async_sessionmaker[AsyncSession]:
         return self._session
 
     async def init_db(self, metadata: MetaData) -> None:

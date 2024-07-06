@@ -2,6 +2,7 @@ import asyncio
 
 from sqlalchemy.exc import NoResultFound
 
+from yakusoku import context
 from yakusoku.archive import group_manager, user_manager
 from yakusoku.modules.waifu.manager import WaifuManager
 from yakusoku.modules.waifu.registry import Registry as WaifuRegistry
@@ -15,7 +16,7 @@ async def main():
             except NoResultFound:
                 await group_manager.remove_member(group.id, member)
 
-        waifu_manager = WaifuManager()
+        waifu_manager = WaifuManager(context.sql)
         waifu_registry = WaifuRegistry(waifu_manager)
         for waifu in await waifu_manager.get_waifu_datas(group.id):
             try:

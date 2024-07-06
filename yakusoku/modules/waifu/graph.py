@@ -20,7 +20,7 @@ async def render(bot: Bot, mapping: dict[int, int], format: str | None = None) -
         with contextlib.suppress(Exception):
             avatar = await avatar_manager.get_avatar_file(bot, member)
         if avatar:
-            avatar_file = await file_cache_manager.get_file(avatar)
+            avatar_file = await file_cache_manager.get_file(bot, avatar)
             with graph.subgraph(name=f"cluster_{member}") as subgraph:  # type: ignore
                 subgraph.attr(label=label, labelloc="b")
                 # fmt: off

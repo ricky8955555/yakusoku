@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import validator
+from pydantic import field_validator
 from sqlmodel import Field, SQLModel
 
 WAIFU_MIN_RARITY = 1
@@ -27,7 +27,7 @@ class WaifuData(SQLModel, table=True):
     def get_weight(self) -> int:
         return WAIFU_MAX_RARITY - self.rarity
 
-    @validator("rarity")
+    @field_validator("rarity")
     def rarity_validate(cls, value: int) -> int:
         assert WAIFU_MIN_RARITY <= value <= WAIFU_MAX_RARITY, "invalid rarity"
         return value

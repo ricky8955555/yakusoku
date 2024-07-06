@@ -1,32 +1,35 @@
-from aiogram.dispatcher.filters import AdminFilter, Filter
+from aiogram import F
+from aiogram.enums import ChatType
+from aiogram.filters import Filter
 from aiogram.types import CallbackQuery, ChatMemberUpdated, InlineQuery, Message
 
 from yakusoku.context import bot_config
 
 
-class CallbackQueryFilter(Filter):
-    header: str
-
-    def __init__(self, header: str) -> None:
-        self.header = header
-
-    async def check(self, query: CallbackQuery) -> bool:  # type: ignore
-        return query.data.startswith(self.header)
-
-
-class OwnerFilter(Filter):
-    async def check(  # type: ignore
+class AdminFilter(Filter):
+    async def __call__(
         self, obj: Message | CallbackQuery | InlineQuery | ChatMemberUpdated
     ) -> bool:
-        from_id = obj.from_id if isinstance(obj, Message) else obj.from_user.id
-        return from_id == bot_config.owner
+        if getattr(obj, "sender_chat", None):
+            return False
+
+        if obj.from_user is None:
+            return False
+
+        if isinstance(obj, Message):
+            chat = obj.chat
+        elif isinstance(obj, CallbackQuery) and obj.message:
+            chat = obj.message.chat
+        elif isinstance(obj, ChatMemberUpdated):
+            chat = obj.chat
+        else:
+            return False
+
+        admins = await chat.get_administrators()
+        return any(admin.user.id == obj.from_user.id for admin in admins)
 
 
-class ManagerFilter(AdminFilter, OwnerFilter):
-    async def check(self, obj: Message | CallbackQuery | InlineQuery | ChatMemberUpdated) -> bool:
-        return await AdminFilter.check(self, obj) or await OwnerFilter.check(self, obj)
-
-
-class NonAnonymousFilter(Filter):
-    async def check(self, obj: Message) -> bool:  # type: ignore
-        return not obj.sender_chat
+GroupFilter = F.chat.type.in_([ChatType.GROUP, ChatType.SUPERGROUP])
+OwnerFilter = F.from_user.id == bot_config.owner
+NonAnonymousFilter = F.sender_chat.is_(None) & F.from_user.is_not(None)
+ManagerFilter = GroupFilter & OwnerFilter & AdminFilter

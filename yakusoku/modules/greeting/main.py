@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import ChatType, ContentTypes, Message
+from aiogram.filters import Command
+from aiogram.types import Message
 from cashews import Cache
 
 from yakusoku.constants import FILTERED_IDS
 from yakusoku.context import module_manager, sql
-from yakusoku.filters import NonAnonymousFilter
+from yakusoku.filters import GroupFilter, NonAnonymousFilter
 from yakusoku.utils import chat
 from yakusoku.utils.exception import try_or_default_async
 
@@ -14,7 +14,7 @@ from . import basic, hitokoto
 from .config import GreetingConfig
 from .manager import GreetingManager
 
-dp = module_manager.dispatcher()
+router = module_manager.create_router()
 
 cache = Cache()
 cache.setup("mem://")
@@ -25,12 +25,10 @@ manager = GreetingManager(sql)
 loaded = datetime.now()
 
 
-@dp.message_handler(
-    NonAnonymousFilter(),
-    commands=["greet"],
-)
+@router.message(Command("greet"), NonAnonymousFilter, GroupFilter)
 async def switch_user_greeting(message: Message):
-    data = await manager.get_greeting_data(message.from_id)
+    assert message.from_user
+    data = await manager.get_greeting_data(message.from_user.id)
     data.enabled = not data.enabled
     await manager.update_greeting_data(data)
     await message.reply(
@@ -56,19 +54,20 @@ async def greet(message: Message):
         if sentence
         else ""
     )
-    user = chat.get_mention(message.sender_chat or message.from_user)
+    assert (user := message.sender_chat or message.from_user)
+    user = chat.mention_html(user)
     await message.reply(f"{greeting}! {user}.\n\n" f"{sentence_content}")
 
 
-@dp.message_handler(
-    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    NonAnonymousFilter(),
-    content_types=ContentTypes.all(),
-)
+@router.message(GroupFilter, NonAnonymousFilter)
 @cache(ttl=config.check_ttl, key="user:{message.from_id}")
 async def message_received(message: Message):
-    data = await manager.get_greeting_data(message.from_id)
-    if message.from_id in FILTERED_IDS or not data.enabled:
+    assert message.from_user
+    user_id = message.from_user.id
+    if user_id in FILTERED_IDS:
+        return
+    data = await manager.get_greeting_data(user_id)
+    if not data.enabled:
         return
     now = datetime.now()
     if now - loaded >= config.initial_trigger_span and (

@@ -1,20 +1,23 @@
 import importlib
 import inspect
+import logging
 import os
 import traceback
 from pathlib import Path
 from typing import Any
 
-from aiogram.dispatcher.filters import Filter
-from aiogram.dispatcher.handler import Handler
+from aiogram.dispatcher.event.handler import CallbackType
+from aiogram.dispatcher.event.telegram import TelegramEventObserver
 
 from yakusoku import environ
 from yakusoku.dot.patch import patch, patched
 from yakusoku.dot.switch.filter import SwitchFilter
 from yakusoku.module import ModuleManager
 
+logger = logging.getLogger()
 
-@patch(Handler)
+
+@patch(TelegramEventObserver)
 class PatchedHandler:
     @staticmethod
     def _resolve_module(module_path: Path, stacks: list[inspect.FrameInfo]) -> str | None:
@@ -32,26 +35,30 @@ class PatchedHandler:
         return result
 
     @patched
-    def register(self: Any, handler: Any, filters: list[Filter] | None = None, index: Any = None):
-        if not filters:
-            filters = []
+    def register(
+        self: Any,
+        callback: CallbackType,
+        *filters: CallbackType,
+        flags: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> CallbackType:
         module = PatchedHandler._resolve_module(environ.module_path, inspect.stack())
         if module:
             try:
                 base = importlib.import_module(module)
                 config = ModuleManager.get_config(base)
                 if config.can_disable:
-                    filters.insert(0, SwitchFilter(config))
+                    filters = (SwitchFilter(config), *filters)
                 else:
-                    print(
-                        f"ignored handler '{handler.__name__}' at '{module}' in switch patching for module can't disable."
+                    logging.debug(
+                        f"ignored callback '{callback.__name__}' at '{module}' in switch patching for module can't disable."
                     )
             except Exception:
-                print(f"failed to patch handler '{handler}' in switch patching.")
+                logging.error(f"failed to patch callback '{callback}' in switch patching.")
                 traceback.print_exc()
         else:
-            module = inspect.getmodule(handler)
-            print(
-                f"ignored handler '{handler.__name__}' at '{module and module.__name__}' in switch patching for module was not found."
+            module = inspect.getmodule(callback)
+            logging.debug(
+                f"ignored callback '{callback.__name__}' at '{module and module.__name__}' in switch patching for module was not found."
             )
-        return self.__old_register(handler, filters, index)
+        return self.__old_register(callback, *filters, flags=flags, **kwargs)

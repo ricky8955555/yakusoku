@@ -1,12 +1,13 @@
+from aiogram.filters import Command
 from aiogram.types import Message
 
 from yakusoku import constants
 from yakusoku.context import module_manager
 
-dp = module_manager.dispatcher()
+router = module_manager.create_router()
 
 
-@dp.message_handler(commands=["start"])
+@router.message(Command("start"))
 async def start(message: Message):
     await message.reply(
         "欢迎使用 yakusoku (約束, 约定)\n\n"

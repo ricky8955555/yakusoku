@@ -1,17 +1,18 @@
 import ipaddress
 
+from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from yakusoku.context import module_manager
 
 from .utils import humanize_network_flags
 
-dp = module_manager.dispatcher()
+router = module_manager.create_router()
 
 
-@dp.message_handler(commands=["net"])
-async def net(message: Message):
-    ip = message.get_args()
+@router.message(Command("net"))
+async def net(message: Message, command: CommandObject):
+    ip = command.args
     if not ip:
         return await message.reply("啥都没有算不了捏xwx")
     try:

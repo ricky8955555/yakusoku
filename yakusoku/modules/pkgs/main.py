@@ -1,11 +1,13 @@
 import asyncio
 import collections
 import html
+import logging
 import os
 import traceback
 from datetime import datetime
 
 import humanize
+from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from yakusoku.context import module_manager
@@ -15,7 +17,7 @@ from .config import PkgDistroConfig, PkgsConfig
 from .manager import DatabaseIsEmpty, NoSuchPackage, PackageManager
 from .providers import AnyPackageRepository as _T
 
-dp = module_manager.dispatcher()
+router = module_manager.create_router()
 
 config = PkgsConfig.load("pkgs")
 
@@ -23,6 +25,8 @@ base_path = data_path / "pkgs"
 base_path.mkdir(exist_ok=True)
 
 semaphore = asyncio.Semaphore(config.max_jobs)
+
+logger = logging.getLogger()
 
 
 def create_package_manager(config: PkgDistroConfig[_T]) -> PackageManager[_T]:
@@ -47,16 +51,16 @@ async def update_task(distro: PkgDistroConfig[_T]) -> None:
     while True:
         async with semaphore:
             try:
-                print(f"updating {distro.name} distro...")
+                logger.info(f"updating {distro.name} distro...")
                 await manager.update(config.commit_on)
-                print(f"{distro.name} distro updated successfully.")
+                logger.info(f"{distro.name} distro updated successfully.")
             except Exception:
                 traceback.print_exc()
                 if retry_after > 0:
-                    print(f"{distro.name} update failed. retry after {retry_after}s.")
+                    logger.warning(f"{distro.name} update failed. retry after {retry_after}s.")
                     await asyncio.sleep(retry_after)
                     continue
-                print(f"{distro.name} update failed.")
+                logger.error(f"{distro.name} update failed.")
 
         await asyncio.sleep(cycle.total_seconds())
 
@@ -64,12 +68,12 @@ async def update_task(distro: PkgDistroConfig[_T]) -> None:
 update_tasks: list[asyncio.Task[None]] = []
 
 
-@module_manager.on_startup
+@router.startup()
 async def on_startup():
     update_tasks.extend(asyncio.create_task(update_task(distro)) for distro in config.distros)
 
 
-@module_manager.on_shutdown
+@router.shutdown()
 async def on_shutdown():
     for manager in managers.values():
         await manager.close()
@@ -145,9 +149,9 @@ async def pkgs_distro(message: Message, distro: str, name: str):
     await message.reply(info)
 
 
-@dp.message_handler(commands=["pkgs"])
-async def pkgs(message: Message):
-    if not (args := message.get_args()):
+@router.message(Command("pkgs"))
+async def pkgs(message: Message, command: CommandObject):
+    if not (args := command.args):
         await pkgs_help(message)
         await pkgs_status(message)
         return
