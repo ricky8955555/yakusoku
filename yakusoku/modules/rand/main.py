@@ -1,17 +1,13 @@
 import random
 
-from aiogram.dispatcher.filters import ChatTypeFilter
-from aiogram.types import ChatType, Message
+from aiogram.types import Message
 
 from yakusoku.context import module_manager
 
 dp = module_manager.dispatcher()
 
 
-@dp.message_handler(
-    ChatTypeFilter([ChatType.GROUP, ChatType.SUPERGROUP]),  # type: ignore
-    commands=["randobj"],
-)
+@dp.message_handler(commands=["randobj"])
 async def randobj(message: Message):
     if len(args := message.text.split()) < 3:
         return await message.reply(
