@@ -23,12 +23,16 @@ async def get_user_members(group: int) -> AsyncIterable[UserData]:
     return (member async for member in get_members(group) if not member.is_bot)
 
 
-def user_mention(user: UserData, name: str | None = None, as_html: bool = True) -> str:
-    link = markdown.hlink if as_html else markdown.link
-    if user.usernames:
-        return link(name or user.name, f"https://t.me/{user.usernames[0]}")
-    else:
-        return link(name or user.name, f"tg://user?id={user.id}")
+def user_url(user: UserData):
+    return f"https://t.me/{user.usernames[0]}" if user.usernames else f"tg://user?id={user.id}"
+
+
+def user_mention_html(user: UserData, name: str | None = None) -> str:
+    return markdown.hlink(name or user.name, user_url(user))
+
+
+def user_mention_markdown(user: UserData, name: str | None = None) -> str:
+    return markdown.hlink(name or user.name, user_url(user))
 
 
 async def fetch_user(bot: Bot, id: int) -> UserData:
