@@ -52,9 +52,9 @@ class ModuleManager:
         return self._dispatcher
 
     @staticmethod
-    def _collect_modules(path: str | Path) -> set[str]:
+    def _collect_modules(path: Path) -> set[str]:
         # it only collects modules in the root of specific path located in current working path.
-        path = Path(path).absolute().relative_to(os.getcwd())
+        path = path.absolute().relative_to(os.getcwd())
         assert path.is_dir(), "attempt to collect modules from a non-directory path."
         modules = [
             ".".join(item.with_suffix("").parts)
@@ -91,7 +91,7 @@ class ModuleManager:
             info = ModuleInfo(base, main, config)
             self._modules[config.name] = info
 
-    def import_modules_from(self, path: str | Path) -> None:
+    def import_modules_from(self, path: Path) -> None:
         modules = self._collect_modules(path)
         self.import_modules(*modules)
 
