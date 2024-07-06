@@ -1,9 +1,11 @@
 import asyncio
 import collections
 import html
+import os
 import traceback
 from datetime import datetime
 
+import humanize
 from aiogram.types import Message
 
 from yakusoku.context import module_manager
@@ -146,7 +148,9 @@ async def pkgs_distro(message: Message, distro: str, name: str):
 @dp.message_handler(commands=["pkgs"])
 async def pkgs(message: Message):
     if not (args := message.get_args()):
-        return await pkgs_help(message)
+        await pkgs_help(message)
+        await pkgs_status(message)
+        return
 
     args = args.split()
     length = len(args)
@@ -174,3 +178,15 @@ async def pkgs_help(message: Message):
     )
 
     await message.reply(f"使用方法:\n{usage}\n\n目前可用的发行版:\n{info}")
+
+
+async def pkgs_status(message: Message):
+    infos = [
+        f"{name}:\n"
+        f"数据库大小: {humanize.naturalsize(os.path.getsize(manager.sql.path))}\n"
+        f"上次更新: {humanize.naturaltime(last)}\n"
+        for name, manager in managers.items()
+        if (last := await manager.last_updated()) is not None
+    ]
+
+    await message.reply("\n".join(infos))

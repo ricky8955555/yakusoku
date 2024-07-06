@@ -52,6 +52,10 @@ class PackageManager(Generic[_T]):
             raise DatabaseUpdating
 
     @property
+    def sql(self) -> SQLSessionManager:
+        return self._sql
+
+    @property
     def updating(self) -> bool:
         return self._updating
 
