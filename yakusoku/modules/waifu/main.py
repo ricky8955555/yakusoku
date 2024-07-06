@@ -145,7 +145,9 @@ async def waifu_rarity_set(message: Message, command: CommandObject):
     data = await _manager.get_waifu_data(message.chat.id, waifu.id)
     data.rarity = rarity
     await _manager.update_waifu_data(data)
-    await message.reply(f"成功将 {archive_utils.user_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!")
+    await message.reply(
+        f"成功将 {archive_utils.user_mention_html(waifu)} 的老婆稀有度修改为 {rarity}!"
+    )
 
 
 @router.message(Command("waifurg"), GroupFilter)
