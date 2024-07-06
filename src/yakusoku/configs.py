@@ -4,7 +4,6 @@ from yakusoku.config import Config
 class BotConfig(Config):
     token: str
     owner: int
-    skip_updates: bool = False
 
 
 class CommonConfig(Config):
