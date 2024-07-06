@@ -9,7 +9,6 @@ from yakusoku.utils import chat
 
 from . import process
 
-
 dp = module_manager.dispatcher()
 
 PATTERN = re.compile(r"\/(?:\$([a-zA-Z0-9]\S*)|\$?([^a-zA-Z0-9\s]\S*))\s*(.*)")

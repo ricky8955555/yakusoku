@@ -1,6 +1,5 @@
 import re
 
-
 _NORM_REGEXES: list[str] = [
     r"([a-zA-z])(?=[^\Wa-zA-Z])",  # foo先生 => foo 先生
     r"([^\Wa-zA-Z])(?=[a-zA-z])",  # 你好foo => 你好 foo

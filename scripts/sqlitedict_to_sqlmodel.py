@@ -4,8 +4,8 @@ import os
 from dataclasses import dataclass
 from datetime import datetime
 
-from aiogram import Bot
 import sqlmodel
+from aiogram import Bot
 from sqlitedict import SqliteDict
 
 from yakusoku import context
