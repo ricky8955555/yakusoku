@@ -139,7 +139,7 @@ async def waifu_rarity_set(message: Message):
         waifu = await archive_utils.parse_member(
             args[0].removeprefix("@"), message.chat.id, message.bot
         )
-    except ChatDeleted and ChatNotFound:
+    except (ChatDeleted, ChatNotFound):
         return await message.reply("呜, 找不到你所提及的用户w")
     data = await _manager.get_waifu_data(message.chat.id, waifu.id)
     data.rarity = rarity
@@ -319,7 +319,7 @@ async def propose(message: Message):
     if (length := len(args := message.text.split())) == 2:
         try:
             target = await archive_utils.parse_member(args[1], message.chat.id, message.bot)
-        except ChatDeleted and ChatNotFound:
+        except (ChatDeleted, ChatNotFound):
             return await message.reply("呜, 找不到你所提及的用户w")
     elif length == 1 and message.reply_to_message:
         if message.reply_to_message.sender_chat:

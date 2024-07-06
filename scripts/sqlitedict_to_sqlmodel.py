@@ -5,8 +5,10 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from aiogram import Bot
+import sqlmodel
 from sqlitedict import SqliteDict
 
+from yakusoku import context
 from yakusoku.archive import group_manager, user_manager
 from yakusoku.archive import utils as archive_utils
 from yakusoku.archive.exceptions import ChatDeleted, ChatNotFound
@@ -63,7 +65,7 @@ async def migrate_users(bot: Bot):
         try:
             user = await archive_utils.fetch_user(bot, id)
             print(f"user {id} was migrated from server. {user=}")
-        except ChatNotFound and ChatDeleted:
+        except (ChatNotFound, ChatDeleted):
             print(f"unable to get info of user {id}, skipped.")
 
 
@@ -76,7 +78,7 @@ async def migrate_groups(bot: Bot):
         print(f"trying to fetch group {id} info from server...")
         try:
             group = await archive_utils.fetch_group(bot, id)
-        except ChatNotFound and ChatDeleted:
+        except (ChatNotFound, ChatDeleted):
             print(f"unable to get info of group {id}, skipped.")
             continue
         group.members = list(members)  # type: ignore
@@ -87,7 +89,7 @@ async def migrate_groups(bot: Bot):
 async def migrate_waifus():
     groups = await group_manager.get_groups()
     old_waifu_db_path = os.path.join(OLD_DATABASE_PATH, "waifu.sqlite")
-    manager = WaifuManager()
+    manager = WaifuManager(context.sql)
     for group in groups:
         print(f"migrating waifu datas from group {group.id}...")
         old_datas = SqliteDict(old_waifu_db_path, f"waifu_{group.id}")
@@ -124,7 +126,7 @@ async def migrate_waifus():
 
 async def main():
     print("initializing database...")
-    await sql.init_db()
+    await sql.init_db(sqlmodel.SQLModel.metadata)
     print("database was initialized.")
     bot = Bot(bot_config.token)
     print("migrating users...")
