@@ -1,7 +1,7 @@
 import abc
 from collections import Counter
 from datetime import timedelta
-from typing import Any, ClassVar, Generic
+from typing import Generic, Literal
 
 from pydantic import BaseModel, field_validator
 
@@ -16,47 +16,16 @@ from .providers.rpmmd import RpmMd, RpmMdRepository
 
 
 class PkgDistroConfig(BaseModel, Generic[_T], abc.ABC):
-    __scheme__: ClassVar[str] = NotImplemented
-    __subtypes__: ClassVar[dict[str, type]] = {}
-
+    scheme: str
     name: str
     update: timedelta | None = None
-
-    def __new__(cls, **kwargs: Any):
-        scheme = kwargs.pop("scheme")
-        typ = cls.__subtypes__.get(scheme)
-        if not typ:
-            raise ValueError(f"unknown scheme '{scheme}'.")
-        obj = super().__new__(typ)
-        typ.__init__(obj, **kwargs)
-        return obj
-
-    def __init_subclass__(cls):
-        cls.__subtypes__[cls.__scheme__] = cls
 
     @abc.abstractmethod
     def to_instance(self) -> tuple[PackageProvider[_T], list[_T]]: ...
 
 
-class PkgsConfig(Config):
-    distros: list[PkgDistroConfig[Any]]
-    max_jobs: int = 1
-    retry_after: timedelta = timedelta(seconds=5)
-    commit_on: int = 1000
-    default_update: timedelta = timedelta(hours=4)
-
-    @field_validator("distros")
-    def distros_no_duplicate(cls, v: list[PkgDistroConfig[Any]]) -> list[PkgDistroConfig[Any]]:
-        duplicate = [
-            name for name, count in Counter(distro.name for distro in v).items() if count > 1
-        ]
-        assert not duplicate, f"duplicate distro found: {duplicate}."
-        return v
-
-
 class AptConfig(PkgDistroConfig[AptComponent]):
-    __scheme__ = "apt"
-
+    scheme: Literal["apt"]  # type: ignore
     src: str
     suite: str
     arch: str
@@ -73,8 +42,7 @@ class AptConfig(PkgDistroConfig[AptComponent]):
 
 
 class AlpmConfig(PkgDistroConfig[AlpmRepository]):
-    __scheme__ = "alpm"
-
+    scheme: Literal["alpm"]  # type: ignore
     src: str
     arch: str
     repos: list[str]
@@ -85,8 +53,7 @@ class AlpmConfig(PkgDistroConfig[AlpmRepository]):
 
 
 class RpmMdConfig(PkgDistroConfig[RpmMdRepository]):
-    __scheme__ = "rpm-md"
-
+    scheme: Literal["rpm-md"]  # type: ignore
     repos: list[str]
 
     def to_instance(self) -> tuple[RpmMd, list[RpmMdRepository]]:
@@ -94,9 +61,27 @@ class RpmMdConfig(PkgDistroConfig[RpmMdRepository]):
 
 
 class ApkConfig(PkgDistroConfig[ApkRepository]):
-    __scheme__ = "apk"
-
+    scheme: Literal["apk"]  # type: ignore
     repos: list[str]
 
     def to_instance(self) -> tuple[Apk, list[ApkRepository]]:
         return Apk(), list(map(ApkRepository, self.repos))
+
+
+SupportedDistros = AptConfig | AlpmConfig | RpmMdConfig | ApkConfig
+
+
+class PkgsConfig(Config):
+    distros: list[SupportedDistros]
+    max_jobs: int = 1
+    retry_after: timedelta = timedelta(seconds=5)
+    commit_on: int = 1000
+    default_update: timedelta = timedelta(hours=4)
+
+    @field_validator("distros")
+    def distros_no_duplicate(cls, v: list[SupportedDistros]) -> list[SupportedDistros]:
+        duplicate = [
+            name for name, count in Counter(distro.name for distro in v).items() if count > 1
+        ]
+        assert not duplicate, f"duplicate distro found: {duplicate}."
+        return v

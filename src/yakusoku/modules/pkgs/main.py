@@ -5,6 +5,7 @@ import logging
 import os
 import traceback
 from datetime import datetime
+from typing import Any
 
 import humanize
 from aiogram.filters import Command, CommandObject
@@ -13,7 +14,7 @@ from aiogram.types import Message
 from yakusoku.context import module_manager
 from yakusoku.environ import data_path
 
-from .config import PkgDistroConfig, PkgsConfig
+from .config import PkgDistroConfig, PkgsConfig, SupportedDistros
 from .manager import DatabaseIsEmpty, NoSuchPackage, PackageManager
 from .providers import AnyPackageRepository as _T
 
@@ -35,10 +36,12 @@ def create_package_manager(config: PkgDistroConfig[_T]) -> PackageManager[_T]:
     return PackageManager(provider, distros, database)
 
 
-managers = {distro.name: create_package_manager(distro) for distro in config.distros}
+managers: dict[str, PackageManager[Any]] = {
+    distro.name: create_package_manager(distro) for distro in config.distros
+}
 
 
-async def update_task(distro: PkgDistroConfig[_T]) -> None:
+async def update_task(distro: SupportedDistros) -> None:
     manager = managers[distro.name]
     last = await manager.last_updated()
     cycle = distro.update or config.default_update
@@ -169,7 +172,7 @@ async def pkgs_help(message: Message):
     distros = collections.defaultdict[str, list[str]](list)
 
     for distro in config.distros:
-        distros[distro.__scheme__].append(distro.name)
+        distros[distro.scheme].append(distro.name)
 
     info = "\n".join(
         f"- {scheme}: " + ", ".join(f"{name}" for name in names)
