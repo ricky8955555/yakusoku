@@ -30,11 +30,11 @@ async def slash(message: Message):
     target_mention: str = chat.mention_html(target, "自己" if target.id == sender.id else None)
 
     if second:
-        first = html.escape(process.normalize_string(process.complete_ul(first)))
+        first = html.escape(process.normalize_string(first))
         second = html.escape(process.normalize_string(second))
         reply = f"{sender_mention} {first} {target_mention} {second} !"
     else:
-        first = html.escape(process.normalize_string(first))
+        first = html.escape(process.normalize_string(process.complete_ul(first)))
         reply = f"{sender_mention} {first} {target_mention} !"
 
     await message.reply(reply)
