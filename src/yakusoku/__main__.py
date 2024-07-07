@@ -12,8 +12,6 @@ from yakusoku.module import ModuleManager
 
 
 async def main() -> None:
-    await context.sql.init_db(SQLModel.metadata)
-
     default = DefaultBotProperties(
         parse_mode=ParseMode.HTML,
         link_preview_is_disabled=True,
@@ -25,6 +23,7 @@ async def main() -> None:
     context.module_manager = module_manager = ModuleManager(dispatcher)
     module_manager.import_modules_from(environ.module_path)
 
+    await context.sql.init_db(SQLModel.metadata)
     await module_manager.register_commands(bot)
 
     await dispatcher.start_polling(bot)
