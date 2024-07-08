@@ -51,7 +51,7 @@ async def entry(message: Message, bot: Bot, command: CommandObject):
         typ = await get_file_type(bot, analyzing, mime)
     except FileNotFoundError:
         return await message.reply(
-            f"诶? 没找到文件捏! 回复一条带文件的消息或者发送带 /{command} 指令的带文件消息再试试w"
+            f"诶? 没找到文件捏! 回复一条带文件的消息或者发送带 /{command.command} 指令的带文件消息再试试w"
         )
     except Exception as ex:
         traceback.print_exc()
