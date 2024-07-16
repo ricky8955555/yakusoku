@@ -72,7 +72,7 @@ SupportedDistros = AptConfig | AlpmConfig | RpmMdConfig | ApkConfig
 
 
 class PkgsConfig(Config):
-    distros: list[SupportedDistros]
+    distros: list[SupportedDistros] = []
     max_jobs: int = 1
     retry_after: timedelta = timedelta(seconds=5)
     commit_on: int = 1000
