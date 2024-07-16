@@ -4,6 +4,7 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from yakusoku.context import module_manager
+from yakusoku.utils import exception
 
 from .utils import humanize_network_flags
 
@@ -15,6 +16,7 @@ async def net(message: Message, command: CommandObject):
     ip = command.args
     if not ip:
         return await message.reply("啥都没有算不了捏xwx")
+    ip = exception.try_or_fallback(lambda x: int(x, 0), ip)
     try:
         network = ipaddress.ip_network(ip)
     except Exception as ex:
