@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from aiogram.dispatcher.event.bases import SkipHandler
 from aiogram.filters import Command
 from aiogram.types import Message
 from cashews import Cache
@@ -65,10 +66,10 @@ async def message_received(message: Message):
     assert message.from_user
     user_id = message.from_user.id
     if user_id in FILTERED_IDS:
-        return
+        raise SkipHandler
     data = await manager.get_greeting_data(user_id)
     if not data.enabled:
-        return
+        raise SkipHandler
     now = datetime.now()
     if now - loaded >= config.initial_trigger_span and (
         not data.last_message_time or now - data.last_message_time >= config.trigger_span
@@ -76,3 +77,4 @@ async def message_received(message: Message):
         await greet(message)
     data.last_message_time = datetime.now()
     await manager.update_greeting_data(data)
+    raise SkipHandler
