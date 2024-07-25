@@ -31,7 +31,7 @@ from yakusoku.utils import chat, exception
 
 from . import graph
 from .manager import (
-    MemberNotEfficientError,
+    MemberNotSufficientError,
     NoChoosableWaifuError,
     WaifuFetchResult,
     WaifuFetchState,
@@ -81,7 +81,7 @@ async def waifu(message: Message, bot: Bot):
 
     try:
         result, waifu = await _get_waifu(message)
-    except MemberNotEfficientError:
+    except MemberNotSufficientError:
         return await message.reply("目前群员信息不足捏, 等我熟悉一下群里环境? w")
     except NoChoosableWaifuError:
         return await message.reply("你群全成限定了怎么抽? (恼)")

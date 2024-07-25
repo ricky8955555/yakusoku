@@ -24,7 +24,7 @@ class WaifuFetchResult:
     state: WaifuFetchState
 
 
-class MemberNotEfficientError(Exception):
+class MemberNotSufficientError(Exception):
     pass
 
 
@@ -81,7 +81,7 @@ class WaifuManager:
         try:
             return random.choices(list(waifus.keys()), list(waifus.values()), k=1)[0]
         except IndexError:
-            raise MemberNotEfficientError
+            raise MemberNotSufficientError
         except ValueError:
             raise NoChoosableWaifuError
 
