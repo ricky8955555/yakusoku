@@ -13,6 +13,7 @@ from aiogram.types import Message
 
 from yakusoku.context import module_manager
 from yakusoku.environ import data_path
+from yakusoku.utils.message import cut_message
 
 from .config import PkgDistroConfig, PkgsConfig, SupportedDistros
 from .manager import DatabaseIsEmpty, NoSuchPackage, PackageManager
@@ -155,9 +156,7 @@ async def pkgs_distro(message: Message, distro: str, name: str):
 @router.message(Command("pkgs"))
 async def pkgs(message: Message, command: CommandObject):
     if not (args := command.args):
-        await pkgs_help(message)
-        await pkgs_status(message)
-        return
+        return await pkgs_help(message)
 
     args = args.split()
     length = len(args)
@@ -187,6 +186,7 @@ async def pkgs_help(message: Message):
     await message.reply(f"使用方法:\n{usage}\n\n目前可用的发行版:\n{info}")
 
 
+@router.message(Command("pkgst"))
 async def pkgs_status(message: Message):
     infos = [
         f"{name}:\n"
@@ -196,4 +196,7 @@ async def pkgs_status(message: Message):
         if (last := await manager.last_updated()) is not None
     ]
 
-    await message.reply("\n".join(infos))
+    reply = "\n".join(infos)
+
+    for part in cut_message(reply, "\n\n"):
+        message = await message.reply(part)
