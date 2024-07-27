@@ -18,7 +18,7 @@ from .config import config
 
 router = module_manager.create_router()
 
-PATTERN = re.compile(r"\/(?:\$([a-zA-Z0-9]\S*)|\$?([^a-zA-Z0-9\s]\S*))\s*(.*)")
+PATTERN = re.compile(r"\/(?:[\$\/]([a-zA-Z0-9]\S*)|[\$\/]?([^a-zA-Z0-9\s]\S*))\s*(.*)")
 
 FALLBACK_PRPR_VERBS = ["贴了贴", "prpr 了", "ペロペロ了", "舔了"]
 
