@@ -25,8 +25,8 @@ from yakusoku.archive.exceptions import ChatDeleted, ChatNotFound
 from yakusoku.archive.models import UserData
 from yakusoku.context import common_config, module_manager, sql
 from yakusoku.filters import GroupFilter, ManagerFilter, NonAnonymousFilter
-from yakusoku.shared.callback import CallbackQueryTaskManager
-from yakusoku.shared.lock import SimpleLockManager
+from yakusoku.utils.callback import CallbackQueryTaskManager
+from yakusoku.utils.lock import SimpleLockManager
 from yakusoku.utils import chat, exception
 
 from . import graph
