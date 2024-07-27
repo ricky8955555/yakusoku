@@ -4,7 +4,7 @@ from typing import Any
 from matplotlib import pyplot
 
 
-def render(expression: str, *, format: str | None = None, routeri: int | None = None) -> bytes:
+def render(expression: str, *, format: str | None = None, dpi: int | None = None) -> bytes:
     expression = "\n".join(f"${line}$" for line in expression.splitlines() if line)
     fig = pyplot.figure(figsize=(0.01, 0.01))
     try:
@@ -12,8 +12,8 @@ def render(expression: str, *, format: str | None = None, routeri: int | None = 
         args: dict[str, Any] = {}
         if format:
             args["format"] = format
-        if routeri:
-            args["routeri"] = routeri
+        if dpi:
+            args["dpi"] = dpi
         buf = io.BytesIO()
         fig.savefig(buf, bbox_inches="tight", pad_inches=0.1, **args)
         buf.seek(0)
