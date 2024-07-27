@@ -1,6 +1,6 @@
 from aiogram import F
 from aiogram.enums import ChatType
-from aiogram.filters import Filter
+from aiogram.filters import Filter, or_f, and_f
 from aiogram.types import CallbackQuery, ChatMemberUpdated, InlineQuery, Message
 
 from yakusoku.context import bot_config
@@ -32,4 +32,4 @@ class AdminFilter(Filter):
 GroupFilter = F.chat.type.in_([ChatType.GROUP, ChatType.SUPERGROUP])
 OwnerFilter = F.from_user.id == bot_config.owner
 NonAnonymousFilter = F.sender_chat.is_(None) & F.from_user.is_not(None)
-ManagerFilter = GroupFilter & OwnerFilter & AdminFilter
+ManagerFilter = and_f(GroupFilter, or_f(AdminFilter(), OwnerFilter))
