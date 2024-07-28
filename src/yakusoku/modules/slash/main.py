@@ -18,7 +18,7 @@ from .config import config
 
 router = module_manager.create_router()
 
-PATTERN = re.compile(r"\/(?:[\$\/]([a-zA-Z0-9]\S*)|[\$\/]?([^a-zA-Z0-9\s]\S*))\s*(.*)")
+PATTERN = re.compile(r"\/(?P<escape>[\$\/])?(?P<first>(?(escape)\S*|(?![a-zA-Z0-9]+(?:@[a-zA-Z0-9]+)?(?=\s|$))\S*))(?:\s(?P<second>.*))?")
 
 FALLBACK_PRPR_VERBS = ["贴了贴", "prpr 了", "ペロペロ了", "舔了"]
 
@@ -28,9 +28,9 @@ async def slash(message: Message):
     if not message.text:
         raise SkipHandler
     matches = PATTERN.match(message.text)
-    if not matches or not (first := matches.group(1) or matches.group(2)):
+    if not matches or not (first := matches.group("first")):
         raise SkipHandler
-    second = matches.group(3)
+    second = matches.group("second")
     assert (sender := message.sender_chat or message.from_user)
     sender_mention: str = chat.mention_html(sender)
     origin = message.reply_to_message or message
