@@ -25,9 +25,9 @@ FALLBACK_PRPR_VERBS = ["贴了贴", "prpr 了", "ペロペロ了", "舔了"]
 
 @router.message(F.text.startswith("/"))
 async def slash(message: Message):
-    if not message.text:
+    if not message.text or "\n" in (text := message.text.strip()):
         raise SkipHandler
-    matches = PATTERN.match(message.text)
+    matches = PATTERN.match(text)
     if not matches or not (first := matches.group("first")):
         raise SkipHandler
     second = matches.group("second")
