@@ -1,6 +1,6 @@
 from aiogram import F
 from aiogram.enums import ChatType
-from aiogram.filters import Filter, or_f, and_f
+from aiogram.filters import Filter, and_f, or_f
 from aiogram.types import CallbackQuery, ChatMemberUpdated, InlineQuery, Message
 
 from yakusoku.context import bot_config
