@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from aiogram import Bot
 from aiogram.dispatcher.event.bases import SkipHandler
-from aiogram.enums import ChatAction, ChatMemberStatus
+from aiogram.enums import ChatAction, ChatMemberStatus, ParseMode
 from aiogram.filters import Command, CommandObject
 from aiogram.filters.callback_data import CallbackData, CallbackQueryFilter
 from aiogram.types import (
@@ -25,9 +25,9 @@ from yakusoku.archive.exceptions import ChatDeleted, ChatNotFound
 from yakusoku.archive.models import UserData
 from yakusoku.context import common_config, module_manager, sql
 from yakusoku.filters import GroupFilter, ManagerFilter, NonAnonymousFilter
+from yakusoku.utils import chat, exception
 from yakusoku.utils.callback import CallbackQueryTaskManager
 from yakusoku.utils.lock import SimpleLockManager
-from yakusoku.utils import chat, exception
 
 from . import graph
 from .manager import (
@@ -134,7 +134,7 @@ async def waifu_rarity_set(message: Message, command: CommandObject):
         return await message.reply(
             "戳啦, 正确用法为 `/waifurs <@用户或ID> <稀有度> "
             f"(稀有度范围 N, [{WAIFU_MIN_RARITY}, {WAIFU_MAX_RARITY}], 默认值为 {WAIFU_DEFAULT_RARITY})`",
-            parse_mode="Markdown",
+            parse_mode=ParseMode.MARKDOWN,
         )
     try:
         waifu = await archive_utils.parse_member(
@@ -153,7 +153,9 @@ async def waifu_rarity_set(message: Message, command: CommandObject):
 @router.message(Command("waifurg"), GroupFilter)
 async def waifu_rarity_get(message: Message):
     if not message.text or len(args := message.text.split()) != 2:
-        return await message.reply("戳啦, 正确用法为 `/waifurg <@用户或ID>`", parse_mode="Markdown")
+        return await message.reply(
+            "戳啦, 正确用法为 `/waifurg <@用户或ID>`", parse_mode=ParseMode.MARKDOWN
+        )
     try:
         waifu = await archive_utils.parse_member(
             args[1].removeprefix("@"), message.chat.id, message.bot
@@ -319,7 +321,8 @@ async def propose(message: Message):
         target = await user_manager.get_user(message.reply_to_message.from_user.id)
     else:
         return await message.reply(
-            "戳啦, 正确用法为 `/propose <@用户或ID (或回复某个用户的消息)>`", parse_mode="Markdown"
+            "戳啦, 正确用法为 `/propose <@用户或ID (或回复某个用户的消息)>`",
+            parse_mode=ParseMode.MARKDOWN,
         )
 
     if user_id == target.id:

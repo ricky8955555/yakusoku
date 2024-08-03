@@ -1,3 +1,4 @@
+from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.types import Message
 
@@ -14,5 +15,5 @@ async def start(message: Message):
         "yakusoku 是一个多功能机器人, 有什么想法的都可以提出 Issue, 也欢迎大家来提交 PR.\n\n"
         f"Git 仓库: [GitLab]({constants.GITLAB_REPOSITORY_URL}) (仅有公开查看权限)  "
         f"[GitHub]({constants.GITHUB_REPOSITORY_URL})",
-        parse_mode="Markdown",
+        parse_mode=ParseMode.MARKDOWN,
     )
