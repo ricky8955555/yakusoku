@@ -1,5 +1,4 @@
 import html
-import math
 
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
@@ -34,8 +33,7 @@ async def int_cmd(message: Message, command: CommandObject):
         ]
     )
 
-    if number > 0:
-        byte_length = math.ceil(number.bit_length() / 8)
+    if number > 0 and (byte_length := (number.bit_length() + 7) // 8) <= 16:
         be_bytes = number.to_bytes(byte_length, "big")
         le_bytes = number.to_bytes(byte_length, "little")
         be_str = exception.try_or_default(lambda: be_bytes.decode())
