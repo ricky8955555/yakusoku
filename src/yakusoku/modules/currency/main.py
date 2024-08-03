@@ -41,13 +41,14 @@ async def curconv(message: Message, command: CommandObject):
 
     lines: list[str] = []
 
-    lines.append(f"{data.trans_curr} - {data.crdhld_bill_curr} 汇率: {data.conversion_rate}")
-
     if amount:
         lines.append(
-            f"{data.trans_amt}{data.trans_curr} = {data.crdhld_bill_amt}{data.crdhld_bill_curr}"
+            f"<code>{data.trans_amt}</code> {data.trans_curr} = <code>{data.crdhld_bill_amt}</code> {data.crdhld_bill_curr}\n"
         )
 
+    lines.append(
+        f"{data.trans_curr} -> {data.crdhld_bill_curr} 汇率: <code>{data.conversion_rate}</code>"
+    )
     lines.append(f"汇率更新时间: {data.fx_date}")
 
     await message.reply("\n".join(lines))
