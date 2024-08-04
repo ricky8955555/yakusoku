@@ -17,7 +17,7 @@ class BaseSchema(BaseModel):
     )
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class ApiError(Exception):
     code: str = Field(alias="errorCode")
     message: str = Field(alias="errorMessage")
