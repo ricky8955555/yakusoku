@@ -4,6 +4,7 @@ from yakusoku.config import Config
 class BotConfig(Config):
     token: str
     owner: int
+    drop_pending_updates: bool = False
 
 
 class CommonConfig(Config):

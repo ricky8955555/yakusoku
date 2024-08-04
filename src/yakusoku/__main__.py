@@ -26,6 +26,9 @@ async def main() -> None:
     await context.sql.init_db(SQLModel.metadata)
     await module_manager.register_commands(bot)
 
+    if context.bot_config.drop_pending_updates:
+        await bot.delete_webhook(True)  # drop pending updates.
+
     await dispatcher.start_polling(bot)
 
     await context.sql.close()
