@@ -1,11 +1,9 @@
 import re
 
 _NORM_REGEXES: list[str] = [
-    r"([a-zA-z])(?=[^\Wa-zA-Z])",  # foo先生 => foo 先生
-    r"([^\Wa-zA-Z])(?=[a-zA-z])",  # 你好foo => 你好 foo
+    r"([a-zA-z0-9])(?=[^\Wa-zA-Z0-9])",  # foo先生 => foo 先生
+    r"([^\Wa-zA-Z0-9])(?=[a-zA-z0-9])",  # 你好foo => 你好 foo
     r"([,.!?:;])(?=\w)",  # foo,bar => foo, bar
-    r"([\d\w])(?=[#$%&*+/=?\\^`~@])",  # foo &bar => foo & bar
-    r"([#$%&*+/=?\\^`~@])(?=[\d\w])",  # #foo => # foo
     r"([^\W\da-zA-Z])(?=\d)",  # 正在0721 => 正在 0721
     r"(\d)(?=[^\W\da-zA-Z])",  # 0721对身体好 => 0721 对身体好
 ]
