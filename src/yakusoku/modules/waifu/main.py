@@ -403,8 +403,8 @@ async def waifu_graph(message: Message, bot: Bot):
     await reply.delete()
 
 
-@router.my_chat_member
-@router.chat_member
+@router.my_chat_member()
+@router.chat_member()
 async def member_update(update: ChatMemberUpdated, bot: Bot):
     if (member := update.new_chat_member).status not in (
         ChatMemberStatus.LEFT,

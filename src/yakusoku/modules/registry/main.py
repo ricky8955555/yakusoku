@@ -60,8 +60,8 @@ async def permission_check(bot: Bot, update: ChatMemberUpdated) -> None:
         await bot.send_message(update.chat.id, "好耶!")
 
 
-@router.my_chat_member
-@router.chat_member
+@router.my_chat_member()
+@router.chat_member()
 async def member_update(update: ChatMemberUpdated, bot: Bot):
     group, member = update.chat, update.new_chat_member
     if member.status == ChatMemberStatus.MEMBER:
