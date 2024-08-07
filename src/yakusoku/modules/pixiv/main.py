@@ -21,7 +21,8 @@ from . import api, ugoira
 from .types import IllustType, XRestrict
 
 _ARTWORK_URL_REGEX = re.compile(
-    r"pixiv\.net/(?:artworks/|i/|member_illust\.php\?(?:[\w=&]*\&|)illust_id=)(\d+)"
+    r"pixiv\.net/(?:[a-z]*/)?(?:artworks/|i/|member_illust\.php\?(?:[\w=&]*\&|)illust_id=)(\d+)",
+    re.IGNORECASE,
 )
 
 
