@@ -1,11 +1,8 @@
-import contextlib
 import html
 import re
 import traceback
-import urllib.parse
 
 from aiogram.dispatcher.event.bases import SkipHandler
-from aiogram.filters import Command, CommandObject
 from aiogram.filters.callback_data import CallbackData, CallbackQueryFilter
 from aiogram.types import (
     BufferedInputFile,
@@ -31,20 +28,6 @@ router = module_manager.create_router()
 
 class Download(CallbackData, prefix="pixiv_download"):
     id: int
-
-
-def extract_illust_id(s: str) -> int:
-    url = urllib.parse.urlparse(s.lower())
-    if (
-        url.scheme in ["http", "https", ""]
-        and url.netloc in ["www.pixiv.net", "pixiv.net"]
-        and len(parts := url.path.removeprefix("/").split("/")) == 2
-        and parts[0] == "artworks"
-    ):
-        s = parts[1]
-    with contextlib.suppress(ValueError):
-        return int(s)
-    raise ValueError("illust id is not found.")
 
 
 def find_illust_ids(s: str) -> list[int]:
@@ -177,14 +160,3 @@ async def match_url(message: Message):
     for id in ids:
         await send_illust(message, id)
     raise SkipHandler
-
-
-@router.message(Command("pixiv"))
-async def pixiv(message: Message, command: CommandObject):
-    if not (target := command.args):
-        return await message.reply("没给目标我没办法找xwx")
-    try:
-        id = extract_illust_id(target)
-    except ValueError:
-        return await message.reply("看不懂捏w")
-    return await send_illust(message, id)
