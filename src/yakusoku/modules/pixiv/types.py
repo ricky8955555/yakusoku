@@ -35,19 +35,19 @@ class IllustType(IntEnum):
 
 
 class Urls(BaseSchema):
-    mini: str | None = Field(alias="thumb_mini")
-    thumb: str | None = Field(alias="thumb_mini")
-    small: str | None
-    regular: str | None
-    original: str | None
+    mini: str | None = Field(alias="thumb_mini", default=None)
+    thumb: str | None = Field(alias="thumb_mini", default=None)
+    small: str | None = None
+    regular: str | None = None
+    original: str | None = None
 
 
 class Tag(BaseSchema):
     tag: str
     locked: bool
     deletable: bool
-    user_id: int | None
-    user_name: str | None
+    user_id: int | None = None
+    user_name: str | None = None
 
 
 class Tags(BaseSchema):
