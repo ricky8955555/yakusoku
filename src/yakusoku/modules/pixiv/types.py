@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import IntEnum
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 import pydantic.alias_generators
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,7 +19,7 @@ class BaseSchema(BaseModel):
 class AjaxResponse(BaseSchema, Generic[_T]):
     error: bool
     message: str
-    body: Any | None
+    body: _T | None
 
 
 class XRestrict(IntEnum):
