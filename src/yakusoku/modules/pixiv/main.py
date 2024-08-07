@@ -65,13 +65,11 @@ async def send_illust(message: Message, id: int) -> Message:
     try:
         illust = await api.illust(id)
     except api.ApiError as ex:
-        await message.reply(f"上面返回了错误, 看不到图力. {html.escape(ex.message)}")
+        await reply.edit_text(f"上面返回了错误, 看不到图力. {html.escape(ex.message)}")
         raise
     except Exception as ex:
-        await message.reply(f"坏了, 出现了没预料到的错误! {html.escape(str(ex))}")
+        await reply.edit_text(f"坏了, 出现了没预料到的错误! {html.escape(str(ex))}")
         raise
-    finally:
-        await reply.delete()
     illust.description = illust.description.replace("<br />", "\n")
     info = (
         f"<u><b>{illust.title}</b></u>\n\n"
@@ -94,7 +92,7 @@ async def send_illust(message: Message, id: int) -> Message:
             [InlineKeyboardButton(text="下载原图", callback_data=Download(id=id).pack())]
         )
 
-        reply = await message.reply("下载预览图并发送中...")
+        await reply.edit_text("下载预览图并发送中...")
 
         try:
             if illust.illust_type == IllustType.UGOIRA:
@@ -102,27 +100,28 @@ async def send_illust(message: Message, id: int) -> Message:
                 archive = await api.download_asset(meta.src)
                 gif = ugoira.compose_ugoira_gif(archive, meta.frames)
                 file = BufferedInputFile(gif, f"{id}.gif")
-                return await message.reply_animation(
+                message = await message.reply_animation(
                     file, caption=info, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
                 )
             else:
                 assert illust.urls.regular, "regular size url not found."
                 photo = await api.download_asset(illust.urls.regular)
                 file = BufferedInputFile(photo, f"{id}.jpg")
-                return await message.reply_photo(
+                message = await message.reply_photo(
                     file, info, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
                 )
+            await reply.delete()
+            return message
         except Exception as ex:
             reason = "发送失败了"
             traceback.print_exc()
-        finally:
-            await reply.delete()
     else:
         reason = "为 R-18 / R-18G 类型或敏感内容"
-    return await message.reply(
+    await reply.edit_text(
         info + f"\n由于插图{reason}, 没法展示出来 QwQ",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
+    return reply
 
 
 @router.callback_query(CallbackQueryFilter(callback_data=Download))
@@ -136,11 +135,10 @@ async def download(query: CallbackQuery, callback_data: Download):
         illust = await api.illust(callback_data.id)
     except Exception:
         await query.answer("请求出错了!")
-        raise
-    finally:
         await reply.delete()
+        raise
 
-    reply = await query.message.reply("下载中...")
+    await reply.edit_text("下载中...")
 
     try:
         if illust.illust_type == IllustType.UGOIRA:
@@ -149,20 +147,20 @@ async def download(query: CallbackQuery, callback_data: Download):
             gif = ugoira.compose_ugoira_gif(archive, meta.frames)
             file = BufferedInputFile(gif, f"{callback_data.id}.gif")
         elif not illust.urls.original:
+            await reply.delete()
             return await query.answer("坏了, 没有找到原图w")
         else:
             image = await api.download_asset(illust.urls.original)
-            file = BufferedInputFile(image, f"{id}.jpg")
+            file = BufferedInputFile(image, f"{illust.id}.jpg")
     except Exception:
         await query.answer("下载失败捏xwx")
         raise
-    finally:
-        await reply.delete()
 
-    reply = await query.message.reply("发送中...")
+    await reply.edit_text("发送中...")
 
     try:
         await query.message.reply_document(file)
+        await query.answer("发送成功")
     except Exception:
         await query.answer("发送失败了xwx")
         raise
