@@ -152,7 +152,7 @@ async def download(query: CallbackQuery, callback_data: Download):
         await reply.delete()
 
 
-@router.message
+@router.message()
 async def match_url(message: Message):
     if not message.text:
         return
