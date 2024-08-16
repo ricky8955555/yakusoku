@@ -15,6 +15,7 @@ from aiogram.types import (
 from yakusoku.context import module_manager
 
 from . import api, ugoira
+from .config import PixivConfig
 from .types import IllustType, XRestrict
 
 _ARTWORK_URL_REGEX = re.compile(
@@ -24,6 +25,8 @@ _ARTWORK_URL_REGEX = re.compile(
 
 
 router = module_manager.create_router()
+
+config = PixivConfig.load("pixiv")
 
 
 class Download(CallbackData, prefix="pixiv_download"):
@@ -71,7 +74,12 @@ async def send_illust(message: Message, id: int) -> Message:
         + f"更新日期: {illust.upload_date}\n"
     )
     buttons: list[list[InlineKeyboardButton]] = []
-    if illust.x_restrict == XRestrict.NONE and illust.sl == 2:
+    limited = illust.x_restrict != XRestrict.NONE or illust.sl != 2
+    if not limited or (
+        config.use_pixiv_cat_for_ugoira
+        if illust.illust_type == IllustType.UGOIRA
+        else config.use_pixiv_cat_for_still
+    ):
         buttons.append(
             [InlineKeyboardButton(text="下载原图", callback_data=Download(id=id).pack())]
         )
@@ -80,20 +88,26 @@ async def send_illust(message: Message, id: int) -> Message:
 
         try:
             if illust.illust_type == IllustType.UGOIRA:
-                meta = await api.illust_ugoira_meta(id)
-                archive = await api.download_asset(meta.src)
-                gif = ugoira.compose_ugoira_gif(archive, meta.frames)
+                if config.use_pixiv_cat_for_ugoira:
+                    gif = await api.download_from_pixiv_cat(id, config.pixiv_cat_base)
+                else:
+                    meta = await api.illust_ugoira_meta(id)
+                    archive = await api.download_pximg(meta.src, config.pximg_proxy)
+                    gif = ugoira.compose_ugoira_gif(archive, meta.frames)
                 file = BufferedInputFile(gif, f"{id}.gif")
-                message = await message.reply_animation(
-                    file, caption=info, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
-                )
             else:
-                assert illust.urls.regular, "regular size url not found."
-                photo = await api.download_asset(illust.urls.regular)
+                if config.use_pixiv_cat_for_still:
+                    photo = await api.download_from_pixiv_cat(illust.id, config.pixiv_cat_base)
+                else:
+                    assert illust.urls.regular, "regular size url not found."
+                    photo = await api.download_pximg(illust.urls.regular, config.pximg_proxy)
                 file = BufferedInputFile(photo, f"{id}.jpg")
-                message = await message.reply_photo(
-                    file, info, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
-                )
+            message = await message.reply_photo(
+                file,
+                info,
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+                has_spoiler=limited,
+            )
             await reply.delete()
             return message
         except Exception as ex:
@@ -126,15 +140,21 @@ async def download(query: CallbackQuery, callback_data: Download):
 
     try:
         if illust.illust_type == IllustType.UGOIRA:
-            meta = await api.illust_ugoira_meta(callback_data.id)
-            archive = await api.download_asset(meta.original_src)
-            gif = ugoira.compose_ugoira_gif(archive, meta.frames)
+            if config.use_pixiv_cat_for_ugoira:
+                gif = await api.download_from_pixiv_cat(callback_data.id, config.pixiv_cat_base)
+            else:
+                meta = await api.illust_ugoira_meta(callback_data.id)
+                archive = await api.download_pximg(meta.original_src, config.pximg_proxy)
+                gif = ugoira.compose_ugoira_gif(archive, meta.frames)
             file = BufferedInputFile(gif, f"{callback_data.id}.gif")
-        elif not illust.urls.original:
-            await reply.delete()
-            return await query.answer("坏了, 没有找到原图w")
         else:
-            image = await api.download_asset(illust.urls.original)
+            if config.use_pixiv_cat_for_still:
+                image = await api.download_from_pixiv_cat(illust.id, config.pixiv_cat_base)
+            elif illust.urls.original:
+                image = await api.download_pximg(illust.urls.original, config.pximg_proxy)
+            else:
+                await reply.delete()
+                return await query.answer("坏了, 没有找到原图w")
             file = BufferedInputFile(image, f"{illust.id}.jpg")
     except Exception:
         await query.answer("下载失败捏xwx")

@@ -1,3 +1,4 @@
+import urllib.parse
 from typing import TypeVar
 
 from aiohttp import ClientSession
@@ -7,6 +8,7 @@ from .types import AjaxResponse, Illust, IllustPage, UgoiraMeta
 _T = TypeVar("_T")
 
 _API = "https://www.pixiv.net/"
+_PIXIV_CAT = "https://pixiv.cat"
 
 
 class ApiError(Exception):
@@ -46,7 +48,24 @@ async def illust_ugoira_meta(id: int) -> UgoiraMeta:
     return _extract_body(response)
 
 
-async def download_asset(url: str) -> bytes:
-    async with ClientSession(headers={"Referer": _API}) as session:
+async def download_pximg(url: str, proxy: str | None = None) -> bytes:
+    headers = {"Referer": _API} if proxy is None else {}
+    if proxy:
+        parsed = urllib.parse.urlparse(url)
+        url = parsed._replace(netloc=proxy).geturl()
+
+    async with ClientSession(headers=headers) as session:
+        async with session.get(url) as response:
+            return await response.read()
+
+
+async def download_from_pixiv_cat(
+    id: int, base: str | None = None, page: int | None = None
+) -> bytes:
+    base = base or _PIXIV_CAT
+    filename = f"{id}-{page}.png" if page else f"{id}.png"
+    url = urllib.parse.urljoin(base, filename)
+
+    async with ClientSession() as session:
         async with session.get(url) as response:
             return await response.read()
