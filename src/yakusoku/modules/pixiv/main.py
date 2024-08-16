@@ -95,6 +95,7 @@ async def send_illust(message: Message, id: int) -> Message:
                     archive = await api.download_pximg(meta.src, config.pximg_proxy)
                     gif = ugoira.compose_ugoira_gif(archive, meta.frames)
                 file = BufferedInputFile(gif, f"{id}.gif")
+                reply_method = message.reply_animation
             else:
                 if config.use_pixiv_cat_for_still:
                     photo = await api.download_from_pixiv_cat(illust.id, config.pixiv_cat_base)
@@ -102,9 +103,10 @@ async def send_illust(message: Message, id: int) -> Message:
                     assert illust.urls.regular, "regular size url not found."
                     photo = await api.download_pximg(illust.urls.regular, config.pximg_proxy)
                 file = BufferedInputFile(photo, f"{id}.jpg")
-            message = await message.reply_photo(
+                reply_method = message.reply_photo
+            message = await reply_method(
                 file,
-                info,
+                caption=info,
                 reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
                 has_spoiler=limited,
             )
