@@ -73,7 +73,7 @@ async def member_update(update: ChatMemberUpdated, bot: Bot):
     raise SkipHandler
 
 
-@router.message(NonAnonymousFilter)
+@module_manager.root_router.message(NonAnonymousFilter)  # prioritize by using root router
 @cache(ttl=config.auto_update_ttl, key="chat:{message.chat.id},user:{message.from_id}")
 async def message_received(message: Message):
     assert message.from_user
