@@ -9,7 +9,7 @@ from sqlmodel import SQLModel
 
 from alembic import context
 
-module_path = Path("yakusoku")
+module_path = Path("src/yakusoku")
 
 
 # this is the Alembic Config object, which provides
@@ -35,7 +35,7 @@ target_metadata = SQLModel.metadata
 
 def get_model_modules() -> Iterable[str]:
     return (
-        module.with_suffix("").as_posix().replace("/", ".")
+        module.with_suffix("").relative_to("src/").as_posix().replace("/", ".")
         for module in chain(module_path.glob("**/models.py"), module_path.glob("**/models"))
     )
 
