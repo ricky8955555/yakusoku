@@ -1,6 +1,7 @@
 import html
 import time
 
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandObject
 from aiogram.types import BufferedInputFile, Message
 
@@ -24,4 +25,7 @@ async def latex(message: Message, command: CommandObject):
     except Exception as ex:
         return await message.reply(f"喵呜……渲染失败捏.\n{html.escape(str(ex))}")
     image = BufferedInputFile(image, f"latex_{time.time()}.png")
-    await message.reply_photo(image)
+    try:
+        await message.reply_photo(image)
+    except TelegramBadRequest:
+        await message.reply_document(image)
