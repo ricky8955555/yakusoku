@@ -9,6 +9,8 @@ from aiogram.types import Message
 from yakusoku.context import module_manager
 from yakusoku.utils.message import cut_message
 
+from .config import config
+
 router = module_manager.create_router()
 
 
@@ -35,7 +37,11 @@ async def whois(message: Message, command: CommandObject):
         return await message.reply("不给我目标我不造查什么w")
 
     try:
-        _, entries = await asyncwhois.aio_whois(target)
+        if config.use_rdap:
+            _, entries = await asyncwhois.aio_rdap(target)
+        else:
+            _, entries = await asyncwhois.aio_whois(target)
+
     except asyncwhois.NotFoundError:
         return await message.reply("诶? 这个东西找不到惹w")
     except Exception as ex:
