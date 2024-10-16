@@ -98,7 +98,7 @@ async def umnos(update: Message | CallbackQuery, **kwargs: Any):
             [
                 InlineKeyboardButton(  # type: ignore
                     text="继续转生!",
-                    callback_data=f"umnos_refresh {update.from_user.id}",
+                    callback_data=Refresh(user=update.from_user.id).pack(),
                 ),
             ]
         ]
