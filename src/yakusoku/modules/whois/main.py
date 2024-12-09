@@ -1,3 +1,4 @@
+import contextlib
 import html
 import traceback
 from typing import Any, cast
@@ -37,9 +38,13 @@ async def whois(message: Message, command: CommandObject):
         return await message.reply("不给我目标我不造查什么w")
 
     try:
+        entries = None
+
         if config.use_rdap:
-            _, entries = await asyncwhois.aio_rdap(target)
-        else:
+            with contextlib.suppress(Exception):
+                _, entries = await asyncwhois.aio_rdap(target)
+
+        if entries is None:
             _, entries = await asyncwhois.aio_whois(target)
 
     except asyncwhois.NotFoundError:
