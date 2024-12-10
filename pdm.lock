@@ -4,20 +4,23 @@
 [metadata]
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
-lock_version = "4.4.1"
-content_hash = "sha256:d2681c482397e59526b3aab9a540100d1ca964e030c766801c3734cc61182174"
+lock_version = "4.5.0"
+content_hash = "sha256:da918cc153b4dd8b62e0718f6427e2e2ceefbe280efdbd1840e9ac15098ed718"
+
+[[metadata.targets]]
+requires_python = ">=3.10,<3.13"
 
 [[package]]
 name = "aiofile"
-version = "3.8.8"
-requires_python = ">=3.7, <4"
+version = "3.9.0"
+requires_python = "<4,>=3.8"
 summary = "Asynchronous file operations."
 dependencies = [
-    "caio~=0.9.0",
+    "caio<0.10.0,>=0.9.0",
 ]
 files = [
-    {file = "aiofile-3.8.8-py3-none-any.whl", hash = "sha256:41e8845cce055779cd77713d949a339deb012eab605b857765e8f8e52a5ed811"},
-    {file = "aiofile-3.8.8.tar.gz", hash = "sha256:41f3dc40bd730459d58610476e82e5efb2f84ae6e9fa088a9545385d838b8a43"},
+    {file = "aiofile-3.9.0-py3-none-any.whl", hash = "sha256:ce2f6c1571538cbdfa0143b04e16b208ecb0e9cb4148e528af8a640ed51cc8aa"},
+    {file = "aiofile-3.9.0.tar.gz", hash = "sha256:e5ad718bb148b265b6df1b3752c4d1d83024b93da9bd599df74b9d9ffcf7919b"},
 ]
 
 [[package]]
@@ -112,12 +115,15 @@ files = [
 
 [[package]]
 name = "aioshutil"
-version = "1.4"
+version = "1.5"
 requires_python = ">=3.8"
 summary = "Asynchronous shutil module."
+dependencies = [
+    "typing-extensions; python_version < \"3.10\"",
+]
 files = [
-    {file = "aioshutil-1.4-py3-none-any.whl", hash = "sha256:ff14519f8155c3420f2a0cc921cbb23d4abe7738984fc21a76e67ae101fc35f0"},
-    {file = "aioshutil-1.4.tar.gz", hash = "sha256:7df42c2a1496dc9dd4e246bf09d490968ce8847ee2617cdc807aa0ee3804310b"},
+    {file = "aioshutil-1.5-py3-none-any.whl", hash = "sha256:bc2a6cdcf1a8615b62f856154fd81131031d03f2834912ebb06d8a2391253652"},
+    {file = "aioshutil-1.5.tar.gz", hash = "sha256:2756d6cd3bb03405dc7348ac11a0b60eb949ebd63cdd15f56e922410231c1201"},
 ]
 
 [[package]]
@@ -148,17 +154,19 @@ files = [
 
 [[package]]
 name = "alembic"
-version = "1.13.2"
+version = "1.13.3"
 requires_python = ">=3.8"
 summary = "A database migration tool for SQLAlchemy."
 dependencies = [
     "Mako",
     "SQLAlchemy>=1.3.0",
+    "importlib-metadata; python_version < \"3.9\"",
+    "importlib-resources; python_version < \"3.9\"",
     "typing-extensions>=4",
 ]
 files = [
-    {file = "alembic-1.13.2-py3-none-any.whl", hash = "sha256:6b8733129a6224a9a711e17c99b08462dbf7cc9670ba8f2e2ae9af860ceb1953"},
-    {file = "alembic-1.13.2.tar.gz", hash = "sha256:1ff0ae32975f4fd96028c39ed9bb3c867fe3af956bd7bb37343b54c9fe7445ef"},
+    {file = "alembic-1.13.3-py3-none-any.whl", hash = "sha256:908e905976d15235fae59c9ac42c4c5b75cfcefe3d27c0fbf7ae15a37715d80e"},
+    {file = "alembic-1.13.3.tar.gz", hash = "sha256:203503117415561e203aa14541740643a611f641517f0209fcae63e9fa09f1a2"},
 ]
 
 [[package]]
@@ -166,6 +174,9 @@ name = "annotated-types"
 version = "0.7.0"
 requires_python = ">=3.8"
 summary = "Reusable constraint types to use with typing.Annotated"
+dependencies = [
+    "typing-extensions>=4.0.0; python_version < \"3.9\"",
+]
 files = [
     {file = "annotated_types-0.7.0-py3-none-any.whl", hash = "sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53"},
     {file = "annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89"},
@@ -192,6 +203,9 @@ name = "async-timeout"
 version = "4.0.3"
 requires_python = ">=3.7"
 summary = "Timeout context manager for asyncio programs"
+dependencies = [
+    "typing-extensions>=3.6.5; python_version < \"3.8\"",
+]
 files = [
     {file = "async-timeout-4.0.3.tar.gz", hash = "sha256:4640d96be84d82d02ed59ea2b7105a0f7b33abe8703703cd0ab0bf87c427522f"},
     {file = "async_timeout-4.0.3-py3-none-any.whl", hash = "sha256:7405140ff1230c310e51dc27b3145b9092d659ce68ff733fb0cefe3ee42be028"},
@@ -199,17 +213,18 @@ files = [
 
 [[package]]
 name = "asyncwhois"
-version = "1.1.4"
+version = "1.1.9"
 requires_python = ">=3.9"
-summary = "Python utility for querying and parsing WHOIS information for Domains, IPv4s, IPv6s, and AS numbers."
+summary = "Python WHOIS and RDAP utility for querying and parsing information about Domains, IPv4s, IPv6s, and AS numbers."
 dependencies = [
+    "python-dateutil>=2.9.0",
     "python-socks[asyncio]>=2.0.2",
     "tldextract>=3.2.0",
-    "whodap>=0.1.10",
+    "whodap>=0.1.12",
 ]
 files = [
-    {file = "asyncwhois-1.1.4-py3-none-any.whl", hash = "sha256:69bd0c003765430e7ed17a67eaf00b997b9fcc802f0ca6e56dec735021d3ec92"},
-    {file = "asyncwhois-1.1.4.tar.gz", hash = "sha256:d694ea852ef794dc53c7ce20f4d5e373f875e7ffbe8fbae7239e65167fb61275"},
+    {file = "asyncwhois-1.1.9-py3-none-any.whl", hash = "sha256:e0baa4daf3678aae5f6f581cb11cdd2097fe1748ece06617f740a1274db8941b"},
+    {file = "asyncwhois-1.1.9.tar.gz", hash = "sha256:9cc5493823fa44b0deab4958a8486a36d199a0936403f4e14b5348aea39916d7"},
 ]
 
 [[package]]
@@ -217,6 +232,9 @@ name = "attrs"
 version = "23.2.0"
 requires_python = ">=3.7"
 summary = "Classes Without Boilerplate"
+dependencies = [
+    "importlib-metadata; python_version < \"3.8\"",
+]
 files = [
     {file = "attrs-23.2.0-py3-none-any.whl", hash = "sha256:99b87a485a5820b23b879f04c2305b44b951b502fd64be915879d77a7e8fc6f1"},
     {file = "attrs-23.2.0.tar.gz", hash = "sha256:935dc3b529c262f6cf76e50877d35a4bd3c1de194fd41f47a2b7ae8f19971f30"},
@@ -224,8 +242,8 @@ files = [
 
 [[package]]
 name = "black"
-version = "24.4.2"
-requires_python = ">=3.8"
+version = "24.10.0"
+requires_python = ">=3.9"
 summary = "The uncompromising code formatter."
 dependencies = [
     "click>=8.0.0",
@@ -237,20 +255,20 @@ dependencies = [
     "typing-extensions>=4.0.1; python_version < \"3.11\"",
 ]
 files = [
-    {file = "black-24.4.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:dd1b5a14e417189db4c7b64a6540f31730713d173f0b63e55fabd52d61d8fdce"},
-    {file = "black-24.4.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:8e537d281831ad0e71007dcdcbe50a71470b978c453fa41ce77186bbe0ed6021"},
-    {file = "black-24.4.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eaea3008c281f1038edb473c1aa8ed8143a5535ff18f978a318f10302b254063"},
-    {file = "black-24.4.2-cp310-cp310-win_amd64.whl", hash = "sha256:7768a0dbf16a39aa5e9a3ded568bb545c8c2727396d063bbaf847df05b08cd96"},
-    {file = "black-24.4.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:257d724c2c9b1660f353b36c802ccece186a30accc7742c176d29c146df6e474"},
-    {file = "black-24.4.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:bdde6f877a18f24844e381d45e9947a49e97933573ac9d4345399be37621e26c"},
-    {file = "black-24.4.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e151054aa00bad1f4e1f04919542885f89f5f7d086b8a59e5000e6c616896ffb"},
-    {file = "black-24.4.2-cp311-cp311-win_amd64.whl", hash = "sha256:7e122b1c4fb252fd85df3ca93578732b4749d9be076593076ef4d07a0233c3e1"},
-    {file = "black-24.4.2-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:accf49e151c8ed2c0cdc528691838afd217c50412534e876a19270fea1e28e2d"},
-    {file = "black-24.4.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:88c57dc656038f1ab9f92b3eb5335ee9b021412feaa46330d5eba4e51fe49b04"},
-    {file = "black-24.4.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:be8bef99eb46d5021bf053114442914baeb3649a89dc5f3a555c88737e5e98fc"},
-    {file = "black-24.4.2-cp312-cp312-win_amd64.whl", hash = "sha256:415e686e87dbbe6f4cd5ef0fbf764af7b89f9057b97c908742b6008cc554b9c0"},
-    {file = "black-24.4.2-py3-none-any.whl", hash = "sha256:d36ed1124bb81b32f8614555b34cc4259c3fbc7eec17870e8ff8ded335b58d8c"},
-    {file = "black-24.4.2.tar.gz", hash = "sha256:c872b53057f000085da66a19c55d68f6f8ddcac2642392ad3a355878406fbd4d"},
+    {file = "black-24.10.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:e6668650ea4b685440857138e5fe40cde4d652633b1bdffc62933d0db4ed9812"},
+    {file = "black-24.10.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1c536fcf674217e87b8cc3657b81809d3c085d7bf3ef262ead700da345bfa6ea"},
+    {file = "black-24.10.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:649fff99a20bd06c6f727d2a27f401331dc0cc861fb69cde910fe95b01b5928f"},
+    {file = "black-24.10.0-cp310-cp310-win_amd64.whl", hash = "sha256:fe4d6476887de70546212c99ac9bd803d90b42fc4767f058a0baa895013fbb3e"},
+    {file = "black-24.10.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:5a2221696a8224e335c28816a9d331a6c2ae15a2ee34ec857dcf3e45dbfa99ad"},
+    {file = "black-24.10.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:f9da3333530dbcecc1be13e69c250ed8dfa67f43c4005fb537bb426e19200d50"},
+    {file = "black-24.10.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:4007b1393d902b48b36958a216c20c4482f601569d19ed1df294a496eb366392"},
+    {file = "black-24.10.0-cp311-cp311-win_amd64.whl", hash = "sha256:394d4ddc64782e51153eadcaaca95144ac4c35e27ef9b0a42e121ae7e57a9175"},
+    {file = "black-24.10.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:b5e39e0fae001df40f95bd8cc36b9165c5e2ea88900167bddf258bacef9bbdc3"},
+    {file = "black-24.10.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:d37d422772111794b26757c5b55a3eade028aa3fde43121ab7b673d050949d65"},
+    {file = "black-24.10.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:14b3502784f09ce2443830e3133dacf2c0110d45191ed470ecb04d0f5f6fcb0f"},
+    {file = "black-24.10.0-cp312-cp312-win_amd64.whl", hash = "sha256:30d2c30dc5139211dda799758559d1b049f7f14c580c409d6ad925b74a4208a8"},
+    {file = "black-24.10.0-py3-none-any.whl", hash = "sha256:3bb2b7a1f7b685f85b11fed1ef10f8a9148bceb49853e47a294a3dd963c1dd7d"},
+    {file = "black-24.10.0.tar.gz", hash = "sha256:846ea64c97afe3bc677b761787993be4991810ecc7a4a937816dd6bddedc4875"},
 ]
 
 [[package]]
@@ -274,6 +292,9 @@ name = "cashews"
 version = "6.4.0"
 requires_python = ">=3.8"
 summary = "cache tools with async power"
+dependencies = [
+    "typing-extensions; python_version == \"3.8\"",
+]
 files = [
     {file = "cashews-6.4.0-py3-none-any.whl", hash = "sha256:6b7121a0629a17aa72d22bf4007462a9fbcdcd418b8ec1083f2806950c265e58"},
     {file = "cashews-6.4.0.tar.gz", hash = "sha256:0f5ec89b4e8d2944e9403c5fc24fb2947003d279e338de40f2fd3ebc9145c4e3"},
@@ -395,6 +416,7 @@ requires_python = ">=3.7"
 summary = "Composable command line interface toolkit"
 dependencies = [
     "colorama; platform_system == \"Windows\"",
+    "importlib-metadata; python_version < \"3.8\"",
 ]
 files = [
     {file = "click-8.1.7-py3-none-any.whl", hash = "sha256:ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28"},
@@ -641,6 +663,9 @@ name = "h11"
 version = "0.14.0"
 requires_python = ">=3.7"
 summary = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
+dependencies = [
+    "typing-extensions; python_version < \"3.8\"",
+]
 files = [
     {file = "h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761"},
     {file = "h11-0.14.0.tar.gz", hash = "sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d"},
@@ -679,12 +704,12 @@ files = [
 
 [[package]]
 name = "humanize"
-version = "4.9.0"
-requires_python = ">=3.8"
+version = "4.11.0"
+requires_python = ">=3.9"
 summary = "Python humanize utilities"
 files = [
-    {file = "humanize-4.9.0-py3-none-any.whl", hash = "sha256:ce284a76d5b1377fd8836733b983bfb0b76f1aa1c090de2566fcf008d7f6ab16"},
-    {file = "humanize-4.9.0.tar.gz", hash = "sha256:582a265c931c683a7e9b8ed9559089dea7edcf6cc95be39a3cbc2c5d5ac2bcfa"},
+    {file = "humanize-4.11.0-py3-none-any.whl", hash = "sha256:b53caaec8532bcb2fff70c8826f904c35943f8cecaca29d272d9df38092736c0"},
+    {file = "humanize-4.11.0.tar.gz", hash = "sha256:e66f36020a2d5a974c504bd2555cf770621dbdbb6d82f94a6857c0b1ea2608be"},
 ]
 
 [[package]]
@@ -695,19 +720,6 @@ summary = "Internationalized Domain Names in Applications (IDNA)"
 files = [
     {file = "idna-3.7-py3-none-any.whl", hash = "sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0"},
     {file = "idna-3.7.tar.gz", hash = "sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc"},
-]
-
-[[package]]
-name = "importlib-metadata"
-version = "8.0.0"
-requires_python = ">=3.8"
-summary = "Read metadata from Python packages"
-dependencies = [
-    "zipp>=0.5",
-]
-files = [
-    {file = "importlib_metadata-8.0.0-py3-none-any.whl", hash = "sha256:15584cf2b1bf449d98ff8a6ff1abef57bf20f3ac6454f431736cd3e660921b2f"},
-    {file = "importlib_metadata-8.0.0.tar.gz", hash = "sha256:188bd24e4c346d3f0a933f275c2fec67050326a856b9a359881d7c2a697e8812"},
 ]
 
 [[package]]
@@ -725,6 +737,9 @@ name = "kiwisolver"
 version = "1.4.5"
 requires_python = ">=3.7"
 summary = "A fast implementation of the Cassowary constraint solver"
+dependencies = [
+    "typing-extensions; python_version < \"3.8\"",
+]
 files = [
     {file = "kiwisolver-1.4.5-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:05703cf211d585109fcd72207a31bb170a0f22144d68298dc5e61b3c946518af"},
     {file = "kiwisolver-1.4.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:146d14bebb7f1dc4d5fbf74f8a6cb15ac42baadee8912eb84ac0b3b2a3dc6ac3"},
@@ -860,6 +875,7 @@ dependencies = [
     "contourpy>=1.0.1",
     "cycler>=0.10",
     "fonttools>=4.22.0",
+    "importlib-resources>=3.2.0; python_version < \"3.10\"",
     "kiwisolver>=1.3.1",
     "numpy>=1.21",
     "packaging>=20.0",
@@ -886,9 +902,6 @@ files = [
     {file = "matplotlib-3.8.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f51c4c869d4b60d769f7b4406eec39596648d9d70246428745a681c327a8ad30"},
     {file = "matplotlib-3.8.4-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:b12ba985837e4899b762b81f5b2845bd1a28f4fdd1a126d9ace64e9c4eb2fb25"},
     {file = "matplotlib-3.8.4-cp312-cp312-win_amd64.whl", hash = "sha256:7a6769f58ce51791b4cb8b4d7642489df347697cd3e23d88266aaaee93b41d9a"},
-    {file = "matplotlib-3.8.4-pp39-pypy39_pp73-macosx_10_12_x86_64.whl", hash = "sha256:c7064120a59ce6f64103c9cefba8ffe6fba87f2c61d67c401186423c9a20fd35"},
-    {file = "matplotlib-3.8.4-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a0e47eda4eb2614300fc7bb4657fced3e83d6334d03da2173b09e447418d499f"},
-    {file = "matplotlib-3.8.4-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:493e9f6aa5819156b58fce42b296ea31969f2aab71c5b680b4ea7a3cb5c07d94"},
     {file = "matplotlib-3.8.4.tar.gz", hash = "sha256:8aac397d5e9ec158960e31c381c5ffc52ddd52bd9a47717e2a694038167dffea"},
 ]
 
@@ -1086,13 +1099,6 @@ files = [
     {file = "pillow-10.4.0-pp310-pypy310_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:dc3e2db6ba09ffd7d02ae9141cfa0ae23393ee7687248d46a7507b75d610f4f5"},
     {file = "pillow-10.4.0-pp310-pypy310_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:02a2be69f9c9b8c1e97cf2713e789d4e398c751ecfd9967c18d0ce304efbf885"},
     {file = "pillow-10.4.0-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:0755ffd4a0c6f267cccbae2e9903d95477ca2f77c4fcf3a3a09570001856c8a5"},
-    {file = "pillow-10.4.0-pp39-pypy39_pp73-macosx_10_15_x86_64.whl", hash = "sha256:a02364621fe369e06200d4a16558e056fe2805d3468350df3aef21e00d26214b"},
-    {file = "pillow-10.4.0-pp39-pypy39_pp73-macosx_11_0_arm64.whl", hash = "sha256:1b5dea9831a90e9d0721ec417a80d4cbd7022093ac38a568db2dd78363b00908"},
-    {file = "pillow-10.4.0-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9b885f89040bb8c4a1573566bbb2f44f5c505ef6e74cec7ab9068c900047f04b"},
-    {file = "pillow-10.4.0-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:87dd88ded2e6d74d31e1e0a99a726a6765cda32d00ba72dc37f0651f306daaa8"},
-    {file = "pillow-10.4.0-pp39-pypy39_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:2db98790afc70118bd0255c2eeb465e9767ecf1f3c25f9a1abb8ffc8cfd1fe0a"},
-    {file = "pillow-10.4.0-pp39-pypy39_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:f7baece4ce06bade126fb84b8af1c33439a76d8a6fd818970215e0560ca28c27"},
-    {file = "pillow-10.4.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:cfdd747216947628af7b259d274771d84db2268ca062dd5faf373639d00113a3"},
     {file = "pillow-10.4.0.tar.gz", hash = "sha256:166c1cd4d24309b30d61f79f4a9114b7b2313d7450912277855ff5dfd7cd4a06"},
 ]
 
@@ -1108,18 +1114,18 @@ files = [
 
 [[package]]
 name = "psutil"
-version = "6.0.0"
+version = "6.1.0"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7"
 summary = "Cross-platform lib for process and system monitoring in Python."
 files = [
-    {file = "psutil-6.0.0-cp36-abi3-macosx_10_9_x86_64.whl", hash = "sha256:c588a7e9b1173b6e866756dde596fd4cad94f9399daf99ad8c3258b3cb2b47a0"},
-    {file = "psutil-6.0.0-cp36-abi3-manylinux_2_12_i686.manylinux2010_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:6ed2440ada7ef7d0d608f20ad89a04ec47d2d3ab7190896cd62ca5fc4fe08bf0"},
-    {file = "psutil-6.0.0-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5fd9a97c8e94059b0ef54a7d4baf13b405011176c3b6ff257c247cae0d560ecd"},
-    {file = "psutil-6.0.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e2e8d0054fc88153ca0544f5c4d554d42e33df2e009c4ff42284ac9ebdef4132"},
-    {file = "psutil-6.0.0-cp37-abi3-win32.whl", hash = "sha256:a495580d6bae27291324fe60cea0b5a7c23fa36a7cd35035a16d93bdcf076b9d"},
-    {file = "psutil-6.0.0-cp37-abi3-win_amd64.whl", hash = "sha256:33ea5e1c975250a720b3a6609c490db40dae5d83a4eb315170c4fe0d8b1f34b3"},
-    {file = "psutil-6.0.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:ffe7fc9b6b36beadc8c322f84e1caff51e8703b88eee1da46d1e3a6ae11b4fd0"},
-    {file = "psutil-6.0.0.tar.gz", hash = "sha256:8faae4f310b6d969fa26ca0545338b21f73c6b15db7c4a8d934a5482faa818f2"},
+    {file = "psutil-6.1.0-cp36-abi3-macosx_10_9_x86_64.whl", hash = "sha256:6e2dcd475ce8b80522e51d923d10c7871e45f20918e027ab682f94f1c6351688"},
+    {file = "psutil-6.1.0-cp36-abi3-macosx_11_0_arm64.whl", hash = "sha256:0895b8414afafc526712c498bd9de2b063deaac4021a3b3c34566283464aff8e"},
+    {file = "psutil-6.1.0-cp36-abi3-manylinux_2_12_i686.manylinux2010_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:9dcbfce5d89f1d1f2546a2090f4fcf87c7f669d1d90aacb7d7582addece9fb38"},
+    {file = "psutil-6.1.0-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:498c6979f9c6637ebc3a73b3f87f9eb1ec24e1ce53a7c5173b8508981614a90b"},
+    {file = "psutil-6.1.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d905186d647b16755a800e7263d43df08b790d709d575105d419f8b6ef65423a"},
+    {file = "psutil-6.1.0-cp37-abi3-win32.whl", hash = "sha256:1ad45a1f5d0b608253b11508f80940985d1d0c8f6111b5cb637533a0e6ddc13e"},
+    {file = "psutil-6.1.0-cp37-abi3-win_amd64.whl", hash = "sha256:a8fb3752b491d246034fa4d279ff076501588ce8cbcdbb62c32fd7a377d996be"},
+    {file = "psutil-6.1.0.tar.gz", hash = "sha256:353815f59a7f64cdaca1c0307ee13558a0512f6db064e92fe833784f08539c7a"},
 ]
 
 [[package]]
@@ -1225,18 +1231,17 @@ files = [
 
 [[package]]
 name = "pydantic-yaml"
-version = "1.3.0"
+version = "1.4.0"
 requires_python = ">=3.8"
 summary = "Adds some YAML functionality to the excellent `pydantic` library."
 dependencies = [
-    "importlib-metadata",
     "pydantic>=1.8",
     "ruamel-yaml<0.19.0,>=0.16.0",
     "typing-extensions>=4.5.0",
 ]
 files = [
-    {file = "pydantic_yaml-1.3.0-py3-none-any.whl", hash = "sha256:0684255a860522c9226d4eff5c0e8ba44339683b5c5fa79fac4470c0e3821911"},
-    {file = "pydantic_yaml-1.3.0.tar.gz", hash = "sha256:5671c9ef1731570aa2644432ae1e2dd34c406bd4a0a393df622f6b897a88df83"},
+    {file = "pydantic_yaml-1.4.0-py3-none-any.whl", hash = "sha256:f9ad82d8c0548e779e00d6ec639f6efa8f8c7e14d12d0bf9fdc400a37300d7ba"},
+    {file = "pydantic_yaml-1.4.0.tar.gz", hash = "sha256:09f6b9ec9d80550dd3a58596a6a0948a1830fae94b73329b95c2b9dbfc35ae00"},
 ]
 
 [[package]]
@@ -1275,15 +1280,16 @@ files = [
 
 [[package]]
 name = "pyright"
-version = "1.1.370"
+version = "1.1.390"
 requires_python = ">=3.7"
 summary = "Command line wrapper for pyright"
 dependencies = [
     "nodeenv>=1.6.0",
+    "typing-extensions>=4.1",
 ]
 files = [
-    {file = "pyright-1.1.370-py3-none-any.whl", hash = "sha256:fc721601e480a69989775bfc210534a6ca0110ebd0c065244a8d3a151294fc61"},
-    {file = "pyright-1.1.370.tar.gz", hash = "sha256:d0d559d506fc41e3297f721aaa05a1b9f06beda5acc9ac64ca371ce94c28f960"},
+    {file = "pyright-1.1.390-py3-none-any.whl", hash = "sha256:ecebfba5b6b50af7c1a44c2ba144ba2ab542c227eb49bc1f16984ff714e0e110"},
+    {file = "pyright-1.1.390.tar.gz", hash = "sha256:aad7f160c49e0fbf8209507a15e17b781f63a86a1facb69ca877c71ef2e9538d"},
 ]
 
 [[package]]
@@ -1433,6 +1439,7 @@ requires_python = ">=3.7"
 summary = "Database Abstraction Library"
 dependencies = [
     "greenlet!=0.4.17; (platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"AMD64\" or platform_machine == \"amd64\" or platform_machine == \"x86_64\" or platform_machine == \"ppc64le\" or platform_machine == \"aarch64\") and python_version < \"3.13\"",
+    "importlib-metadata; python_version < \"3.8\"",
     "typing-extensions>=4.6.0",
 ]
 files = [
@@ -1466,7 +1473,7 @@ files = [
 
 [[package]]
 name = "sqlmodel"
-version = "0.0.19"
+version = "0.0.22"
 requires_python = ">=3.7"
 summary = "SQLModel, SQL databases in Python, designed for simplicity, compatibility, and robustness."
 dependencies = [
@@ -1474,8 +1481,8 @@ dependencies = [
     "pydantic<3.0.0,>=1.10.13",
 ]
 files = [
-    {file = "sqlmodel-0.0.19-py3-none-any.whl", hash = "sha256:6c8125d4101970d031e9aae970b20cbeaf44149989f8366d939f4ab21aab8763"},
-    {file = "sqlmodel-0.0.19.tar.gz", hash = "sha256:95449b0b48a40a3eecf0a629fa5735b9dfc8a5574a91090d24ca17f02246ad96"},
+    {file = "sqlmodel-0.0.22-py3-none-any.whl", hash = "sha256:a1ed13e28a1f4057cbf4ff6cdb4fc09e85702621d3259ba17b3c230bfb2f941b"},
+    {file = "sqlmodel-0.0.22.tar.gz", hash = "sha256:7d37c882a30c43464d143e35e9ecaf945d88035e20117bf5ec2834a23cbe505e"},
 ]
 
 [[package]]
@@ -1526,12 +1533,12 @@ files = [
 
 [[package]]
 name = "webcolors"
-version = "24.6.0"
-requires_python = ">=3.8"
+version = "24.11.1"
+requires_python = ">=3.9"
 summary = "A library for working with the color formats defined by HTML and CSS."
 files = [
-    {file = "webcolors-24.6.0-py3-none-any.whl", hash = "sha256:8cf5bc7e28defd1d48b9e83d5fc30741328305a8195c29a8e668fa45586568a1"},
-    {file = "webcolors-24.6.0.tar.gz", hash = "sha256:1d160d1de46b3e81e58d0a280d0c78b467dc80f47294b91b1ad8029d2cedb55b"},
+    {file = "webcolors-24.11.1-py3-none-any.whl", hash = "sha256:515291393b4cdf0eb19c155749a096f779f7d909f7cceea072791cb9095b92e9"},
+    {file = "webcolors-24.11.1.tar.gz", hash = "sha256:ecb3d768f32202af770477b8b65f318fa4f566c22948673a977b00d589dd80f6"},
 ]
 
 [[package]]
@@ -1540,6 +1547,7 @@ version = "0.1.12"
 requires_python = ">=3.6, <4"
 summary = "Simple RDAP Utility for Python"
 dependencies = [
+    "async-generator>=1.10; python_version < \"3.7.0\"",
     "httpx>=0.20.0",
 ]
 files = [
@@ -1555,6 +1563,7 @@ summary = "Yet another URL library"
 dependencies = [
     "idna>=2.0",
     "multidict>=4.0",
+    "typing-extensions>=3.7.4; python_version < \"3.8\"",
 ]
 files = [
     {file = "yarl-1.9.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:a8c1df72eb746f4136fe9a2e72b0c9dc1da1cbd23b5372f94b5820ff8ae30e0e"},
@@ -1604,16 +1613,6 @@ files = [
     {file = "yarl-1.9.4-cp312-cp312-win_amd64.whl", hash = "sha256:a9bd00dc3bc395a662900f33f74feb3e757429e545d831eef5bb280252631984"},
     {file = "yarl-1.9.4-py3-none-any.whl", hash = "sha256:928cecb0ef9d5a7946eb6ff58417ad2fe9375762382f1bf5c55e61645f2c43ad"},
     {file = "yarl-1.9.4.tar.gz", hash = "sha256:566db86717cf8080b99b58b083b773a908ae40f06681e87e589a976faf8246bf"},
-]
-
-[[package]]
-name = "zipp"
-version = "3.19.2"
-requires_python = ">=3.8"
-summary = "Backport of pathlib-compatible object wrapper for zip files"
-files = [
-    {file = "zipp-3.19.2-py3-none-any.whl", hash = "sha256:f091755f667055f2d02b32c53771a7a6c8b47e1fdbc4b72a8b9072b3eef8015c"},
-    {file = "zipp-3.19.2.tar.gz", hash = "sha256:bf1dcf6450f873a13e952a29504887c89e6de7506209e5b1bcc3460135d4de19"},
 ]
 
 [[package]]
