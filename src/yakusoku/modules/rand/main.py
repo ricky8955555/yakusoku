@@ -1,4 +1,4 @@
-import random
+from random import SystemRandom
 
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
@@ -7,6 +7,8 @@ from aiogram.types import Message
 from yakusoku.context import module_manager
 
 router = module_manager.create_router()
+
+random = SystemRandom()
 
 
 @router.message(Command("randobj"))
