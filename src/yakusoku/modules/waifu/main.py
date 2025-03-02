@@ -18,6 +18,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     Message,
 )
+from sqlalchemy.exc import NoResultFound
 
 from yakusoku.archive import avatar_manager, user_manager
 from yakusoku.archive import utils as archive_utils
@@ -414,6 +415,6 @@ async def member_update(update: ChatMemberUpdated, bot: Bot):
     if member.user.id == bot.id:
         with contextlib.suppress(Exception):
             return await _manager.remove_group(update.chat.id)
-    with contextlib.suppress(KeyError):
+    with contextlib.suppress(NoResultFound):
         await _manager.remove_waifu(update.chat.id, member.user.id)
     raise SkipHandler
