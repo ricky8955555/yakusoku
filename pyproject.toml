@@ -24,7 +24,7 @@ dependencies = [
     "aioshutil~=1.0",
     "asyncwhois~=1.1.0",
     "webcolors>=24.6.0",
-    "zakodb[xxhash,cityhash] @ git+https://gitlab.huajitech.net/Ricky8955555/zakodb.git",
+    "zakodb[xxhash,cityhash] @ git+https://github.com/ricky8955555/zakodb.git",
 ]
 name = "yakusoku"
 version = "0.1.0"
