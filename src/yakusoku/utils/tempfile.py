@@ -48,7 +48,7 @@ class TemporaryAioFile:
 
     def __init__(
         self,
-        mode: str = "r",
+        mode: str = "r+",
         encoding: str = "utf-8",
         context: AsyncioContextBase | None = None,
         executor: Executor | None = None,
