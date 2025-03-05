@@ -10,6 +10,7 @@ from typing import Any
 import humanize
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
+from zakodb.types import ZakoDbHashMethod
 
 from yakusoku.context import module_manager
 from yakusoku.environ import data_path
@@ -31,20 +32,22 @@ semaphore = asyncio.Semaphore(config.max_jobs)
 logger = logging.getLogger()
 
 
-def create_package_manager(config: PkgDistroConfig[_T]) -> PackageManager[_T]:
+def create_package_manager(
+    config: PkgDistroConfig[_T], hash_method: ZakoDbHashMethod
+) -> PackageManager[_T]:
     provider, distros = config.to_instance()
     database = (base_path / f"{config.name}.db").as_posix()
-    return PackageManager(provider, distros, database)
+    return PackageManager(provider, distros, database, hash_method)
 
 
 managers: dict[str, PackageManager[Any]] = {
-    distro.name: create_package_manager(distro) for distro in config.distros
+    distro.name: create_package_manager(distro, config.db_hash_method) for distro in config.distros
 }
 
 
 async def update_task(distro: SupportedDistros) -> None:
     manager = managers[distro.name]
-    last = await manager.last_updated()
+    last = manager.last_updated()
     cycle = distro.update or config.default_update
     retry_after = config.retry_after.total_seconds()
 
@@ -56,7 +59,7 @@ async def update_task(distro: SupportedDistros) -> None:
         async with semaphore:
             try:
                 logger.info(f"updating {distro.name} distro...")
-                await manager.update(config.commit_on)
+                await manager.update()
                 logger.info(f"{distro.name} distro updated successfully.")
             except Exception:
                 traceback.print_exc()
@@ -80,7 +83,7 @@ async def on_startup():
 @router.shutdown()
 async def on_shutdown():
     for manager in managers.values():
-        await manager.close()
+        manager.close()
     for task in update_tasks:
         task.cancel()
 
@@ -92,7 +95,7 @@ async def pkgs_all(message: Message, name: str):
 
     for distro, manager in managers.items():
         try:
-            package = await manager.info(name)
+            package = manager.info(name)
             info = f"{package.name}-{package.version}"
             if manager.updating:
                 updating.append(distro)
@@ -134,7 +137,7 @@ async def pkgs_distro(message: Message, distro: str, name: str):
     target, manager = result
 
     try:
-        package = await manager.info(name)
+        package = manager.info(name)
     except NoSuchPackage:
         return await message.reply("没有这样的包啦x")
     except DatabaseIsEmpty:
@@ -190,10 +193,10 @@ async def pkgs_help(message: Message):
 async def pkgs_status(message: Message):
     infos = [
         f"{name}:\n"
-        f"数据库大小: {humanize.naturalsize(os.path.getsize(manager.sql.path))}\n"
+        f"数据库大小: {humanize.naturalsize(os.path.getsize(manager.path))}\n"
         f"上次更新: {humanize.naturaltime(last)}\n"
         for name, manager in managers.items()
-        if (last := await manager.last_updated()) is not None
+        if (last := manager.last_updated()) is not None
     ]
 
     reply = "\n".join(infos)

@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import Generic, Literal
 
 from pydantic import BaseModel, field_validator
+from zakodb.types import ZakoDbHashMethod
 
 from yakusoku.config import Config
 
@@ -75,8 +76,8 @@ class PkgsConfig(Config):
     distros: list[SupportedDistros] = []
     max_jobs: int = 1
     retry_after: timedelta = timedelta(seconds=5)
-    commit_on: int = 1000
     default_update: timedelta = timedelta(hours=4)
+    db_hash_method: ZakoDbHashMethod = ZakoDbHashMethod.XXH64
 
     @field_validator("distros")
     def distros_no_duplicate(cls, v: list[SupportedDistros]) -> list[SupportedDistros]:

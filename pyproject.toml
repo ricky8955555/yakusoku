@@ -24,6 +24,7 @@ dependencies = [
     "aioshutil~=1.0",
     "asyncwhois~=1.1.0",
     "webcolors>=24.6.0",
+    "zakodb[xxhash,cityhash] @ git+https://gitlab.huajitech.net/Ricky8955555/zakodb.git",
 ]
 name = "yakusoku"
 version = "0.1.0"
@@ -31,14 +32,6 @@ description = ""
 
 [tool.pdm.build]
 includes = []
-
-[tool.pdm.dev-dependencies]
-dev = [
-    "pyright",
-    "pyproject-flake8",
-    "black",
-    "isort",
-]
 
 [tool.pyright]
 typeCheckingMode = "strict"
@@ -60,3 +53,12 @@ exclude = "alembic/versions,.venv"
 line_length = 100
 skip = ["alembic/versions", ".venv"]
 profile = "black"
+
+[dependency-groups]
+dev = [
+    "pyright",
+    "pyproject-flake8",
+    "black",
+    "isort",
+    "yappi>=1.6.10",
+]

@@ -3,15 +3,17 @@ from datetime import datetime
 from typing import Generic
 
 import aioshutil
-import sqlmodel
-from sqlalchemy.exc import OperationalError
+from zakodb.core import ZakoDb
+from zakodb.exc import NotAZakoDbError
+from zakodb.query import Query
+from zakodb.types import ZakoDbHashMethod, ZakoDbMetadata, ZakoDbType, ZakoDbTypedValue
+from zakodb.utils import create_hashed_bytes
 
-from yakusoku.database import SQLSessionManager
 from yakusoku.utils.tempfile import TemporaryFile
 
 from .providers import AnyPackageRepository as _T
 from .providers import PackageProvider
-from .types import SQL_TABLES, Package
+from .types import Package
 
 
 class NoSuchPackage(Exception):
@@ -29,133 +31,135 @@ class DatabaseIsEmpty(Exception):
 class PackageManager(Generic[_T]):
     provider: PackageProvider[_T]
     repos: list[_T]
-    _sql: SQLSessionManager
+    path: str
+    hash_method: ZakoDbHashMethod
+    _db: ZakoDb | None
     _updating: bool
 
     def __init__(
         self,
         provider: PackageProvider[_T],
         repos: list[_T],
-        database: str,
+        path: str,
+        hash_method: ZakoDbHashMethod,
     ) -> None:
         self.provider = provider
         self.repos = repos
-        self._sql = SQLSessionManager(database)
+        self.path = path
+        self.hash_method = hash_method
         self._updating = False
+        self._db = None
+        self.reload()
 
-    async def _check_db(self) -> None:
-        if await self.empty():
-            raise DatabaseIsEmpty
+    def reload(self) -> None:
+        if self._db is None:
+            self.close()
+
+        self._db = None
+
+        if not os.path.exists(self.path):
+            return
+
+        fp = open(self.path, "rb")
+
+        try:
+            self._db = ZakoDb.load(fp)
+        except NotAZakoDbError:
+            fp.close()
 
     def _check_updating(self) -> None:
         if self._updating:
             raise DatabaseUpdating
 
     @property
-    def sql(self) -> SQLSessionManager:
-        return self._sql
+    def db(self) -> ZakoDb:
+        if self._db is None:
+            raise DatabaseIsEmpty
+        return self._db
 
     @property
     def updating(self) -> bool:
         return self._updating
 
-    async def close(self) -> None:
-        await self._sql.close()
-
-    async def empty(self) -> bool:
-        statement = sqlmodel.select(Package).limit(1)
-
-        async with self._sql.session() as session:
-            try:
-                results = await session.execute(statement)
-                return results.first() is None
-            except OperationalError:
-                return True
-
-    async def info(self, name: str) -> Package:
-        await self._check_db()
-
-        statement = sqlmodel.select(Package).where(Package.name == name)
-
-        async with self._sql.session() as session:
-            results = await session.execute(statement)
-
-        if not (row := results.first()):
-            raise NoSuchPackage
-
-        return row[0]
-
-    async def search(self, name: str) -> list[Package]:
-        await self._check_db()
-
-        statement = sqlmodel.select(Package).where(
-            Package.name.contains(name),  # type: ignore
+    def _create_metadata(self) -> ZakoDbMetadata:
+        return ZakoDbMetadata(
+            hash_method=self.hash_method,
+            field_props=Package.__field_props__,
+            extra_fields={
+                "created_at": ZakoDbTypedValue(
+                    type=ZakoDbType.FLOAT64, value=datetime.now().timestamp()
+                )
+            },
         )
 
-        async with self._sql.session() as session:
-            results = await session.execute(statement)
+    def close(self) -> None:
+        if self._db is not None:
+            self._db.io.close()
 
-        return [row[0] for row in results.all()]
+    def available(self) -> bool:
+        return self._db is not None
 
-    async def _update_repo_eager(self, writer: SQLSessionManager, repo: _T, commit_on: int) -> None:
-        assert commit_on > 0, "commit_on should be a positive value."
-        count = 0
+    def info(self, name: str) -> Package:
+        hashed_name = create_hashed_bytes(name.encode(Package.__encoding__), self.hash_method)
 
-        async with writer.session() as session:
-            async for package in self.provider.fetch(repo):
-                session.add(package)
-                count += 1
+        PackageEntry = Query()
+        entry = next(self.db.find_entry(PackageEntry.name == hashed_name), None)
 
-                if count == commit_on:
-                    await session.commit()
-                    count = 0
+        if entry is None:
+            raise NoSuchPackage
 
-            await session.commit()
+        return Package.from_zakodb_entry(entry)
 
-    async def _update_repo_lazy(self, writer: SQLSessionManager, repo: _T) -> None:
-        async with writer.session() as session:
-            async for package in self.provider.fetch(repo):
-                session.add(package)
-            await session.commit()
+    async def search(self, name: str) -> list[Package]:
+        PackageEntry = Query()
 
-    async def _update_repo(self, writer: SQLSessionManager, repo: _T, commit_on: int) -> None:
-        if commit_on > 0:
-            await self._update_repo_eager(writer, repo, commit_on)
-        else:
-            await self._update_repo_lazy(writer, repo)
+        entries = self.db.find_entry(PackageEntry.name.contains(name))
+        results = list(map(Package.from_zakodb_entry, entries))
 
-    async def _update_buffered(self, commit_on: int) -> None:
+        return results
+
+    async def _update_repo(self, writer: ZakoDb, repo: _T) -> None:
+        async for package in self.provider.fetch(repo):
+            writer.append_entry(package.to_zakodb_entry(writer.metadata.hash_method))
+
+    async def _update_buffered(self) -> None:
         with TemporaryFile() as file:
-            async with SQLSessionManager(file) as writer:
-                await writer.init_db_with_tables(*SQL_TABLES)
+            with open(file, "wb") as fp:
+                writer = ZakoDb.create(fp, self._create_metadata())
 
                 for repo in self.repos:
-                    await self._update_repo(writer, repo, commit_on)
+                    await self._update_repo(writer, repo)
 
-            await aioshutil.move(file, self._sql.path)
+            await aioshutil.move(file, self.path)
 
-    async def update(self, commit_on: int = -1) -> None:
+    async def update(self) -> None:
         self._check_updating()
 
         try:
             self._updating = True
-            await self._update_buffered(commit_on)
+            await self._update_buffered()
+            self.reload()
         finally:
             self._updating = False
 
-    async def last_updated(self) -> datetime | None:
-        if await self.empty():
+    def last_updated(self) -> datetime | None:
+        if self._db is None:
             return None
 
-        stat = os.stat(self._sql.path)
-        time = datetime.fromtimestamp(stat.st_mtime)
-        return time
+        created_at = self._db.metadata.extra_fields.get("created_at")
+
+        if created_at is None:
+            return None
+
+        if not isinstance(created_at.value, float):
+            raise TypeError
+
+        return datetime.fromtimestamp(created_at.value)
 
     async def clear(self) -> None:
         self._check_updating()
 
         # recreate an empty database
-        await self._sql.close()
-        path = self._sql.path
-        os.remove(path)
-        self._sql = SQLSessionManager(path)
+        self.close()
+        os.remove(self.path)
+        self._db = None
