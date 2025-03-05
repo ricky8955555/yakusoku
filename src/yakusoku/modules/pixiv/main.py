@@ -177,7 +177,7 @@ async def download(query: CallbackQuery, callback_data: Download):
 @router.message()
 async def match_url(message: Message):
     if not message.text:
-        return
+        raise SkipHandler
     ids = find_illust_ids(message.text)
     for id in ids:
         await send_illust(message, id)
