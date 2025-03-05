@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -12,6 +13,8 @@ from yakusoku.module import ModuleManager
 
 
 async def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+
     default = DefaultBotProperties(
         parse_mode=ParseMode.HTML,
         link_preview_is_disabled=True,

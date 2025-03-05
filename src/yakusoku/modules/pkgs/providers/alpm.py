@@ -2,13 +2,10 @@ import asyncio
 import gzip
 import posixpath
 import tarfile
-import tempfile
 from dataclasses import dataclass
-from io import BytesIO, IOBase
-from pathlib import Path
-from typing import AsyncGenerator, AsyncIterable, cast
+from io import BytesIO, IOBase, TextIOWrapper
+from typing import IO, AsyncIterable, Generator
 
-from aiofile import TextFileWrapper, async_open
 from aiohttp import ClientSession
 
 from ..types import Package
@@ -63,12 +60,12 @@ class Alpm(PackageProvider[AlpmRepository]):
         )
 
     @staticmethod
-    async def _read_fields(afp: TextFileWrapper) -> dict[str, str]:
+    def _read_fields(fp: IO[str]) -> dict[str, str]:
         key, value = None, ""
         fields = {}
 
         while True:
-            line = await afp.readline()
+            line = fp.readline()
 
             if not line:
                 return fields
@@ -89,18 +86,22 @@ class Alpm(PackageProvider[AlpmRepository]):
             else:
                 value += line
 
-    async def _iter_packages(
+    def _iter_packages(
         self, archive: IOBase, repo: AlpmRepository
-    ) -> AsyncGenerator[Package, None]:
-        with tempfile.TemporaryDirectory() as dir:
-            dir = Path(dir)
-            with tarfile.TarFile(fileobj=archive, mode="r") as tar:
-                tar.extractall(dir)
-            for package in dir.iterdir():
-                async with async_open(package / "desc") as afp:
-                    afp = cast(TextFileWrapper, afp)
-                    fields = await self._read_fields(afp)
-                    yield self._parse_fields(fields, repo)
+    ) -> Generator[Package, None, None]:
+        with tarfile.TarFile(fileobj=archive, mode="r") as tar:
+            for file in tar:
+                if file.path.split("/")[-1] != "desc":
+                    continue
+
+                fp = tar.extractfile(file)
+                assert fp is not None
+
+                with fp:
+                    tfp = TextIOWrapper(fp)
+                    fields = self._read_fields(tfp)
+
+                yield self._parse_fields(fields, repo)
 
     async def fetch(self, repo: AlpmRepository) -> AsyncIterable[Package]:
         async with ClientSession() as session:
@@ -109,6 +110,6 @@ class Alpm(PackageProvider[AlpmRepository]):
                 compressed = BytesIO(await response.read())
 
         with gzip.GzipFile(mode="r", fileobj=compressed) as archive:
-            async for package in self._iter_packages(archive, repo):
+            for package in self._iter_packages(archive, repo):
                 yield package
                 await asyncio.sleep(0)
