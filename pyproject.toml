@@ -60,5 +60,4 @@ dev = [
     "pyproject-flake8",
     "black",
     "isort",
-    "yappi>=1.6.10",
 ]
