@@ -1,15 +1,15 @@
 import asyncio
 import gzip
+import os
 import posixpath
 import tarfile
 from dataclasses import dataclass
 from io import BytesIO, IOBase
+from tempfile import TemporaryDirectory
 from typing import AsyncGenerator, AsyncIterable, cast
 
 from aiofile import TextFileWrapper, async_open
 from aiohttp import ClientSession
-
-from yakusoku.utils.tempfile import TemporaryFile
 
 from ..types import Package
 from . import PackageProvider, PackageRepository
@@ -69,11 +69,11 @@ class Apk(PackageProvider[ApkRepository]):
     async def _iter_packages(
         self, archive: IOBase, repo: ApkRepository
     ) -> AsyncGenerator[Package, None]:
-        with TemporaryFile() as file:
+        with TemporaryDirectory() as dir:
             with tarfile.TarFile(fileobj=archive, mode="r") as tar:
-                tar.extract("APKINDEX", file)
+                tar.extract("APKINDEX", dir)
 
-            async with async_open(file) as afp:
+            async with async_open(os.path.join(dir, "APKINDEX")) as afp:
                 afp = cast(TextFileWrapper, afp)
                 while True:
                     try:
