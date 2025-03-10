@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.5.0"
-content_hash = "sha256:2e008004fecd05a3469f9e1ad0b82a6b7f020c41f3248409843d1bf654e2462a"
+content_hash = "sha256:603c01dd0688afd563fbe4628074f347e56fa75ad5626a51728443188ff089dc"
 
 [[metadata.targets]]
 requires_python = ">=3.10,<3.13"
@@ -1699,8 +1699,8 @@ files = [
 name = "zakodb"
 version = "0.1.0"
 requires_python = ">=3.10"
-git = "https://gitlab.huajitech.net/Ricky8955555/zakodb.git"
-revision = "e44f9429c34197f37a243a136e217dd9d9286bd8"
+git = "https://github.com/ricky8955555/zakodb.git"
+revision = "b87e033a0f08bee738f12642b9cf18176682d120"
 summary = "A lightweight database."
 
 [[package]]
@@ -1708,13 +1708,13 @@ name = "zakodb"
 version = "0.1.0"
 extras = ["cityhash", "xxhash"]
 requires_python = ">=3.10"
-git = "https://gitlab.huajitech.net/Ricky8955555/zakodb.git"
-revision = "e44f9429c34197f37a243a136e217dd9d9286bd8"
+git = "https://github.com/ricky8955555/zakodb.git"
+revision = "b87e033a0f08bee738f12642b9cf18176682d120"
 summary = "A lightweight database."
 dependencies = [
     "cityhash==0.4.7",
     "xxhash~=3.5.0",
-    "zakodb @ git+https://gitlab.huajitech.net/Ricky8955555/zakodb.git",
+    "zakodb @ git+https://github.com/ricky8955555/zakodb.git",
 ]
 
 [[package]]

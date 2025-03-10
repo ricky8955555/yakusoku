@@ -57,15 +57,10 @@ class PackageManager(Generic[_T]):
 
         self._db = None
 
-        if not os.path.exists(self.path):
-            return
-
-        fp = open(self.path, "rb")
-
         try:
-            self._db = ZakoDb.load(fp)
+            self._db = ZakoDb.load(self.path)
         except NotAZakoDbError:
-            fp.close()
+            pass
 
     def _check_updating(self) -> None:
         if self._updating:
@@ -94,7 +89,7 @@ class PackageManager(Generic[_T]):
 
     def close(self) -> None:
         if self._db is not None:
-            self._db.io.close()
+            self._db.close()
 
     def available(self) -> bool:
         return self._db is not None
@@ -124,11 +119,10 @@ class PackageManager(Generic[_T]):
 
     async def _update_buffered(self) -> None:
         with TemporaryFile() as file:
-            with open(file, "wb") as fp:
-                writer = ZakoDb.create(fp, self._create_metadata())
+            writer = ZakoDb.create(file, self._create_metadata())
 
-                for repo in self.repos:
-                    await self._update_repo(writer, repo)
+            for repo in self.repos:
+                await self._update_repo(writer, repo)
 
             await aioshutil.move(file, self.path)
 
