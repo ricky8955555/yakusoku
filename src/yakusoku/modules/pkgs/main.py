@@ -59,8 +59,10 @@ async def update_task(distro: SupportedDistros) -> None:
         async with semaphore:
             try:
                 logger.info(f"updating {distro.name} distro...")
+                start = datetime.now()
                 await manager.update()
-                logger.info(f"{distro.name} distro updated successfully.")
+                end = datetime.now()
+                logger.info(f"{distro.name} distro updated successfully in {end - start}.")
             except Exception:
                 traceback.print_exc()
                 if retry_after > 0:
@@ -136,12 +138,17 @@ async def pkgs_distro(message: Message, distro: str, name: str):
 
     target, manager = result
 
+    start = datetime.now()
+
     try:
         package = manager.info(name)
     except NoSuchPackage:
         return await message.reply("没有这样的包啦x")
     except DatabaseIsEmpty:
         return await message.reply("等一下嘛, 数据库第一次用还在找数据呢w")
+
+    end = datetime.now()
+    logger.debug(f"search task for '{name}' at '{distro}' completed in {end - start}.")
 
     info = (
         f"<u><b>{html.escape(package.name)}</b></u>\n"
